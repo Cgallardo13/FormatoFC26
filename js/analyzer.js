@@ -63,6 +63,42 @@ function getTeamInitials(teamName) {
 // CORE ANALYSIS FUNCTIONS
 // ============================================
 
+// Calculate formation compatibility score (NEW)
+function calculateFormationCompatibility(userFormation, teamFormation) {
+    // If user hasn't selected a formation, return neutral score
+    if (!userFormation) return 50;
+
+    // Convert user formation ID (e.g., "4_3_3") to array [4, 3, 3]
+    const userFormationArray = userFormation.split('_').map(Number);
+
+    // Team formation might be in different formats, try to parse
+    let teamFormationArray;
+    if (typeof teamFormation === 'string') {
+        teamFormationArray = teamFormation.split('-').map(Number);
+    } else {
+        teamFormationArray = [4, 3, 3]; // Default fallback
+    }
+
+    // Calculate similarity
+    const totalLines = Math.max(userFormationArray.length, teamFormationArray.length);
+    let similarityScore = 0;
+
+    for (let i = 0; i < Math.min(userFormationArray.length, teamFormationArray.length); i++) {
+        const diff = Math.abs(userFormationArray[i] - teamFormationArray[i]);
+        if (diff === 0) {
+            similarityScore += 100; // Exact match
+        } else if (diff === 1) {
+            similarityScore += 70; // Very similar
+        } else if (diff === 2) {
+            similarityScore += 40; // Somewhat similar
+        } else {
+            similarityScore += 10; // Not similar
+        }
+    }
+
+    return similarityScore / totalLines;
+}
+
 // Calculate style compatibility score
 function calculateStyleCompatibility(userStyle, teamStyle) {
     let totalDiff = 0;
@@ -196,36 +232,41 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
 
     console.log(`🔍 Analyzing ${team.name} for position ${userPosition} (squad: ${team.squad_gaps.length} players)`);
 
-    // Find all players in user's position
+    // Find all players in user's EXACT position only (no similar positions)
     const positionPlayers = team.squad_gaps.filter(p => p.position === userPosition);
 
-    // Position mapping for similar positions (EXPANDED)
-    const positionMap = {
-        'ST': ['CF', 'CAM'],
-        'CF': ['ST', 'CAM'],
-        'CAM': ['CM', 'CF'],
-        'CM': ['CDM', 'CAM', 'CB'],
-        'CDM': ['CM', 'CB'],
-        'LW': ['LM', 'RW'],
-        'RW': ['RM', 'LW'],
-        'LM': ['LW', 'LB'],
-        'RM': ['RW', 'RB'],
-        'LB': ['LWB', 'CB'],
-        'RB': ['RWB', 'CB'],
-        'LWB': ['LB', 'LM'],
-        'RWB': ['RB', 'RM'],
-        'CB': ['CDM', 'CM'],
-        'GK': ['GK']
-    };
-
+    // If no exact matches, ONLY then try similar positions as fallback
     let allCompetitors = [...positionPlayers];
 
-    // Add players from similar positions
-    const similarPositions = positionMap[userPosition] || [];
-    similarPositions.forEach(similarPos => {
-        const similarPlayers = team.squad_gaps.filter(p => p.position === similarPos);
-        allCompetitors = [...allCompetitors, ...similarPlayers];
-    });
+    if (allCompetitors.length === 0) {
+        console.warn(`⚠️ No exact matches for position ${userPosition}, trying similar positions`);
+
+        // Position mapping for similar positions (FALLBACK ONLY)
+        const positionMap = {
+            'ST': ['CF'],
+            'CF': ['ST'],
+            'CAM': ['CM'],
+            'CM': ['CAM', 'CDM'],
+            'CDM': ['CM'],
+            'LW': ['LM'],
+            'RW': ['RM'],
+            'LM': ['LW'],
+            'RM': ['RW'],
+            'LB': ['LWB'],
+            'RB': ['RWB'],
+            'LWB': ['LB'],
+            'RWB': ['RB'],
+            'CB': ['CDM'],
+            'GK': ['GK']
+        };
+
+        // Add players from SIMILAR positions only (removed CAM from ST, CB from CM, etc.)
+        const similarPositions = positionMap[userPosition] || [];
+        similarPositions.forEach(similarPos => {
+            const similarPlayers = team.squad_gaps.filter(p => p.position === similarPos);
+            allCompetitors = [...allCompetitors, ...similarPlayers];
+        });
+    }
 
     // If still no competitors found, use ALL players from team
     if (allCompetitors.length === 0) {
@@ -282,46 +323,24 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
 }
 
 /**
- * Filter teams by player rating tier AND game mode (RTG vs Star) - RELAXED FILTERS
+ * Filter teams by player rating tier AND game mode (RTG vs Star) - GUARANTEED RESULTS
  */
 function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
     const gameModeType = gameMode || 'star'; // 'rtg' or 'star'
 
     console.log(`🔍 Filter: Rating=${playerRating}, Mode=${gameModeType}, Total Teams=${teams.length}`);
 
-    // RTG MODE: Small teams to grow (RELAXED - always returns teams)
+    // RTG MODE: Small teams to grow (SUPER RELAXED - ALWAYS returns teams)
     if (gameModeType === 'rtg') {
-        // Try to find teams where player can be STAR, but don't filter too much
-        const growthTeams = teams.filter(team => {
-            const bestPlayer = team.squad_gaps.reduce((best, p) =>
-                p.rating > best.rating ? p : best, { rating: 0 }
-            );
-            // Much more lenient: player >= best player (not +3)
-            return playerRating >= bestPlayer.rating - 2;
-        });
-
-        // Sort by team rating (ascending - smaller teams first)
-        growthTeams.sort((a, b) => a.overall_level - b.overall_level);
-
-        console.log(`🌟 RTG Mode: ${growthTeams.length} growth teams found`);
-
-        // ALWAYS return at least 10 teams, fill with ALL teams sorted by rating if needed
-        if (growthTeams.length >= 10) {
-            return growthTeams.slice(0, 10);
-        } else {
-            // Add all other teams sorted by rating (ascending for RTG)
-            const allOtherTeams = teams
-                .filter(t => !growthTeams.includes(t))
-                .sort((a, b) => a.overall_level - b.overall_level);
-            const result = [...growthTeams, ...allOtherTeams];
-            console.log(`✅ RTG Mode: Returning ${Math.min(10, result.length)} teams total`);
-            return result.slice(0, 10);
-        }
+        // NO FILTERS AT ALL - just sort by rating ascending (worst teams first for RTG)
+        const sortedTeams = [...teams].sort((a, b) => a.overall_level - b.overall_level);
+        console.log(`🌟 RTG Mode: Returning ALL ${Math.min(10, sortedTeams.length)} teams (worst to best)`);
+        return sortedTeams.slice(0, 10);
     }
 
-    // STAR MODE: Elite teams where player is already good (RELAXED)
+    // STAR MODE: Elite teams where player is already good (GUARANTEED RESULTS)
     if (gameModeType === 'star') {
-        // SUPER ÉLITE (88+): Prioritize REAL elite teams but don't be too strict
+        // SUPER ÉLITE (88+): Prioritize REAL elite teams
         if (playerRating >= SUPER_ELITE_PLAYER_RATING) {
             const superEliteTeams = teams.filter(t =>
                 ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
@@ -340,10 +359,10 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
             otherEliteTeams.sort((a, b) => b.overall_level - a.overall_level);
             allOtherTeams.sort((a, b) => b.overall_level - a.overall_level);
 
-            // Combine but ensure we always have 10 teams
+            // Combine but GUARANTEE at least 3 teams
             let result = [...superEliteTeams, ...otherEliteTeams];
-            if (result.length < 10) {
-                result.push(...allOtherTeams.slice(0, 10 - result.length));
+            if (result.length < 3) {
+                result.push(...allOtherTeams.slice(0, 3 - result.length));
             }
 
             console.log(`👑 Super Elite Mode: ${result.length} teams (Elite: ${superEliteTeams.length})`);
@@ -357,9 +376,10 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
             eliteTeams.sort((a, b) => b.overall_level - a.overall_level);
             allOtherTeams.sort((a, b) => b.overall_level - a.overall_level);
 
+            // GUARANTEE at least 3 teams
             let result = [...eliteTeams];
-            if (result.length < 10) {
-                result.push(...allOtherTeams.slice(0, 10 - result.length));
+            if (result.length < 3) {
+                result.push(...allOtherTeams.slice(0, 3 - result.length));
             }
 
             console.log(`⭐ Elite Mode: ${result.length} teams (Elite: ${eliteTeams.length})`);
@@ -367,10 +387,13 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
         }
     }
 
-    // For regular players, return all teams sorted by rating (RELAXED)
-    const result = teams.sort((a, b) => b.overall_level - a.overall_level);
-    console.log(`✅ Regular Mode: Returning ${Math.min(10, result.length)} teams`);
-    return result.slice(0, 10);
+    // For LOW-RATED players: Return ALL teams sorted by rating (best teams first)
+    // GUARANTEE at least 3 teams NO MATTER WHAT
+    const sortedTeams = [...teams].sort((a, b) => b.overall_level - a.overall_level);
+    const result = sortedTeams.slice(0, Math.max(3, Math.min(10, sortedTeams.length)));
+
+    console.log(`✅ Regular Mode: Returning ${result.length} teams (GUARANTEED minimum 3)`);
+    return result;
 }
 
 /**
@@ -531,7 +554,7 @@ async function analyzeResults() {
     const playerRating = parseInt(document.getElementById('playerRating').value) || 80;
     const playerAge = answers.age || 21;
 
-    console.log(`👤 Player: Rating=${playerRating}, Age=${playerAge}, Position=${answers.position}, GameMode=${answers.game_mode}`);
+    console.log(`👤 Player: Rating=${playerRating}, Age=${playerAge}, Position=${answers.position}, Formation=${answers.formation}, GameMode=${answers.game_mode}`);
 
     const userStyle = {
         possession: answers.possession,
@@ -563,7 +586,11 @@ async function analyzeResults() {
             return selectedLeagues.includes(teamLeagueId);
         })
         .map(team => {
+            // Get user's selected formation
+            const userFormationId = answers.formation || '4_3_3';
+
             const styleMatch = calculateStyleCompatibility(userStyle, team.style);
+            const formationMatch = calculateFormationCompatibility(userFormationId, team.formation);
 
             // Analyze real competition using CSV data
             const userPosition = answers.position || findBestPosition(playerRating, team.squad_gaps).position;
@@ -598,7 +625,8 @@ async function analyzeResults() {
                 startingBonus = 10;
             }
 
-            const finalScore = (styleMatch * 0.40) + startingBonus + (growthPotential * 0.25) + (generationalBonus * 0.15) + (difficultyPenalty * 0.30);
+            // NEW: Include formation match in final score (20% weight)
+            const finalScore = (styleMatch * 0.30) + (formationMatch * 0.20) + startingBonus + (growthPotential * 0.20) + (generationalBonus * 0.15) + (difficultyPenalty * 0.30);
 
             return {
                 team: team,

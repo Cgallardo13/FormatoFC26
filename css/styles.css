@@ -1757,3 +1757,274 @@ input[type="range"]::-moz-range-thumb:hover {
     font-size: 2rem;
     text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
 }
+
+/* ===== MOBILE RESPONSIVE IMPROVEMENTS ===== */
+@media (max-width: 768px) {
+    /* Container adjustments */
+    .container {
+        padding: 15px;
+        max-width: 100%;
+    }
+
+    /* Header */
+    .header h1 {
+        font-size: 2.5rem;
+    }
+
+    .header p {
+        font-size: 1rem;
+        padding: 0 20px;
+    }
+
+    /* League grid - better mobile layout */
+    .league-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .league-flag-container {
+        height: 100px;
+        border-radius: 12px;
+    }
+
+    /* Position options */
+    .position-options {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .position-option {
+        padding: 15px 10px;
+    }
+
+    .position-icon {
+        font-size: 2rem;
+    }
+
+    .position-name {
+        font-size: 0.75rem;
+    }
+
+    /* Formation options */
+    .formation-options {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    /* Slider improvements */
+    .slider-options {
+        padding: 10px 0;
+    }
+
+    .slider {
+        width: 100%;
+        height: 8px;
+    }
+
+    .slider-value {
+        font-size: 1.5rem;
+    }
+
+    /* Game mode options */
+    .game-mode-options {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .game-mode-option {
+        padding: 20px;
+    }
+
+    /* Attributes container */
+    .attributes-container {
+        padding: 15px;
+    }
+
+    .attribute-row {
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .attr-label {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+    .attr-slider {
+        width: 100%;
+    }
+
+    /* Result cards */
+    .result-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .result-header {
+        flex-direction: row;
+        text-align: left;
+    }
+
+    .result-rank {
+        font-size: 2rem;
+        margin-right: 10px;
+        margin-bottom: 0;
+    }
+
+    .team-logo-circular {
+        width: 45px;
+        height: 45px;
+        font-size: 12px;
+    }
+
+    .result-team-name {
+        font-size: 1.1rem;
+    }
+
+    .result-league {
+        font-size: 0.85rem;
+    }
+
+    .result-score {
+        padding: 12px;
+    }
+
+    .result-score-value {
+        font-size: 1.8rem;
+    }
+
+    .result-score-label {
+        font-size: 0.75rem;
+    }
+
+    /* Dynamic analysis section */
+    .dynamic-analysis {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+
+    /* Competition section */
+    .competition-section {
+        padding: 12px;
+    }
+
+    .competition-player {
+        font-size: 0.85rem;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+    }
+
+    /* Progress bar */
+    .progress-text {
+        font-size: 0.85rem;
+    }
+}
+
+/* ===== SMALL MOBILE (iPhone SE, etc.) ===== */
+@media (max-width: 375px) {
+    .league-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .league-flag-container {
+        height: 120px;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .position-options {
+        grid-template-columns: 1fr;
+    }
+
+    .result-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .result-rank {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .team-logo-circular {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .result-team-info {
+        align-items: center;
+    }
+
+    /* Custom formation input */
+    .custom-formation-input {
+        font-size: 1rem;
+        padding: 12px;
+    }
+
+    .formation-examples {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .example-tag {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+}
+
+/* ===== IPHONE SPECIFIC FIXES ===== */
+@media (max-width: 430px) and (min-height: 800px) {
+    /* iPhone 14 Pro Max, etc. */
+    .question-title {
+        font-size: 1.3rem;
+    }
+
+    .question-description {
+        font-size: 0.9rem;
+    }
+
+    .league-flag-container {
+        height: 110px;
+    }
+
+    .result-card {
+        padding: 18px;
+    }
+}
+
+/* ===== LANDSCAPE MOBILE ===== */
+@media (max-width: 768px) and (orientation: landscape) {
+    .league-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .league-flag-container {
+        height: 80px;
+    }
+
+    .header h1 {
+        font-size: 1.8rem;
+    }
+
+    .header p {
+        display: none;
+    }
+
+    .result-card {
+        padding: 10px;
+    }
+
+    .team-logo-circular {
+        width: 40px;
+        height: 40px;
+        font-size: 11px;
+    }
+}
