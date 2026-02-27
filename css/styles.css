@@ -2470,13 +2470,13 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ============================================
-   POSTER CARDS CONTAINER - MOBILE FIRST
+   POSTER CARDS CONTAINER - MOBILE FIRST CAROUSEL
    ============================================ */
 .poster-cards-container {
-    /* MOBILE FIRST: Single column carousel */
-    display: grid;
-    grid-template-columns: 100%;
-    gap: 20px;
+    /* MOBILE FIRST: Horizontal carousel with FLEX (not grid) */
+    display: flex;
+    flex-direction: row;
+    gap: 0;
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
@@ -2498,10 +2498,12 @@ input[type="range"]::-moz-range-thumb:hover {
    ============================================ */
 .poster-card {
     position: relative;
-    width: 100vw;
-    max-width: 100vw;
+    /* Mobile: 90vw width, centered, doesn't shrink */
+    flex: 0 0 90vw;
+    width: 90vw;
+    max-width: 90vw;
     height: 80vh;
-    min-height: 600px;
+    min-height: 650px;
     max-height: 85vh;
     border-radius: 20px;
     overflow: hidden;
@@ -2509,7 +2511,7 @@ input[type="range"]::-moz-range-thumb:hover {
     box-shadow:
         0 20px 60px rgba(0, 0, 0, 0.7),
         inset 0 0 0 2px var(--team-accent-color, #667eea);
-    margin: 0 auto;
+    margin: 0 auto; /* Center the card */
 }
 
 /* ============================================
@@ -2547,7 +2549,7 @@ input[type="range"]::-moz-range-thumb:hover {
     transform: translate(-50%, -50%);
     width: 200%;
     height: 200%;
-    opacity: 0.05;
+    opacity: 0.08; /* Increased from 0.05 for better visibility without interfering text */
     pointer-events: none;
     display: flex;
     align-items: center;
@@ -2893,8 +2895,8 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .poster-radar-container svg {
-    width: 160px !important;
-    height: 160px !important;
+    width: 128px !important;  /* Reduced from 160px (-20%) for better mobile layout */
+    height: 128px !important;
 }
 
 /* Tactical Challenge */
@@ -3157,9 +3159,9 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ============================================
-   DESKTOP LAYOUT (>768px)
+   DESKTOP LAYOUT (>1024px - Tablets/Desktops)
    ============================================ */
-@media (min-width: 769px) {
+@media (min-width: 1024px) {
     /* Desktop Header */
     .poster-title {
         font-size: 2.8rem;
@@ -3172,15 +3174,17 @@ input[type="range"]::-moz-range-thumb:hover {
 
     /* Desktop Container - 3 Column Grid */
     .poster-cards-container {
+        display: grid;
         grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
         overflow: visible;
         scroll-snap-type: none;
         padding: 25px;
-        gap: 25px;
     }
 
     /* Desktop Card */
     .poster-card {
+        flex: none; /* Override mobile flex */
         width: 100%;
         max-width: 100%;
         height: 70vh;
@@ -3188,6 +3192,7 @@ input[type="range"]::-moz-range-thumb:hover {
         max-height: 800px;
         border-radius: 25px;
         scroll-snap-align: none;
+        margin: 0;
     }
 
     /* Hide navigation elements on desktop */
@@ -3402,8 +3407,8 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 
     .poster-radar-container svg {
-        width: 130px !important;
-        height: 130px !important;
+        width: 110px !important;  /* Reduced from 130px (-20%) */
+        height: 110px !important;
     }
 
     .poster-section-title {

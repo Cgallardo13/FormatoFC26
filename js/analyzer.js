@@ -1025,22 +1025,23 @@ function getTeamLogoPath(teamName, league) {
     }
 
     // Map league to folder path
-    // NOTE: "United Kindom" is the actual folder name in the repo (typo preserved for compatibility)
+    // NOTE: Logos are in root folders, NOT in a "logos" folder
+    // NOTE: "United Kindom" is the actual folder name in the repo (typo preserved)
     let leagueFolder = '';
     if (league === 'La Liga') {
-        leagueFolder = 'logos/Espana/Primera División de España';
+        leagueFolder = 'Espana/Primera División de España';
     } else if (league === 'Premier League') {
         // IMPORTANT: Repo has "United Kindom" (with typo), NOT "United Kingdom"
-        leagueFolder = 'logos/United Kindom/Premier League';
+        leagueFolder = 'United Kindom/Premier League';
     } else if (league === 'Bundesliga') {
-        leagueFolder = 'logos/Alemania/Bundesliga';
+        leagueFolder = 'Alemania/Bundesliga';
     } else if (league === 'Serie A') {
-        leagueFolder = 'logos/Italia/Serie A';
+        leagueFolder = 'Italia/Serie A';
     } else if (league === 'Ligue 1') {
-        leagueFolder = 'logos/Francia/Ligue 1';
+        leagueFolder = 'Francia/Ligue 1';
     } else {
         // Fallback for unknown leagues
-        leagueFolder = `logos/${league}`;
+        leagueFolder = `${league}`;
     }
 
     // Encode the filename to handle spaces, accents, and special characters
