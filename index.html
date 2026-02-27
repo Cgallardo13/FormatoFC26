@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>FC26 Team Finder</title>
+    <!-- Google Fonts - Estilo Deportivo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>⚽ FC26</h1>
+            <p>Encuentra tu equipo perfecto</p>
+            <button id="dataSourceStatus" class="status-badge" onclick="showDataSourceInfo()" style="display: none;">
+                ⏳ Loading...
+            </button>
+        </header>
+
+        <!-- Footer con Test API -->
+        <footer class="footer">
+            <button class="test-api-btn" onclick="testAllConnections()" title="Testear conexiones de API">
+                🔧 Test API
+            </button>
+        </footer>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Welcome Screen -->
+            <div id="welcomeScreen" class="screen active">
+                <div class="welcome-content">
+                    <h2>¡Bienvenido!</h2>
+                    <p>Responde unas preguntas sobre tu estilo de juego y te diremos cuál es el mejor equipo para tu jugador en FC26.</p>
+
+                    <div class="input-group">
+                        <label for="playerRating">🎯 Media de tu jugador</label>
+                        <input type="number" id="playerRating" min="50" max="99" value="80" placeholder="80">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="geminiStyle">🤖 ¿Cómo juegas? (Describir tu estilo ayuda a Gemini a analizar)</label>
+                        <textarea id="geminiStyle" rows="3" placeholder="Ej: Juego rápido por las bandas, muchos centros, presiono alto..."></textarea>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="startInterview(event)">
+                        Comenzar Análisis
+                    </button>
+                </div>
+            </div>
+
+            <!-- Questions Screen -->
+            <div id="questionsScreen" class="screen">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="question-counter">
+                    Pregunta <span id="currentQuestion">1</span> de <span id="totalQuestions">9</span>
+                </div>
+
+                <div class="question-container" id="questionContainer">
+                    <!-- Questions will be loaded here -->
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion(event)" disabled>
+                        ← Anterior
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion(event)">
+                        Siguiente →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Screen -->
+            <div id="loadingScreen" class="screen">
+                <div class="loading-content">
+                    <div class="spinner-epic"></div>
+                    <h2>⚽ Analizando mercado de fichajes...</h2>
+                    <p>Comparando tu perfil con 96 equipos de las mejores ligas</p>
+                    <div class="loading-dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Screen -->
+            <div id="resultsScreen" class="screen">
+                <div class="results-header">
+                    <h2>🎯 Análisis Completado</h2>
+                    <p class="player-info">Tu media: <span id="resultPlayerRating">80</span></p>
+                </div>
+
+                <div class="results-container" id="resultsContainer">
+                    <!-- Results will be loaded here -->
+                </div>
+
+                <button class="btn btn-primary" onclick="restart(event)">
+                    🔄 Nuevo Análisis
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/questions.js"></script>
+    <script src="js/analyzer.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+</html>
