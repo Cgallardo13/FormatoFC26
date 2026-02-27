@@ -15,6 +15,798 @@ const ELITE_TEAMS = [
     'Bayern Munich', 'PSG', 'Inter', 'AC Milan', 'Juventus'
 ];
 
+// ============================================
+// MANAGER DATABASE - Professional Styles 2025/26
+// ============================================
+const MANAGER_STYLES = {
+    'fc barcelona': {
+        name: 'Hansi Flick',
+        style: 'Juego de Posicion Aleman',
+        philosophy: 'Posesion absoluta, presion intensa, transiciones rapidas',
+        keyPhrase: 'El futbol total de Flick exige control y ritmo alto'
+    },
+    'real madrid': {
+        name: 'Carlo Ancelotti',
+        style: 'Alta Dinamica',
+        philosophy: 'Transiciones letales, flexibilidad tactica, momentos de clase',
+        keyPhrase: 'Ancelotti permite la libertad creativa en los ultimos 30 metros'
+    },
+    'atletico madrid': {
+        name: 'Diego Simeone',
+        style: 'Cholismo',
+        philosophy: 'Defensa de hierro, contraataque quirurgico, sacrificio total',
+        keyPhrase: 'El Cholo exige intensidad defensiva y letalidad al contraataque'
+    },
+    'athletic bilbao': {
+        name: 'Ernesto Valverde',
+        style: 'Pragmatismo Vasco',
+        philosophy: 'Juego aereo, banda intensa, organizacion defensiva',
+        keyPhrase: 'Valverde maximiza el estilo fisico y aerial de los leones'
+    },
+    'manchester city': {
+        name: 'Pep Guardiola',
+        style: 'Juego de Posicion',
+        philosophy: 'Posesion extrema, posicionamiento coordinado, presion alta',
+        keyPhrase: 'Guardiola requiere inteligencia tactica y movimiento constante'
+    },
+    'arsenal': {
+        name: 'Mikel Arteta',
+        style: 'Pepismo 2.0',
+        philosophy: 'Combos cortos, presion intensa, versatilidad ofensiva',
+        keyPhrase: 'Arteta busca jugadores tecnicos con capacidad de presion'
+    },
+    'liverpool': {
+        name: 'Arne Slot',
+        style: 'Rock & Roll Football 2.0',
+        philosophy: 'Transiciones explosivas, pressing amplio, ataque directo',
+        keyPhrase: 'Slot mantiene la intensidad del Klopppressing con mas estructura'
+    },
+    'aston villa': {
+        name: 'Unai Emery',
+        style: 'Tactica Europea',
+        philosophy: 'Organizacion defensiva, contraedicion precisa, set pieces',
+        keyPhrase: 'Emery requiere disciplina tactica y letalidad en las transiciones'
+    },
+    'bayern': {
+        name: 'Vincent Kompany',
+        style: 'Posesion Vertical',
+        philosophy: 'Construccion audaz, presion alta, sangre fria',
+        keyPhrase: 'Kompany quiere valentia con el balon y estructura defensiva'
+    },
+    'dortmund': {
+        name: 'Nuri Sahin',
+        style: 'Dortmund Pressing',
+        philosophy: 'Ataque de ritmo alto, transiciones rapidas, intensidad',
+        keyPhrase: 'Sahin mantiene la filosofia de presion historica del club'
+    },
+    'leverkusen': {
+        name: 'Xabi Alonso',
+        style: 'Tiki-Taka Aleman',
+        philosophy: 'Posesion dinamica, wing-backs ofensivos, transiciones dobles',
+        keyPhrase: 'Alonso busca laterales tecnicos y mediocampistas versatiles'
+    },
+    'inter': {
+        name: 'Simone Inzaghi',
+        style: '3-5-2 Letal',
+        philosophy: 'Lateralidad offensiva, transiciones rapidas, equilibrio',
+        keyPhrase: 'Inzaghi busca mediocampistas completos y extremos tacticos'
+    },
+    'juventus': {
+        name: 'Thiago Motta',
+        style: '2-7-2 Revolucionario',
+        philosophy: 'Posesion extrema, mediocampistas creativos, presion alta',
+        keyPhrase: 'Motta busca futbolistas inteligentes que entiendan el espacio'
+    },
+    'napoles': {
+        name: 'Antonio Conte',
+        style: 'Conteball',
+        philosophy: '3-4-2-1, presion asfixiante, contraataque quirurgico',
+        keyPhrase: 'Conte requiere disciplina tactica absoluta y mentalidad ganadora'
+    },
+    'atalanta': {
+        name: 'Gian Piero Gasperini',
+        style: 'Gasperiniball',
+        philosophy: 'Pressing maniquo, wing-backs ofensivos, libertad creativa',
+        keyPhrase: 'Gasperini demanda atletas con resistencia y tecnica'
+    },
+    'psg': {
+        name: 'Luis Enrique',
+        style: 'Posesion Radical',
+        philosophy: 'Posesion extrema, diagonales ofensivas, rotacion constante',
+        keyPhrase: 'Luis Enrique busca jugadores tecnicos sin miedo al riesgo'
+    },
+    'monaco': {
+        name: 'Adi Hutter',
+        style: 'Grenoble Pressing',
+        philosophy: 'Presion alta, juego directo, transiciones explosivas',
+        keyPhrase: 'Hutter requiere intensidad y verticalidad constante'
+    }
+};
+
+// ============================================
+// STADIUM ATMOSPHERE DATABASE (2025/26)
+// ============================================
+const STADIUM_ATMOSPHERE = {
+    'fc barcelona': {
+        city: 'Barcelona',
+        atmosphere: 'El Campnou vibra con la Pasión catalana. El cante te exigirá entrega total desde el primer minuto.',
+        weather: 'Juegos soleados, 22°C promedio'
+    },
+    'real madrid': {
+        city: 'Madrid',
+        atmosphere: 'Santiago Bernabéu es un templo del fútbol. La afición conoce el fútbol y juzga cada acción.',
+        weather: 'Continental, 20°C promedio'
+    },
+    'atletico madrid': {
+        city: 'Madrid',
+        atmosphere: 'El Cívitas Metropolitano es una fortaleza. La grada vive cada balón como si fuera el último.',
+        weather: 'Continental, 20°C promedio'
+    },
+    'athletic bilbao': {
+        city: 'Bilbao',
+        atmosphere: 'San Mamés es una cauldron purpura. La insistencia de los seguidadores te hará dar el 110%.',
+        weather: 'Lluvias frecuentes, 17°C promedio'
+    },
+    'manchester city': {
+        city: 'Manchester',
+        atmosphere: 'Etihad Stadium es moderno pero exigente. Los fans de City conocen su fútbol y aplauden el juego inteligente.',
+        weather: 'Lluvioso, 13°C promedio'
+    },
+    'manchester united': {
+        city: 'Manchester',
+        atmosphere: 'Old Trafford es el Teatro de los Sueños. La presión de la historia te persigue, pero también te inspira.',
+        weather: 'Lluvioso, 13°C promedio'
+    },
+    'liverpool': {
+        city: 'Liverpool',
+        atmosphere: 'Anfield es más que un estadio, es una religión. You\'ll Never Walk Alone no es solo una canción, es una amenaza.',
+        weather: 'Costero lluvioso, 11°C promedio'
+    },
+    'arsenal': {
+        city: 'London',
+        atmosphere: 'El Emirates es elegante pero exigente. Los Gooners valoran el fútbol atractivo y posicional.',
+        weather: 'Lluvias moderadas, 14°C promedio'
+    },
+    'chelsea': {
+        city: 'London',
+        atmosphere: 'Stamford Bridge es una mezcla de pasión y modernidad. Los fans quieren ver compromiso total.',
+        weather: 'Lluvias moderadas, 14°C promedio'
+    },
+    'tottenham': {
+        city: 'London',
+        atmosphere: 'Tottenham Hotspur Stadium tiene una base de fans muy pasional. El norte de Londres no acepta menos que todo.',
+        weather: 'Lluvias moderadas, 14°C promedio'
+    },
+    'bayern': {
+        city: 'Munich',
+        atmosphere: 'Allianz Arena es la catedral del fútbol alemán. La eficiencia y la profesionalidad se esperan en cada jugada.',
+        weather: 'Continental fresco, 11°C promedio'
+    },
+    'dortmund': {
+        city: 'Dortmund',
+        atmosphere: 'Signal Iduna Park es la Yellow Wall. 80,000 hinchas cantando al unísono crean una atmósfera irrepetible.',
+        weather: 'Continental lluvioso, 10°C promedio'
+    },
+    'juventus': {
+        city: 'Turin',
+        atmosphere: 'Allianz Stadium es elegante pero demandante. La Bianconeri espera victorias y estilo.',
+        weather: 'Continental, 15°C promedio'
+    },
+    'inter': {
+        city: 'Milan',
+        atmosphere: 'San Siro es histórico y fascinante. La Curva Nord exige pasión y resultados.',
+        weather: 'Continental húmedo, 16°C promedio'
+    },
+    'ac milan': {
+        city: 'Milan',
+        atmosphere: 'San Siro compartido es majestuoso. Los rossoneri valoran el bel gioco y la técnica.',
+        weather: 'Continental húmedo, 16°C promedio'
+    },
+    'napoles': {
+        city: 'Naples',
+        atmosphere: 'Diego Maradona es un volcán de pasión. El fútbol napolitano es más que deporte, es religión.',
+        weather: 'Mediterráneo soleado, 20°C promedio'
+    },
+    'roma': {
+        city: 'Rome',
+        atmosphere: 'Stadio Olimpico es eterno. La Roma requiere carattere e gloria en cada presentación.',
+        weather: 'Mediterráneo soleado, 20°C promedio'
+    },
+    'aston villa': {
+        city: 'Birmingham',
+        atmosphere: 'Villa Park es tradición pura. Tu agresividad en la marca te hará un favorito de la grada.',
+        weather: 'Nublado, 12°C promedio'
+    },
+    'everton': {
+        city: 'Liverpool',
+        atmosphere: 'Goodison Park es una fortaleza. Los toffees exigen lealtad y esfuerzo en cada balón.',
+        weather: 'Costero lluvioso, 11°C promedio'
+    },
+    'newcastle': {
+        city: 'Newcastle',
+        atmosphere: 'St James\' Park es electrizante. Los Geordies son apasionados y leales hasta la muerte.',
+        weather: 'Costero frío, 9°C promedio'
+    },
+    'leverkusen': {
+        city: 'Leverkusen',
+        atmosphere: 'BayArena es moderno y vibrante. La obra de Alonso ha convertido a la afición en creyente.',
+        weather: 'Continental moderado, 13°C promedio'
+    },
+    'frankfurt': {
+        city: 'Frankfurt',
+        atmosphere: 'Deutsche Bank Park es intenso. Los fans exigen intensidad y presion constante.',
+        weather: 'Continental moderado, 13°C promedio'
+    },
+    'inter': {
+        city: 'Milan',
+        atmosphere: 'San Siro es histórico y fascinante. La Curva Nord exige pasión y resultados.',
+        weather: 'Continental húmedo, 16°C promedio'
+    },
+    'bayer leverkusen': {
+        city: 'Leverkusen',
+        atmosphere: 'BayArena es moderno y vibrante. La obra de Alonso ha convertido a la afición en creyente.',
+        weather: 'Continental moderado, 13°C promedio'
+    },
+    'rb leipzig': {
+        city: 'Leipzig',
+        atmosphere: 'Red Bull Arena es energía pura. Los fans exigen intensidad y velocidad.',
+        weather: 'Continental fresco, 11°C promedio'
+    },
+    'wolfsburg': {
+        city: 'Wolfsburg',
+        atmosphere: 'Volkswagen Arena es moderno pero exigente. La afición valora el esfuerzo.',
+        weather: 'Continental nublado, 12°C promedio'
+    },
+    'eintracht frankfurt': {
+        city: 'Frankfurt',
+        atmosphere: 'Deutsche Bank Park es intenso. La Waldstadim es una fortaleza.',
+        weather: 'Continental moderado, 13°C promedio'
+    },
+    'union berlin': {
+        city: 'Berlin',
+        atmosphere: 'Stadion An der Alten Försterei es auténtico. Los fans exigen garra.',
+        weather: 'Continental fresco, 10°C promedio'
+    },
+    'freiburg': {
+        city: 'Freiburg',
+        atmosphere: 'Europa-Park Stadion es acogedor pero competitivo. Fútbol intenso.',
+        weather: 'Continental lluvioso, 11°C promedio'
+    },
+    'bayer 04 leverkusen': {
+        city: 'Leverkusen',
+        atmosphere: 'BayArena es moderno y vibrante. La obra de Alonso ha convertido a la afición en creyente.',
+        weather: 'Continental moderado, 13°C promedio'
+    },
+    'atalanta': {
+        city: 'Bergamo',
+        atmosphere: 'Gewiss Stadium es una olla a presión. Gasperini exige intensidad máxima.',
+        weather: 'Alpino fresco, 14°C promedio'
+    },
+    'lazio': {
+        city: 'Rome',
+        atmosphere: 'Stadio Olimpico en Roma es eterno. La Lazio requiere passion.',
+        weather: 'Mediterráneo soleado, 20°C promedio'
+    },
+    'napoli': {
+        city: 'Naples',
+        atmosphere: 'Diego Maradona es un volcán de pasión. El fútbol napolitano es más que deporte, es religión.',
+        weather: 'Mediterráneo soleado, 20°C promedio'
+    },
+    'fiorentina': {
+        city: 'Florence',
+        atmosphere: 'Artemio Franchi es elegante y apasionado. La Fiorentina valora el bel gioco.',
+        weather: 'Continental suave, 17°C promedio'
+    },
+    'torino': {
+        city: 'Turin',
+        atmosphere: 'Stadio Olimpico Grande Torino es Working Class. Los fans exigen lucha.',
+        weather: 'Continental, 14°C promedio'
+    },
+    'psg': {
+        city: 'Paris',
+        atmosphere: 'Parc des Princes es glamour y presión. El exigente público parisino busca perfección.',
+        weather: 'Templado, 15°C promedio'
+    },
+    'as monaco': {
+        city: 'Monaco',
+        atmosphere: 'Louis II es exclusivo pero tranquilo. Un ambiente diferente al resto.',
+        weather: 'Costero soleado, 18°C promedio'
+    },
+    'marseille': {
+        city: 'Marseille',
+        atmosphere: 'Vélodrome es ebullición pura. Los fans son apasionados y exigentes.',
+        weather: 'Mediterráneo, 19°C promedio'
+    },
+    'lyon': {
+        city: 'Lyon',
+        atmosphere: 'Groupama Stadium es moderno. La afición valora el juego ofensivo.',
+        weather: 'Continental suave, 16°C promedio'
+    },
+    'lille': {
+        city: 'Lille',
+        atmosphere: 'Pierre Mauroy es el hogar del norte. Fans trabajadores y leales.',
+        weather: 'Norte lluvioso, 12°C promedio'
+    },
+    'nice': {
+        city: 'Nice',
+        atmosphere: 'Allianz Riviera es moderno y bonito. Ambiente relajado pero competitivo.',
+        weather: 'Costero soleado, 18°C promedio'
+    },
+    'west ham': {
+        city: 'London',
+        atmosphere: 'London Stadium es moderno. Los Hammers son tradicionales y apasionados.',
+        weather: 'Lluvias moderadas, 14°C promedio'
+    },
+    'brighton': {
+        city: 'Brighton',
+        atmosphere: 'Amex Stadium es moderno y elegante. Los Seagulls valoran el fútbol técnico.',
+        weather: 'Costero ventoso, 13°C promedio'
+    },
+    'villa': {
+        city: 'Birmingham',
+        atmosphere: 'Villa Park es tradición pura. Tu agresividad en la marca te hará un favorito de la grada.',
+        weather: 'Nublado, 12°C promedio'
+    },
+    'real sociedad': {
+        city: 'San Sebastian',
+        atmosphere: 'Reale Arena es elegante y exigente. La afición conoce el fútbol.',
+        weather: 'Costero lluvioso, 16°C promedio'
+    },
+    'real betis': {
+        city: 'Seville',
+        atmosphere: 'Benito Villamarin es pasión andaluza. Los fans exigen alegría y juego.',
+        weather: 'Andaluz soleado, 22°C promedio'
+    },
+    'sevilla': {
+        city: 'Seville',
+        atmosphere: 'Ramon Sanchez Pizjuan es una fortaleza. El calor y la pasión son extremos.',
+        weather: 'Andaluz caluroso, 24°C promedio'
+    },
+    'valencia': {
+        city: 'Valencia',
+        atmosphere: 'Mestalla es histórico y exigente. Los fans valencianistas son leales.',
+        weather: 'Mediterráneo, 20°C promedio'
+    },
+    'real sociedad': {
+        city: 'San Sebastian',
+        atmosphere: 'Reale Arena es elegante y exigente. La afición conoce el fútbol.',
+        weather: 'Costero lluvioso, 16°C promedio'
+    },
+    'celta vigo': {
+        city: 'Vigo',
+        atmosphere: 'Balaídos es auténtico. Los Celtistas exigen garra y lucha.',
+        weather: 'Gallego lluvioso, 15°C promedio'
+    },
+    'espanyol': {
+        city: 'Barcelona',
+        atmosphere: 'Cornella-El Prat es moderno pero humilde. Los pericos buscan superación.',
+        weather: 'Mediterráneo, 20°C promedio'
+    }
+};
+
+// ============================================
+// TACTICAL RADAR CHART GENERATOR
+// ============================================
+/**
+ * Create a tactical radar chart (spider web) comparing user vs team stats
+ * @param {Object} userStats - User's tactical stats from sliders
+ * @param {Object} teamStats - Team's tactical stats from TEAM_TACTICS_DB
+ * @returns {string} SVG HTML of radar chart
+ */
+function createTacticalRadar(userStats, teamStats) {
+    const metrics = [
+        { key: 'wing_play', label: 'Bandas', user: userStats.wing_play, team: teamStats.wing_play },
+        { key: 'possession', label: 'Posesión', user: userStats.possession, team: teamStats.possession },
+        { key: 'counter_attack', label: 'Contraataque', user: userStats.counter_attack, team: teamStats.counter_attack },
+        { key: 'aerial_balls', label: 'Aéreo', user: userStats.aerial_balls, team: teamStats.aerial_balls },
+        { key: 'high_press', label: 'Presión', user: userStats.high_press, team: teamStats.high_press }
+    ];
+
+    // Radar chart dimensions
+    const size = 200;
+    const center = size / 2;
+    const radius = size / 2 - 30;
+    const angleStep = (Math.PI * 2) / metrics.length;
+
+    // Generate polygon points
+    let userPoints = '';
+    let teamPoints = '';
+    let axisLines = '';
+    let labels = '';
+
+    metrics.forEach((metric, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const x = center + radius * Math.cos(angle);
+        const y = center + radius * Math.sin(angle);
+
+        // Axis line
+        axisLines += `<line x1="${center}" y1="${center}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+
+        // Label
+        const labelX = center + (radius + 15) * Math.cos(angle);
+        const labelY = center + (radius + 15) * Math.sin(angle);
+        labels += `<text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" fill="#a0a5b9" font-size="9">${metric.label}</text>`;
+
+        // User point
+        const userValue = metric.user / 100;
+        const userX = center + (radius * userValue) * Math.cos(angle);
+        const userY = center + (radius * userValue) * Math.sin(angle);
+        userPoints += `${userX},${userY} `;
+
+        // Team point
+        const teamValue = metric.team / 100;
+        const teamX = center + (radius * teamValue) * Math.cos(angle);
+        const teamY = center + (radius * teamValue) * Math.sin(angle);
+        teamPoints += `${teamX},${teamY} `;
+    });
+
+    return `
+        <div style="display: flex; justify-content: center; margin: 15px 0;">
+            <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="overflow: visible;">
+                <!-- Background circle -->
+                <circle cx="${center}" cy="${center}" r="${radius}" fill="rgba(102, 126, 234, 0.1)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+                <!-- Axis lines -->
+                ${axisLines}
+
+                <!-- Team polygon (blue) -->
+                <polygon points="${teamPoints.trim()}" fill="rgba(59, 130, 246, 0.3)" stroke="#3b82f6" stroke-width="2"/>
+
+                <!-- User polygon (green) -->
+                <polygon points="${userPoints.trim()}" fill="rgba(34, 197, 94, 0.4)" stroke="#22c55e" stroke-width="2"/>
+
+                <!-- Points -->
+                ${metrics.map((metric, i) => {
+                    const angle = i * angleStep - Math.PI / 2;
+                    const userValue = metric.user / 100;
+                    const teamValue = metric.team / 100;
+                    const userX = center + (radius * userValue) * Math.cos(angle);
+                    const userY = center + (radius * userValue) * Math.sin(angle);
+                    const teamX = center + (radius * teamValue) * Math.cos(angle);
+                    const teamY = center + (radius * teamValue) * Math.sin(angle);
+                    return `
+                        <circle cx="${userX}" cy="${userY}" r="3" fill="#22c55e"/>
+                        <circle cx="${teamX}" cy="${teamY}" r="3" fill="#3b82f6"/>
+                    `;
+                }).join('')}
+
+                <!-- Labels -->
+                ${labels}
+
+                <!-- Legend -->
+                <text x="${center}" y="${size + 20}" text-anchor="middle" fill="#a0a5b9" font-size="8">
+                    <tspan x="${center}" dy="0">🟢 Tu estilo</tspan>
+                    <tspan x="${center}" dy="12">🔵 Estilo equipo</tspan>
+                </text>
+            </svg>
+        </div>
+    `;
+}
+
+/**
+ * Get tactical challenge (worst-fitting stat with advice)
+ * @param {Object} userStats - User's tactical stats
+ * @param {Object} teamStats - Team's tactical stats
+ * @returns {Object} Challenge info with label, diff, and advice
+ */
+function getTacticalChallenge(userStats, teamStats) {
+    const metrics = [
+        {
+            key: 'wing_play',
+            label: 'juego por bandas',
+            advice: 'Entrena desmarques y centros. El DT espera que abras el campo.',
+            icon: '🏃'
+        },
+        {
+            key: 'possession',
+            label: 'posesión estática',
+            advice: 'Mejora tu primer toque y p cortos. El sistema exige control.',
+            icon: '⚽'
+        },
+        {
+            key: 'counter_attack',
+            label: 'transiciones ofensivas',
+            advice: 'Practica aceleraciones tras recuperación. Verticalización clave.',
+            icon: '⚡'
+        },
+        {
+            key: 'aerial_balls',
+            label: 'juego aéreo',
+            advice: 'Trabaja timing de salto y ubicación. Los centros son vitales.',
+            icon: '✈️'
+        },
+        {
+            key: 'high_press',
+            label: 'presión alta',
+            advice: 'Entrena interceptaciones y anticipación. Defender desde arriba.',
+            icon: '🔥'
+        }
+    ];
+
+    // Find metric with biggest difference
+    let worstMetric = metrics[0];
+    let maxDiff = 0;
+
+    metrics.forEach(metric => {
+        const diff = Math.abs(userStats[metric.key] - teamStats[metric.key]);
+        if (diff > maxDiff) {
+            maxDiff = diff;
+            worstMetric = metric;
+        }
+    });
+
+    return {
+        ...worstMetric,
+        diff: maxDiff
+    };
+}
+
+/**
+ * Get manager's specific advice based on team and tactical match
+ * @param {Object} team - Team data
+ * @param {number} tacticalMatch - Tactical compatibility score
+ * @returns {string} Manager advice
+ */
+function getManagerAdvice(team, tacticalMatch) {
+    const teamName = team.name.toLowerCase().trim();
+    const manager = MANAGER_STYLES[teamName];
+
+    if (!manager) {
+        return 'Adapta tu estilo al sistema del equipo. La profesionalidad es clave.';
+    }
+
+    if (tacticalMatch >= 85) {
+        return `${manager.keyPhrase}`;
+    } else if (tacticalMatch >= 70) {
+        return `${manager.name}: "${manager.philosophy.split('.')[0]}."`;
+    } else {
+        return `Para el ${manager.style} de ${manager.name}, necesitas ajustar tu estilo.`;
+    }
+}
+
+/**
+ * Check if user's formation syncs with team's preferred formation
+ * @param {string} userFormation - User's formation (e.g., "4-3-3")
+ * @param {Object} team - Team data
+ * @returns {Object} Sync status and label
+ */
+function checkFormationSync(userFormation, team) {
+    const userFormationNormal = userFormation.replace(/_/g, '-');
+    const teamName = team.name.toLowerCase().trim();
+    const teamPrefs = TEAM_FORMATION_PREFERENCES[teamName];
+
+    if (!teamPrefs) {
+        return { hasSync: false, label: '' };
+    }
+
+    const exactMatch = teamPrefs.preferred.some(f => f === userFormationNormal);
+
+    if (exactMatch) {
+        return {
+            hasSync: true,
+            label: '✦ SINCRONÍA TÁCTICA ✦'
+        };
+    }
+
+    // Check for similar formation
+    const userParts = userFormationNormal.split('-').map(Number);
+    const hasSimilar = teamPrefs.preferred.some(pref => {
+        const prefParts = pref.split('-').map(Number);
+        return userParts.every((part, i) => Math.abs(part - (prefParts[i] || 0)) <= 1);
+    });
+
+    if (hasSimilar) {
+        return {
+            hasSync: true,
+            label: '✦ FORMACIÓN COMPATIBLE ✦'
+        };
+    }
+
+    return { hasSync: false, label: '' };
+}
+
+/**
+ * Animate counter from 0 to target value
+ * @param {HTMLElement} element - Element containing the number
+ * @param {number} target - Target value
+ * @param {number} duration - Animation duration in ms
+ */
+function animateCounter(element, target, duration = 1500) {
+    const start = 0;
+    const startTime = performance.now();
+
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Easing function for smooth animation
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(start + (target - start) * easeOut);
+
+        element.textContent = current;
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            // Flash effect when complete
+            element.style.transition = 'text-shadow 0.3s ease';
+            element.style.textShadow = '0 0 20px rgba(102, 126, 234, 0.8)';
+            setTimeout(() => {
+                element.style.textShadow = 'none';
+            }, 300);
+        }
+    }
+
+    requestAnimationFrame(update);
+}
+
+// ============================================
+// TEAM LOGO MAPPING - Links team names to SVG files
+// ============================================
+
+/**
+ * Get the logo path for a team based on its name and league
+ * @param {string} teamName - The team name from database
+ * @param {string} league - The league name
+ * @returns {string|null} - Logo path or null if not found
+ */
+function getTeamLogoPath(teamName, league) {
+    const normalizedName = teamName.toLowerCase().trim();
+
+    // Mapping from database team names to actual SVG filenames
+    const teamLogoMap = {
+        // ==================== LA LIGA ====================
+        'fc barcelona': 'Fútbol Club Barcelona.svg',
+        'real madrid': 'Real madrid.svg',
+        'atletico madrid': 'Club Atlético de Madrid.svg',
+        'athletic club': 'Athletic Club(Bilbao).svg',
+        'athletic bilbao': 'Athletic Club(Bilbao).svg',
+        'real betis': 'Real Betis Balompié.svg',
+        'real sociedad': 'Real Sociedad de Fútbol.svg',
+        'real valladolid': 'Real Valladolid Club de Fútbol.svg',
+        'celta vigo': 'Real Club Celta de Vigo.svg',
+        'celta de vigo': 'Real Club Celta de Vigo.svg',
+        'sevilla': 'Sevilla Fútbol Club.svg',
+        'valencia': 'Valencia.svg',
+        'villarreal': 'Villareal.svg',
+        'getafe': 'Getafe.svg',
+        'granada': 'Granada Club de Fútbol.svg',
+        'levante': 'Levante.svg',
+        'osasuna': 'Club Atlético Osasuna.svg',
+        'cadiz': 'Cádiz Club de Fútbol.svg',
+        'alaves': 'Deportivo Alavés.svg',
+        'elche': 'Elche Club de Fútbol.svg',
+        'eibar': 'Sociedad Deportiva Eibar.svg',
+        'huesca': 'Sociedad Deportiva Huesca.svg',
+
+        // ==================== PREMIER LEAGUE ====================
+        'manchester city': 'Manchester City F.C..svg',
+        'manchester united': 'Manchester United F.C..svg',
+        'liverpool': 'Liverpool F.C..svg',
+        'arsenal': 'Arsenal F.C..svg',
+        'chelsea': 'Chelsea F.C..svg',
+        'tottenham': 'Tottenham Hotspur F.C..svg',
+        'aston villa': 'Aston Villa F.C..svg',
+        'newcastle': 'Newcastle United F.C..svg',
+        'everton': 'Everton F.C..svg',
+        'west ham': 'West Ham United F.C..svg',
+        'brighton': 'Brighton & Hove Albion F.C..svg',
+        'leicester': 'Leicester City F.C..svg',
+        'leeds': 'Leeds United F.C..svg',
+        'wolves': 'Wolverhampton Wanderers F.C..svg',
+        'fulham': 'Fulham F.C..svg',
+        'crystal palace': 'Crystal Palace F.C..svg',
+        'southampton': 'Southampton F.C..svg',
+        'burnley': 'Burnley F.C..svg',
+        'west brom': 'West Bromwich Albion F.C..svg',
+        'sheffield united': 'Sheffield United F.C..svg',
+
+        // ==================== BUNDESLIGA ====================
+        'bayern munich': 'Fußball-Club Bayern München e.V..svg',
+        'bayern': 'Fußball-Club Bayern München e.V..svg',
+        'borussia dortmund': 'Ballspielverein Borussia 09 e.V. Dortmund,.svg',
+        'dortmund': 'Ballspielverein Borussia 09 e.V. Dortmund,.svg',
+        'bayer leverkusen': 'Bayer 04 Leverkusen Fußball GmbH.svg',
+        'leverkusen': 'Bayer 04 Leverkusen Fußball GmbH.svg',
+        'rb leipzig': 'RasenBallsport Leipzig e. V..svg',
+        'union berlin': '1. Fußballclub Union Berlin e. V.svg',
+        'eintracht frankfurt': 'Eintracht Frankfurt e.V..svg',
+        'frankfurt': 'Eintracht Frankfurt e.V..svg',
+        'vfl wolfsburg': 'VfL Wolfsburg-Fußball GmbH.svg',
+        'wolfsburg': 'VfL Wolfsburg-Fußball GmbH.svg',
+        'freiburg': 'Sport-Club Freiburg e.V..svg',
+        'hoffenheim': 'Turn-und Sportgemeinschaft 1899 Hoffenheim e.V..svg',
+        'stuttgart': 'Verein für Bewegungsspiele Stuttgart 1893 e. V..svg',
+        'borussia monchengladbach': 'Borussia Verein-für Leibesübungen Mönchengladbach.svg',
+        'bayer 04': 'Bayer 04 Leverkusen Fußball GmbH.svg',
+        'fc koln': 'Fußball-Club Köln 0107 e. V.(Colonia).svg',
+        'mainz': '1. Fußball- und Sportverein Mainz 05 e.V..svg',
+        'augsburg': 'Fußball-Club Augsburg 1907 e. V..svg',
+        'hertha berlin': 'Hertha Berliner Sport-Club von 1892 e.V..svg',
+        'bremen': 'Sportverein Werder Bremen von 1899 e. V..svg',
+        'arminia': 'Arminia Bielefeld.svg',
+        'schalke': 'Fußball-Club Gelsenkirchen-Schalke 04 e.V..svg',
+
+        // ==================== SERIE A ====================
+        'juventus': 'Juventus Football Club.svg',
+        'inter milan': 'Football Club Internazionale Milano.svg',
+        'inter': 'Football Club Internazionale Milano.svg',
+        'ac milan': 'Associazione Calcio Milan.svg',
+        'milan': 'Associazione Calcio Milan.svg',
+        'napoli': 'Società Sportiva Calcio Napoli.svg',
+        'roma': 'Associazione Sportiva Roma.svg',
+        'atalanta': 'Atalanta Bergamasca Calcio.svg',
+        'lazio': 'Società Sportiva Lazio.svg',
+        'fiorentina': 'ACF Fiorentina.svg',
+        'torino': 'Torino Football Club.svg',
+        'bologna': 'Bologna Football Club 1909.svg',
+        'sassuolo': 'Unione Sportiva Sassuolo Calcio.svg',
+        'sampdoria': 'Unione Calcio Sampdoria.svg',
+        'udinese': 'Udinese Calcio.svg',
+        'spezia': 'Spezia Calcio.svg',
+        'verona': 'Hellas Verona Football Club.svg',
+        'genoa': 'Genoa Cricket and Football Club.svg',
+        'cagliari': 'Cagliari Calcio.svg',
+        'parma': 'Parma Calcio 1913 Club.svg',
+        'crotone': 'F.C. Crotone.svg',
+        'benevento': 'Benevento Calcio.svg',
+
+        // ==================== LIGUE 1 ====================
+        'psg': 'Paris Saint-Germain Football Club.svg',
+        'paris saint-germain': 'Paris Saint-Germain Football Club.svg',
+        'olympique marseille': 'Olympique De Marseille.svg',
+        'marseille': 'Olympique De Marseille.svg',
+        'olympique lyon': 'Olympique Lyonnais.svg',
+        'lyon': 'Olympique Lyonnais.svg',
+        'as monaco': 'Association sportive de Monaco football club.svg',
+        'monaco': 'Association sportive de Monaco football club.svg',
+        'lille': 'LOSC Lille.svg',
+        'nice': 'Olympique Gymnaste Club de Nice.svg',
+        'rennes': 'Stade Rennais Football Club (SRFC).svg',
+        'strasbourg': 'Racing Club de Strasbourg Alsace.svg',
+        'lens': 'Racing Club de Lens.svg',
+        'montpellier': 'Montpellier Hérault Sport Club.svg',
+        'brest': 'Stade Brestois 29.svg',
+        'reims': 'Stade de Reims.svg',
+        'nantes': 'Football Club de Nantes.svg',
+        'bordeaux': 'Football Club des Girondins de Bordeaux.svg',
+        'metz': 'Football Club de Metz.svg',
+        'lorient': 'Football Club de Lorient.svg',
+        'dijon': 'Dijon Football Côte d\'Or.svg',
+        'nimes': 'Nîmes Olympique.svg',
+        'angiers': 'Angers Sporting club De l\'Ouest.svg',
+        'saint-etienne': 'Association Sportive de Saint-Étienne Loire.svg'
+    };
+
+    // Get the filename from the map
+    const logoFilename = teamLogoMap[normalizedName];
+
+    if (!logoFilename) {
+        console.log(`⚠️ No logo found for: ${normalizedName} (${league})`);
+        return null;
+    }
+
+    // Map league to folder path
+    let leagueFolder = '';
+    if (league === 'La Liga') {
+        leagueFolder = 'Espana/Primera División de España';
+    } else if (league === 'Premier League') {
+        leagueFolder = 'United Kindom/Premier League';
+    } else if (league === 'Bundesliga') {
+        leagueFolder = 'Alemania/Bundesliga';
+    } else if (league === 'Serie A') {
+        leagueFolder = 'Italia/Serie A';
+    } else if (league === 'Ligue 1') {
+        leagueFolder = 'Francia/Ligue 1';
+    }
+
+    // Construct full path
+    const logoPath = `../${leagueFolder}/${logoFilename}`;
+
+    console.log(`✅ Logo path for ${teamName}: ${logoPath}`);
+    return logoPath;
+}
+
 // Generate initials for CSS fallback crest
 function getTeamInitials(teamName) {
     const name = teamName.toLowerCase().trim();
@@ -241,7 +1033,7 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
     // Sort by rating (highest first)
     allCompetitors.sort((a, b) => b.rating - a.rating);
 
-    // Get the strongest competitor
+    // Get the strongest competitor (STAR PLAYER in this position)
     const strongestCompetitor = allCompetitors[0] || {
         player: 'Jugador promedio',
         rating: 75,
@@ -249,7 +1041,15 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
         is_star: false
     };
 
-    console.log(`✅ Found competitor: ${strongestCompetitor.player} (${strongestCompetitor.rating})`);
+    // Mark as STAR if rating is elite (85+ for position starters)
+    strongestCompetitor.is_star = strongestCompetitor.rating >= 85;
+
+    console.log(`✅ Found ${strongestCompetitor.is_star ? '⭐ STAR PLAYER' : 'competitor'}: ${strongestCompetitor.player} (${strongestCompetitor.rating} OVR, ${strongestCompetitor.age} anos)`);
+
+    // Get manager info for professional analysis
+    const teamName = team.name.toLowerCase().trim();
+    const manager = MANAGER_STYLES[teamName];
+    const managerName = manager ? manager.name : 'el DT';
 
     // Calculate competition type with specific stat analysis
     const ratingDiff = playerRating - strongestCompetitor.rating;
@@ -258,23 +1058,23 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
 
     if (ratingDiff > 5) {
         competitionType = 'STAR';
-        competitionText = `Con tu media de ${playerRating}, superas la efectividad de ${strongestCompetitor.player} (${strongestCompetitor.rating}) por ${ratingDiff} puntos`;
+        competitionText = `Con tu ${playerRating} OVR, superas al ${strongestCompetitor.is_star ? 'crack ' : ''}${strongestCompetitor.player} (${strongestCompetitor.rating} OVR) por ${ratingDiff} puntos. Eres la estrella de esta posicion para ${managerName}.`;
     } else if (ratingDiff >= 2) {
         competitionType = 'STARTER';
-        competitionText = `Tu nivel ${playerRating} supera a ${strongestCompetitor.player} (${strongestCompetitor.rating}) - serías titular indiscutible`;
+        competitionText = `Tu ${playerRating} OVR supera al ${strongestCompetitor.is_star ? 'crack ' : ''}${strongestCompetitor.player} (${strongestCompetitor.rating} OVR). Serias titular indiscutible bajo el mando de ${managerName}.`;
     } else if (ratingDiff >= -2) {
         competitionType = 'BATTLE';
         if (playerRating >= 88) {
-            competitionText = `Con tus ${playerRating}, llega a competir por el puesto contra ${strongestCompetitor.player} (${strongestCompetitor.rating}) - equipo élite necesita rotación`;
+            competitionText = `Con tus ${playerRating} OVR, compites directamente con el ${strongestCompetitor.is_star ? 'crack ' : ''}${strongestCompetitor.player} (${strongestCompetitor.rating} OVR). ${managerName} valorara tu nivel mundial en la rotacion.`;
         } else {
-            competitionText = `Tu ${playerRating} iguala a ${strongestCompetitor.player} (${strongestCompetitor.rating}) - pelea el puesto directa`;
+            competitionText = `Tu ${playerRating} OVR iguala al ${strongestCompetitor.is_star ? 'crack ' : ''}${strongestCompetitor.player} (${strongestCompetitor.rating} OVR). Pelea el puesto en los planes de ${managerName}.`;
         }
     } else if (ratingDiff >= -5) {
         competitionType = 'ROTATION';
-        competitionText = `Tu ${playerRating} compite con ${strongestCompetitor.player} (${strongestCompetitor.rating}) - suplente de élite con minutos`;
+        competitionText = `El ${strongestCompetitor.is_star ? 'crack ' : ''}${strongestCompetitor.player} (${strongestCompetitor.rating} OVR) esta una fase por encima de tu ${playerRating} OVR. Llegas como suplente de lujo con minutos garantizados.`;
     } else {
         competitionType = 'BENCH';
-        competitionText = `${strongestCompetitor.player} (${strongestCompetitor.rating}) supera tu ${playerRating} por ${Math.abs(ratingDiff)} puntos - llega al nivel del equipo primero`;
+        competitionText = `El ${strongestCompetitor.is_star ? 'crack ' : ''}${strongestCompetitor.player} (${strongestCompetitor.rating} OVR) es el dueno de la posicion con ${Math.abs(ratingDiff)} puntos sobre tu ${playerRating} OVR. Necesitas desarrollarte antes de aspirar al sistema de ${managerName}.`;
     }
 
     return {
@@ -618,21 +1418,17 @@ async function analyzeResults() {
 
     console.log(`📊 Team Analysis Complete: ${teamAnalysis.length} teams analyzed`);
 
-    // CRITICAL: Ensure we always have at least 3 results
-    if (teamAnalysis.length === 0) {
-        console.error('❌ NO TEAMS FOUND - This should not happen!');
-        alert('No se encontraron equipos que coincidan con tus criterios. Intenta con diferentes opciones.');
-        hideAllScreens();
-        document.getElementById('welcomeScreen').classList.add('active');
-        return;
-    }
-
-    // Get top 3 results (or fewer if not enough teams)
-    const top3 = teamAnalysis.slice(0, Math.min(3, teamAnalysis.length));
+    // CRITICAL: ALWAYS show top 3 results, NO MATTER THE SCORE
+    // This ensures users always get recommendations
+    const top3 = teamAnalysis.slice(0, Math.max(3, teamAnalysis.length));
     console.log(`✅ Top ${top3.length} results selected`);
 
-    // Display results
-    displayResults(top3, playerRating);
+    // Check if results have low compatibility for fallback messaging
+    const hasLowCompatibility = top3.length > 0 && top3[0].finalScore < 50;
+    console.log(hasLowCompatibility ? '⚠️ Low compatibility scores - using fallback messaging' : '✅ Good compatibility scores');
+
+    // Display results with compatibility warning if needed
+    displayResults(top3, playerRating, hasLowCompatibility);
 }
 
 // ============================================
@@ -662,26 +1458,12 @@ function hideAllScreens() {
 }
 
 // Display results on screen
-function displayResults(results, playerRating) {
+function displayResults(results, playerRating, hasLowCompatibility = false) {
     console.log(`🎯 Displaying ${results.length} results for player rating ${playerRating}`);
+    console.log(`📊 Has low compatibility: ${hasLowCompatibility}`);
 
-    // CRITICAL: Check if we have results
-    if (!results || results.length === 0) {
-        console.error('❌ NO RESULTS TO DISPLAY!');
-        const container = document.getElementById('resultsContainer');
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <h2 style="color: #d4af37;">⚠️ No se encontraron resultados</h2>
-                <p style="color: #a0a5b9;">Intenta con diferentes opciones de liga o posición.</p>
-                <button class="btn btn-primary" onclick="restart()" style="margin-top: 20px;">
-                    ← Volver a intentar
-                </button>
-            </div>
-        `;
-        hideAllScreens();
-        document.getElementById('resultsScreen').classList.add('active');
-        return;
-    }
+    // CRITICAL: Always show results - NO MORE BLOCKING
+    // We guarantee at least 3 results from the analysis function
 
     hideAllScreens();
 
@@ -689,6 +1471,28 @@ function displayResults(results, playerRating) {
 
     const container = document.getElementById('resultsContainer');
 
+    // Intro message based on compatibility
+    if (hasLowCompatibility) {
+        container.innerHTML = `
+            <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 152, 0, 0.1)); border-radius: 10px; border: 1px solid rgba(255, 152, 0, 0.3);">
+                <h3 style="color: #ffc107; margin: 0 0 10px 0; font-size: 1.2rem;">💡 Tu estilo es único</h3>
+                <p style="color: #a0a5b9; margin: 0; font-size: 0.95rem;">
+                    Aunque tus preferencias son muy específicas, estos son los clubes donde mejor podrías adaptarte.
+                    <br><strong>La perfección requiere adaptación mutua.</strong>
+                </p>
+            </div>
+            <div id="resultsCards"></div>
+        `;
+    } else {
+        container.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #667eea; margin: 0; font-size: 1.3rem;">🎯 ¡Encontramos tu equipo ideal!</h2>
+            </div>
+            <div id="resultsCards"></div>
+        `;
+    }
+
+    const resultsContainer = document.getElementById('resultsCards');
     const medals = ['🥇', '🥈', '🥉'];
     const rankLabels = ['RECOMENDACIÓN #1', 'RECOMENDACIÓN #2', 'RECOMENDACIÓN #3'];
 
@@ -748,11 +1552,67 @@ function displayResults(results, playerRating) {
             ? `<img src="${team.league_logo}" alt="${team.league}" class="league-logo-img" style="width:40px;height:40px;object-fit:contain;margin-right:8px;background:rgba(255,255,255,0.1);border-radius:8px;padding:4px;" onerror="this.style.display='none';">`
             : '';
 
-        // Team logo: ALWAYS use CSS circular crest with initials
-        const teamLogoHtml = `<div class="team-logo-circular">${team.team_initials || getTeamInitials(team.name)}</div>`;
+        // Team logo: Use SVG file if available, fallback to CSS crest with initials
+        const teamLogoPath = getTeamLogoPath(team.name, team.league);
+        const teamInitials = team.team_initials || getTeamInitials(team.name);
+
+        const teamLogoHtml = teamLogoPath
+            ? `<div class="team-logo-wrapper">
+                <img src="${teamLogoPath}" alt="${team.name}" class="team-logo-img" style="width:50px;height:50px;object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="team-logo-circular" style="display:none;">${teamInitials}</div>
+            </div>`
+            : `<div class="team-logo-circular">${teamInitials}</div>`;
 
         // Dynamic analysis
         const dynamicAnalysis = generateDynamicAnalysis(result, playerRating);
+
+        // Get tactical stats for radar chart
+        const userTacticalStats = {
+            wing_play: answers.wing_play || 50,
+            possession: answers.possession || 50,
+            counter_attack: answers.counter_attack || 50,
+            aerial_balls: answers.aerial_balls || 50,
+            high_press: answers.high_press || 50
+        };
+
+        const teamTactics = TEAM_TACTICS_DB[team.name.toLowerCase().trim()] || team.style;
+        const teamTacticalStats = {
+            wing_play: teamTactics.wing_play || 50,
+            possession: teamTactics.possession || 50,
+            counter_attack: teamTactics.counter_attack || 50,
+            aerial_balls: teamTactics.aerial_balls || 50,
+            high_press: teamTactics.high_press || 50
+        };
+
+        // Generate radar chart
+        const radarChart = createTacticalRadar(userTacticalStats, teamTacticalStats);
+
+        // Get tactical challenge
+        const challenge = getTacticalChallenge(userTacticalStats, teamTacticalStats);
+        const showTacticalChallenge = challenge.diff > 15;
+
+        // Get stadium atmosphere
+        const stadiumInfo = STADIUM_ATMOSPHERE[team.name.toLowerCase().trim()];
+        const stadiumHtml = stadiumInfo ? `
+            <div style="margin-top: 12px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.85rem; line-height: 1.5;">
+                <div style="color: #a0a5b9; margin-bottom: 4px;">🏟️ <strong>${stadiumInfo.city}</strong> - ${stadiumInfo.weather}</div>
+                <div style="color: #667eea; font-style: italic;">"${stadiumInfo.atmosphere}"</div>
+            </div>
+        ` : '';
+
+        // Get manager advice
+        const managerAdvice = getManagerAdvice(team, result.tacticalMatch);
+
+        // Check formation sync
+        const userFormation = answers.formation || '4-3-3';
+        const formationSync = checkFormationSync(userFormation, team);
+        const formationBadge = formationSync.hasSync ? `
+            <div style="margin-top: 8px; text-align: center;">
+                <span style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">
+                    ${formationSync.label}
+                </span>
+            </div>
+        ` : '';
 
         html += `
             <div class="result-card ${statusClass} ${eliteClass}" style="animation-delay: ${index * 0.2}s">
@@ -769,16 +1629,50 @@ function displayResults(results, playerRating) {
                 </div>
 
                 <div class="result-score">
-                    <div class="result-score-value">${result.finalScore.toFixed(0)}</div>
+                    <div class="result-score-value" data-animate-score="${result.finalScore.toFixed(0)}">0</div>
                     <div class="result-score-label">Score de compatibilidad</div>
                 </div>
+                ${formationBadge}
 
                 ${difficultyWarning}
                 ${generationalBonusText}
 
+                <!-- TACTICAL RADAR CHART -->
+                <div style="margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.2);">
+                    <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 0.9rem; text-align: center;">📊 Radar Táctico</h4>
+                    ${radarChart}
+                </div>
+
+                ${showTacticalChallenge ? `
+                <!-- TACTICAL CHALLENGE -->
+                <div style="margin: 12px 0; padding: 12px; background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1)); border-radius: 10px; border-left: 3px solid #ffc107;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <span style="font-size: 1.1rem;">${challenge.icon}</span>
+                        <strong style="color: #ffc107; font-size: 0.85rem;">DESAFÍO TÁCTICO</strong>
+                    </div>
+                    <div style="color: #a0a5b9; font-size: 0.85rem; line-height: 1.4;">
+                        Tu ${challenge.label} difiere del equipo. <br>
+                        <span style="color: #667eea;">${challenge.advice}</span>
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- MANAGER ADVICE -->
+                <div style="margin: 12px 0; padding: 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                        <span>🗣️</span>
+                        <strong style="color: #667eea; font-size: 0.8rem;">CONSEJO DEL MISTER</strong>
+                    </div>
+                    <div style="color: #a0a5b9; font-size: 0.8rem; font-style: italic; line-height: 1.4;">
+                        ${managerAdvice}
+                    </div>
+                </div>
+
                 <div class="result-analysis">
                     ${dynamicAnalysis}
                 </div>
+
+                ${stadiumHtml}
 
                 <div class="result-details">
                     <div class="result-detail-row">
@@ -810,9 +1704,19 @@ function displayResults(results, playerRating) {
         `;
     });
 
-    container.innerHTML = html;
+    resultsContainer.innerHTML = html;
 
     document.getElementById('resultsScreen').classList.add('active');
+
+    // Animate compatibility scores
+    results.forEach((result, index) => {
+        setTimeout(() => {
+            const scoreElement = document.querySelector(`[data-animate-score="${result.finalScore.toFixed(0)}"]`);
+            if (scoreElement) {
+                animateCounter(scoreElement, result.finalScore);
+            }
+        }, index * 200 + 300);
+    });
 
     // Display local analysis
     displayLocalAnalysis(results);
@@ -860,3 +1764,103 @@ function displayLocalAnalysis(results) {
 
     container.appendChild(analysisSection);
 }
+
+/**
+ * Generate PROFESSIONAL SCOUT VERDICT using TEAM_TACTICS_DB
+ * Simulates a real scout analyzing the player-team fit
+ * @param {Object} result - Analysis result with tactical data
+ * @returns {string} Professional scout verdict
+ */
+function generateScoutVerdict(result) {
+    const team = result.team;
+    const tacticalMatch = result.tacticalMatch || 50;
+    const manager = MANAGER_STYLES[team.name.toLowerCase().trim()];
+
+    let verdict = `📋 VEREDICTO DEL OJEADOR:\n\n`;
+
+    // 1. Tactical Match Analysis with REAL stats
+    verdict += `🎯 AJUSTE TACTICO:\n`;
+    if (tacticalMatch >= 85) {
+        verdict += `   ✅ EXCELENTE - Tu estilo natural encaja a la perfeccion con el sistema de ${team.name}.\n`;
+        verdict += `   Los ${TEAM_TACTICS_DB[team.name.toLowerCase()]?.possession || 50}% de posesion y el estilo ${manager?.style || 'del equipo'} son ideales para tu perfil.\n\n`;
+    } else if (tacticalMatch >= 70) {
+        verdict += `   ⭐ MUY BUENO - Tu estilo se alinea bien con la filosofia de ${manager?.name || 'el DT'}.\n`;
+        verdict += `   El ${manager?.style || 'sistema del equipo'} requiere jugadores como tu - buena proyeccion.\n\n`;
+    } else if (tacticalMatch >= 50) {
+        verdict += `   ⚠️ ACEPTABLE - Hay margen de adaptacion al ${manager?.style || 'sistema del equipo'}.\n`;
+        verdict += `   Necesitas ajustarte a las demandas tacticas de ${manager?.name || 'el DT'}. No es imposible, pero requiere trabajo.\n\n`;
+    } else {
+        verdict += `   ❌ DIFICIL - Tu estilo es muy diferente al ${manager?.style || 'sistema del equipo'}.\n`;
+        verdict += `   ${manager?.keyPhrase || 'Reconsidera opciones - este equipo no maximiza tu talento natural.'}\n\n`;
+    }
+
+    // 2. Competition Analysis with STAR PLAYER
+    const competitor = result.competition?.competitor;
+    if (competitor) {
+        verdict += `⚔️ COMPETENCIA:\n`;
+        if (competitor.is_star) {
+            verdict += `   ⭐ Te enfrentas al crack: ${competitor.player} (${competitor.rating} OVR).\n`;
+            verdict += `   ${result.competition.competitionText}\n\n`;
+        } else {
+            verdict += `   Competes contra: ${competitor.player} (${competitor.rating} OVR).\n`;
+            verdict += `   ${result.competition.competitionText}\n\n`;
+        }
+    }
+
+    // 3. Manager's Style Integration
+    if (manager) {
+        verdict += `🗣️ LO QUE DICE EL DT (${manager.name}):\n`;
+        verdict += `   "${manager.keyPhrase}"\n`;
+        verdict += `   ${manager.philosophy}\n\n`;
+    }
+
+    // 4. Final Recommendation
+    verdict += `📊 RECOMENDACION FINAL:\n`;
+    if (result.finalScore >= 75) {
+        verdict += `   🔥 APROVECHA - Este equipo maximiza tu potencial actual.\n`;
+        verdict += `   Score ${result.finalScore.toFixed(0)}/100: ${manager?.style || 'El sistema'} te va a sacar el provecho.\n`;
+    } else if (result.finalScore >= 60) {
+        verdict += `   ✅ OPCION SOLIDA - Buen equilibrio entre desarrollo y minutos.\n`;
+        verdict += `   Score ${result.finalScore.toFixed(0)}/100: ${manager?.name || 'El DT'} te dara oportunidades si te adaptas.\n`;
+    } else {
+        verdict += `   ⚠️ PIENSALO - Revisa si estas listo para este nivel.\n`;
+        verdict += `   Score ${result.finalScore.toFixed(0)}/100: Considera opciones donde seas titular primero.\n`;
+    }
+
+    return verdict;
+}
+
+/**
+ * Display professional scout verdict
+ * @param {Object} result - Analysis result
+ * @param {HTMLElement} container - Container element
+ */
+function displayScoutVerdict(result, container) {
+    const verdictSection = document.createElement('div');
+    verdictSection.className = 'scout-verdict';
+    verdictSection.style.cssText = `
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    `;
+
+    const verdict = generateScoutVerdict(result);
+
+    verdictSection.innerHTML = `
+        <h3 style="margin: 0 0 15px 0; color: white; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+            <span>📋</span>
+            <span>VEREDICTO DEL OJEADOR</span>
+        </h3>
+        <div style="white-space: pre-line; line-height: 1.7; color: #e0e7ff; font-size: 0.95rem;">
+            ${verdict}
+        </div>
+        <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.75rem; color: rgba(255,255,255,0.8); font-style: italic;">
+            💭 *Este veredicto se basa en datos reales de la temporada 2025/26*
+        </div>
+    `;
+
+    container.appendChild(verdictSection);
+}
+

@@ -1387,6 +1387,33 @@ input[type="range"]::-moz-range-thumb:hover {
     transform: scale(1.2) rotate(5deg);
 }
 
+/* Team logo wrapper for SVG images with fallback */
+.team-logo-wrapper {
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.team-logo-wrapper .team-logo-img {
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+    transition: all 0.3s ease;
+}
+
+.result-card:first-child .team-logo-wrapper .team-logo-img {
+    filter: drop-shadow(0 6px 20px rgba(240, 147, 251, 0.5));
+    transform: scale(1.1);
+}
+
+.team-logo-wrapper .team-logo-img:hover {
+    transform: scale(1.15) rotate(5deg);
+}
+
+.result-card:first-child .team-logo-wrapper .team-logo-img:hover {
+    transform: scale(1.2) rotate(5deg);
+}
+
 .result-team-info {
     display: flex;
     flex-direction: column;
