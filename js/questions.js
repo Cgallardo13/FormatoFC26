@@ -198,31 +198,23 @@ function loadQuestion(index) {
         question.options.forEach(option => {
             const isSelected = answers.league.includes(option.id);
 
-            // League logos from Sofascore API with Google Focus Proxy
-            const GOOGLE_FOCUS_PROXY = 'https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&refresh=2592000&url=';
-
-            const leagueLogos = {
-                'la_liga': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/8/image'),
-                'premier_league': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/17/image'),
-                'bundesliga': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/35/image'),
-                'serie_a': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/23/image'),
-                'ligue_1': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/34/image')
+            // FlagCDN URLs - Direct and stable
+            const flagUrls = {
+                'la_liga': 'https://flagcdn.com/w160/es.png',
+                'premier_league': 'https://flagcdn.com/w160/gb.png',
+                'bundesliga': 'https://flagcdn.com/w160/de.png',
+                'serie_a': 'https://flagcdn.com/w160/it.png',
+                'ligue_1': 'https://flagcdn.com/w160/fr.png'
             };
 
-            const logoUrl = leagueLogos[option.id] || '';
+            const flagUrl = flagUrls[option.id] || '';
 
             html += `
                 <div class="league-option ${isSelected ? 'selected' : ''}"
                      onclick="toggleLeague('${option.id}')">
-                    <div class="league-logo-container">
-                        ${logoUrl ? `<img src="${logoUrl}" class="league-logo" alt="${option.name}"
-                                           onerror="this.style.display='none'; this.parentElement.querySelector('.league-fallback').style.display='flex';">
-                                          <div class="league-fallback" style="display:none;">
-                                            <span class="league-flag-large">${option.flag}</span>
-                                          </div>`
-                                        : `<div class="league-flag-large">${option.flag}</div>`}
+                    <div class="league-flag-container">
+                        <img src="${flagUrl}" class="league-flag-full" alt="${option.name}">
                     </div>
-                    <div class="league-name">${option.name}</div>
                 </div>
             `;
         });

@@ -574,6 +574,41 @@ input[type="range"]::-moz-range-thumb:hover {
     box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
 }
 
+/* ===== NEW: League Flags Fullscreen (FlagCDN) ===== */
+.league-flag-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 120px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.league-flag-full {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(1.1);
+}
+
+.league-option:hover .league-flag-full {
+    filter: brightness(1.2);
+    transform: scale(1.05);
+}
+
+.league-option.selected .league-flag-container {
+    background: rgba(212, 175, 55, 0.15);
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+    border: 3px solid rgba(212, 175, 55, 0.5);
+}
+
+.league-option.selected .league-flag-full {
+    filter: brightness(1.15);
+}
+
 .league-flag-large {
     font-size: 3.5rem;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
@@ -1274,6 +1309,46 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .team-logo-fallback:hover {
     transform: scale(1.1) rotate(5deg);
+}
+
+/* ===== NEW: Circular Team Crest (CSS Only) ===== */
+.team-logo-circular {
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+
+.result-card:first-child .team-logo-circular {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow:
+        0 6px 20px rgba(240, 147, 251, 0.5),
+        0 0 30px rgba(245, 87, 108, 0.3);
+    border: 3px solid rgba(212, 175, 55, 0.6);
+    transform: scale(1.1);
+}
+
+.team-logo-circular:hover {
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.result-card:first-child .team-logo-circular:hover {
+    transform: scale(1.2) rotate(5deg);
 }
 
 .result-team-info {

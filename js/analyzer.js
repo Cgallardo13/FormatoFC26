@@ -753,10 +753,8 @@ function displayResults(results, playerRating) {
             ? `<img src="${team.league_logo}" alt="${team.league}" class="league-logo-img" style="width:40px;height:40px;object-fit:contain;margin-right:8px;background:rgba(255,255,255,0.1);border-radius:8px;padding:4px;" onerror="this.style.display='none';">`
             : '';
 
-        // Team logo with CSS initials fallback
-        const teamLogoHtml = team.team_logo
-            ? `<img src="${team.team_logo}" alt="${team.name}" class="team-logo-img" style="width:50px;height:50px;object-fit:contain;">`
-            : `<div class="team-logo-fallback" style="width:50px;height:50px;font-size:14px;">${team.team_initials || getTeamInitials(team.name)}</div>`;
+        // Team logo: ALWAYS use CSS circular crest with initials
+        const teamLogoHtml = `<div class="team-logo-circular">${team.team_initials || getTeamInitials(team.name)}</div>`;
 
         // Dynamic analysis
         const dynamicAnalysis = generateDynamicAnalysis(result, playerRating);

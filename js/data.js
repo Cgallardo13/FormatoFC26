@@ -199,7 +199,6 @@ function groupPlayersByTeam(players) {
 
         if (!teamMap.has(teamKey)) {
             const teamId = teamKey.replace(/[^a-zA-Z0-9]/g, '_');
-            const teamLogoUrl = getTeamLogoUrl(player.team, teamId);
 
             teamMap.set(teamKey, {
                 id: teamId,
@@ -208,9 +207,9 @@ function groupPlayersByTeam(players) {
                 league_flag: getLeagueFlag(player.league),
                 formation: '4-3-3', // Default formation
                 overall_level: 0,
-                team_logo: teamLogoUrl,
-                team_initials: getTeamInitials(player.team), // For CSS fallback
-                league_logo: getLeagueLogoUrl(player.league),
+                team_logo: getTeamLogoUrl(),
+                team_initials: getTeamInitials(player.team), // For CSS circular crest
+                league_logo: getLeagueLogoUrl(),
                 style: {
                     possession: 0,
                     counter_attack: 0,
@@ -447,225 +446,10 @@ function getLeagueFlag(leagueName) {
 }
 
 // ============================================
-// SOFASCORE API - Logo System
-// Single source of truth for ALL logos
+// TEAM LOGO SYSTEM - CSS Only (No external images)
 // ============================================
 
-// Sofascore IDs for Leagues
-const SOFASCORE_LEAGUE_IDS = {
-    'La Liga': 8,
-    'Premier League': 17,
-    'Bundesliga': 35,
-    'Serie A': 23,
-    'Ligue 1': 34
-};
-
-// Sofascore IDs for ALL Teams from 5 Major Leagues (2026 Season)
-const SOFASCORE_TEAM_IDS = {
-    // ==================== LA LIGA (Spain) - League ID: 8 ====================
-    'real madrid': 2829,
-    'madrid': 2829,
-    'fc barcelona': 2817,
-    'barcelona': 2817,
-    'atletico madrid': 2836,
-    'atletico': 2836,
-    'real sociedad': 2824,
-    'sociedad': 2824,
-    'athletic club': 2825,
-    'athletic bilbao': 2825,
-    'bilbao': 2825,
-    'girona fc': 2905,
-    'girona': 2905,
-    'real betis': 2816,
-    'betis': 2816,
-    'villarreal': 2819,
-    'valencia cf': 2828,
-    'valencia': 2828,
-    'sevilla fc': 2832,
-    'sevilla': 2832,
-    'ca osasuna': 2820,
-    'osasuna': 2820,
-    'getafe cf': 2859,
-    'getafe': 2859,
-    'celta vigo': 2821,
-    'celta': 2821,
-    'rayo vallecano': 2818,
-    'rayo': 2818,
-    'las palmas': 2831,
-    'rcd mallorca': 2822,
-    'mallorca': 2822,
-    'deportivo alaves': 2885,
-    'alaves': 2885,
-    'leganes': 2845,
-    'real valladolid': 2830,
-    'valladolid': 2830,
-    'rcd espanyol': 2814,
-    'espanyol': 2814,
-
-    // ==================== PREMIER LEAGUE (England) - League ID: 17 ====================
-    'manchester city': 17,
-    'manchester': 17,
-    'man city': 17,
-    'arsenal': 42,
-    'liverpool': 31,
-    'aston villa': 40,
-    'tottenham': 33,
-    'spurs': 33,
-    'chelsea': 38,
-    'manchester united': 35,
-    'manchester utd': 35,
-    'man utd': 35,
-    'newcastle': 39,
-    'newcastle united': 39,
-    'west ham': 37,
-    'west ham united': 37,
-    'brighton': 30,
-    'brighton and hove albion': 30,
-    'wolves': 3,
-    'wolverhampton': 3,
-    'everton': 48,
-    'bournemouth': 34,
-    'afc bournemouth': 34,
-    'fulham': 43,
-    'crystal palace': 7,
-    'brentford': 50,
-    'nottingham forest': 14,
-    'nottingham': 14,
-    'leicester city': 26,
-    'leicester': 26,
-    'ipswich town': 11,
-    'ipswich': 11,
-    'southampton': 27,
-
-    // ==================== BUNDESLIGA (Germany) - League ID: 35 ====================
-    'bayer leverkusen': 2681,
-    'leverkusen': 2681,
-    'bayern munich': 2672,
-    'bayern': 2672,
-    'bayern münchen': 2672,
-    'borussia dortmund': 2673,
-    'dortmund': 2673,
-    'rb leipzig': 2677,
-    'leipzig': 2677,
-    'eintracht frankfurt': 2671,
-    'frankfurt': 2671,
-    'vfb stuttgart': 2674,
-    'stuttgart': 2674,
-    'tsg hoffenheim': 2679,
-    'hoffenheim': 2679,
-    '1 fc heidenheim': 5882,
-    'heidenheim': 5882,
-    'sc freiburg': 2678,
-    'freiburg': 2678,
-    'werder bremen': 2675,
-    'bremen': 2675,
-    'vfl wolfsburg': 2684,
-    'wolfsburg': 2684,
-    'fc augsburg': 2683,
-    'augsburg': 2683,
-    'borussia monchengladbach': 2670,
-    'monchengladbach': 2670,
-    'borussia mönchengladbach': 2670,
-    '1 fsv mainz 05': 2690,
-    'mainz': 2690,
-    'mainz 05': 2690,
-    '1 fc union berlin': 28250,
-    'union berlin': 28250,
-    'vfl bochum': 2682,
-    'bochum': 2682,
-    'fc st pauli': 2689,
-    'st pauli': 2689,
-    'holstein kiel': 2691,
-    'kiel': 2691,
-    'hamburger sv': 2692,
-    'hamburg': 2692,
-
-    // ==================== SERIE A (Italy) - League ID: 23 ====================
-    'inter milan': 2697,
-    'inter': 2697,
-    'ac milan': 2692,
-    'milan': 2692,
-    'juventus': 2687,
-    'juve': 2687,
-    'atalanta': 2686,
-    'as roma': 2702,
-    'roma': 2702,
-    'lazio': 2701,
-    'ssc napoli': 2714,
-    'napoli': 2714,
-    'ac fiorentina': 2693,
-    'fiorentina': 2693,
-    'torino fc': 2696,
-    'torino': 2696,
-    'bologna fc': 2685,
-    'bologna': 2685,
-    'genoa': 2713,
-    'genoa cfc': 2713,
-    'ac monza': 2729,
-    'monza': 2729,
-    'hellas verona': 2704,
-    'verona': 2704,
-    'udinese': 2695,
-    'udinese calcio': 2695,
-    'cagliari': 2719,
-    'cagliari calcio': 2719,
-    'us lecce': 2699,
-    'lecce': 2699,
-    'empoli': 2705,
-    'empoli fc': 2705,
-    'parma': 2688,
-    'parma calcio': 2688,
-    'como': 2711,
-    'como 1907': 2711,
-    'venezia': 2708,
-    'venezia fc': 2708,
-
-    // ==================== LIGUE 1 (France) - League ID: 34 ====================
-    'psg': 1644,
-    'paris saint-germain': 1644,
-    'paris': 1644,
-    'as monaco': 1617,
-    'monaco': 1617,
-    'losc lille': 1629,
-    'lille': 1629,
-    'stade brestois': 1645,
-    'brest': 1645,
-    'ogc nice': 1639,
-    'nice': 1639,
-    'olympique lyon': 1616,
-    'lyon': 1616,
-    'rc lens': 1635,
-    'lens': 1635,
-    'olympique marseille': 1631,
-    'marseille': 1631,
-    'stade de reims': 1620,
-    'reims': 1620,
-    'stade rennais': 1651,
-    'rennes': 1651,
-    'toulouse fc': 1643,
-    'toulouse': 1643,
-    'montpellier': 1641,
-    'rc strasbourg': 1659,
-    'strasbourg': 1659,
-    'fc nantes': 1647,
-    'nantes': 1647,
-    'le havre ac': 1661,
-    'le havre': 1661,
-    'aj auxerre': 1625,
-    'auxerre': 1625,
-    'angers': 1614,
-    'angers sco': 1614,
-    'saint-etienne': 1619,
-    'as saint-etienne': 1619
-};
-
-// Normalize team name for logo lookup
-function normalizeTeamName(teamName) {
-    const name = teamName.toLowerCase().trim();
-    return name;
-}
-
-// Generate initials for CSS fallback crest
+// Generate initials for CSS circular crest
 function getTeamInitials(teamName) {
     const name = teamName.toLowerCase().trim();
 
@@ -709,47 +493,12 @@ function getTeamInitials(teamName) {
     }
 }
 
-// Google Focus Proxy - For CORS and caching
-const GOOGLE_FOCUS_PROXY = 'https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&refresh=2592000&url=';
-
-// Get team logo URL using Sofascore API with Google Focus Proxy
-function getTeamLogoUrl(teamName, teamId) {
-    const normalizedName = normalizeTeamName(teamName);
-
-    // 1. Try exact match from our comprehensive mapping
-    if (SOFASCORE_TEAM_IDS[normalizedName]) {
-        const sofascoreUrl = `https://api.sofascore.app/api/v1/team/${SOFASCORE_TEAM_IDS[normalizedName]}/image`;
-        return GOOGLE_FOCUS_PROXY + encodeURIComponent(sofascoreUrl);
-    }
-
-    // 2. Try to find by partial match (e.g., "madrid" matches "real madrid")
-    for (const [key, id] of Object.entries(SOFASCORE_TEAM_IDS)) {
-        if (normalizedName.includes(key) || key.includes(normalizedName)) {
-            const sofascoreUrl = `https://api.sofascore.app/api/v1/team/${id}/image`;
-            return GOOGLE_FOCUS_PROXY + encodeURIComponent(sofascoreUrl);
-        }
-    }
-
-    // 3. Fallback to teamId if it's a valid Sofascore ID
-    if (teamId && teamId.length > 0) {
-        const numericId = parseInt(teamId);
-        if (!isNaN(numericId) && numericId > 0) {
-            const sofascoreUrl = `https://api.sofascore.app/api/v1/team/${numericId}/image`;
-            return GOOGLE_FOCUS_PROXY + encodeURIComponent(sofascoreUrl);
-        }
-    }
-
-    // 4. Last resort: Return null to trigger CSS fallback with initials
-    console.warn(`⚠️ Team not found in Sofascore mapping: ${teamName}`);
-    return null; // Will trigger CSS initials fallback
+// Get team logo URL - Always return null to force CSS fallback
+function getTeamLogoUrl() {
+    return null; // Always use CSS circular crest
 }
 
-// Get league logo URL using Sofascore API with Google Focus Proxy
-function getLeagueLogoUrl(leagueName) {
-    if (SOFASCORE_LEAGUE_IDS[leagueName]) {
-        const sofascoreUrl = `https://api.sofascore.app/api/v1/unique-tournament/${SOFASCORE_LEAGUE_IDS[leagueName]}/image`;
-        return GOOGLE_FOCUS_PROXY + encodeURIComponent(sofascoreUrl);
-    }
-    console.warn(`⚠️ League not found in Sofascore mapping: ${leagueName}`);
-    return '';
+// Get league logo URL - Return empty (not used anymore)
+function getLeagueLogoUrl() {
+    return ''; // Using FlagCDN images directly in questions.js
 }
