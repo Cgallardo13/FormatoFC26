@@ -197,10 +197,24 @@ function loadQuestion(index) {
         html += '<div class="league-grid">';
         question.options.forEach(option => {
             const isSelected = answers.league.includes(option.id);
+
+            // League logos
+            const leagueLogos = {
+                'la_liga': 'https://www.laliga.com/assets/images/logos/laliga-h-monochrome-white.png',
+                'premier_league': 'https://logos-world.net/wp-content/uploads/2020/05/Premier-League-Logo.png',
+                'bundesliga': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Bundesliga_logo_%282017%29.svg/240px-Bundesliga_logo_%282017%29.svg.png',
+                'serie_a': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Serie_A_logo_%282019%29.svg/240px-Serie_A_logo_%282019%29.svg.png',
+                'ligue_1': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a6/Ligue_1_logo.svg/240px-Ligue_1_logo.svg.png'
+            };
+
+            const logoUrl = leagueLogos[option.id] || '';
+
             html += `
                 <div class="league-option ${isSelected ? 'selected' : ''}"
                      onclick="toggleLeague('${option.id}')">
-                    <div class="league-flag">${option.flag}</div>
+                    ${logoUrl ? `<img src="${logoUrl}" class="league-logo" alt="${option.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                  <div class="league-flag" style="display:none;">${option.flag}</div>`
+                            : `<div class="league-flag">${option.flag}</div>`}
                     <div class="league-name">${option.name}</div>
                 </div>
             `;

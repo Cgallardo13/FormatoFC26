@@ -546,6 +546,19 @@ input[type="range"]::-moz-range-thumb:hover {
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
 }
 
+.league-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+    transition: transform 0.3s;
+}
+
+.league-option:hover .league-logo {
+    transform: scale(1.1);
+}
+
 .league-name {
     font-weight: 700;
     font-size: 0.9rem;

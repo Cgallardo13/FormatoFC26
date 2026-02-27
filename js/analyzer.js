@@ -135,18 +135,32 @@ function calculateGenerationalBonus(bestPosition, playerRating, playerAge) {
 // ============================================
 
 /**
- * Find best competitor for user's position in team (using CSV data)
+ * Find best competitor for user's position in team (using CSV data) - ROBUST VERSION
  */
 function analyzeRealCompetition(playerRating, userPosition, team) {
+    // Safety check: ensure squad_gaps exists
+    if (!team.squad_gaps || !Array.isArray(team.squad_gaps) || team.squad_gaps.length === 0) {
+        console.warn(`⚠️ Team ${team.name} has no squad_gaps data`);
+        return {
+            competitor: { player: 'Plantilla desconocida', rating: 75, age: 25, is_star: false },
+            ratingDiff: playerRating - 75,
+            competitionType: 'UNKNOWN',
+            competitionText: `Tu ${playerRating} vs plantilla promedio (75)`,
+            wouldStart: playerRating >= 75
+        };
+    }
+
+    console.log(`🔍 Analyzing ${team.name} for position ${userPosition} (squad: ${team.squad_gaps.length} players)`);
+
     // Find all players in user's position
     const positionPlayers = team.squad_gaps.filter(p => p.position === userPosition);
 
-    // Position mapping for similar positions
+    // Position mapping for similar positions (EXPANDED)
     const positionMap = {
         'ST': ['CF', 'CAM'],
         'CF': ['ST', 'CAM'],
         'CAM': ['CM', 'CF'],
-        'CM': ['CDM', 'CAM'],
+        'CM': ['CDM', 'CAM', 'CB'],
         'CDM': ['CM', 'CB'],
         'LW': ['LM', 'RW'],
         'RW': ['RM', 'LW'],
@@ -156,7 +170,8 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
         'RB': ['RWB', 'CB'],
         'LWB': ['LB', 'LM'],
         'RWB': ['RB', 'RM'],
-        'CB': ['CDM']
+        'CB': ['CDM', 'CM'],
+        'GK': ['GK']
     };
 
     let allCompetitors = [...positionPlayers];
@@ -168,16 +183,24 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
         allCompetitors = [...allCompetitors, ...similarPlayers];
     });
 
+    // If still no competitors found, use ALL players from team
+    if (allCompetitors.length === 0) {
+        console.warn(`⚠️ No players found for position ${userPosition}, using all players`);
+        allCompetitors = [...team.squad_gaps];
+    }
+
     // Sort by rating (highest first)
     allCompetitors.sort((a, b) => b.rating - a.rating);
 
     // Get the strongest competitor
     const strongestCompetitor = allCompetitors[0] || {
-        player: 'Nadie',
-        rating: 0,
+        player: 'Jugador promedio',
+        rating: 75,
         age: 25,
         is_star: false
     };
+
+    console.log(`✅ Found competitor: ${strongestCompetitor.player} (${strongestCompetitor.rating})`);
 
     // Calculate competition type with specific stat analysis
     const ratingDiff = playerRating - strongestCompetitor.rating;
@@ -215,38 +238,46 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
 }
 
 /**
- * Filter teams by player rating tier AND game mode (RTG vs Star)
+ * Filter teams by player rating tier AND game mode (RTG vs Star) - RELAXED FILTERS
  */
 function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
     const gameModeType = gameMode || 'star'; // 'rtg' or 'star'
 
-    // RTG MODE: Small teams to grow
+    console.log(`🔍 Filter: Rating=${playerRating}, Mode=${gameModeType}, Total Teams=${teams.length}`);
+
+    // RTG MODE: Small teams to grow (RELAXED - always returns teams)
     if (gameModeType === 'rtg') {
-        // Filter teams where player can be STAR (rating > team best player + 3)
+        // Try to find teams where player can be STAR, but don't filter too much
         const growthTeams = teams.filter(team => {
             const bestPlayer = team.squad_gaps.reduce((best, p) =>
                 p.rating > best.rating ? p : best, { rating: 0 }
             );
-            return playerRating > bestPlayer.rating + 3;
+            // Much more lenient: player >= best player (not +3)
+            return playerRating >= bestPlayer.rating - 2;
         });
 
         // Sort by team rating (ascending - smaller teams first)
         growthTeams.sort((a, b) => a.overall_level - b.overall_level);
 
-        // Fill with other teams if needed
-        if (growthTeams.length < 10) {
-            const otherTeams = teams
+        console.log(`🌟 RTG Mode: ${growthTeams.length} growth teams found`);
+
+        // ALWAYS return at least 10 teams, fill with ALL teams sorted by rating if needed
+        if (growthTeams.length >= 10) {
+            return growthTeams.slice(0, 10);
+        } else {
+            // Add all other teams sorted by rating (ascending for RTG)
+            const allOtherTeams = teams
                 .filter(t => !growthTeams.includes(t))
                 .sort((a, b) => a.overall_level - b.overall_level);
-            growthTeams.push(...otherTeams.slice(0, 10 - growthTeams.length));
+            const result = [...growthTeams, ...allOtherTeams];
+            console.log(`✅ RTG Mode: Returning ${Math.min(10, result.length)} teams total`);
+            return result.slice(0, 10);
         }
-
-        return growthTeams.slice(0, 10);
     }
 
-    // STAR MODE: Elite teams where player is already good
+    // STAR MODE: Elite teams where player is already good (RELAXED)
     if (gameModeType === 'star') {
-        // SUPER ÉLITE (88+): Prioritize REAL elite teams
+        // SUPER ÉLITE (88+): Prioritize REAL elite teams but don't be too strict
         if (playerRating >= SUPER_ELITE_PLAYER_RATING) {
             const superEliteTeams = teams.filter(t =>
                 ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
@@ -257,40 +288,45 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
                 !ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
             );
 
-            const otherTeams = teams.filter(t =>
-                t.overall_level < ELITE_TEAM_MIN_RATING &&
-                !ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
+            const allOtherTeams = teams.filter(t =>
+                !superEliteTeams.includes(t) && !otherEliteTeams.includes(t)
             );
 
             superEliteTeams.sort((a, b) => b.overall_level - a.overall_level);
             otherEliteTeams.sort((a, b) => b.overall_level - a.overall_level);
-            otherTeams.sort((a, b) => b.overall_level - a.overall_level);
+            allOtherTeams.sort((a, b) => b.overall_level - a.overall_level);
 
-            const result = [...superEliteTeams, ...otherEliteTeams];
+            // Combine but ensure we always have 10 teams
+            let result = [...superEliteTeams, ...otherEliteTeams];
             if (result.length < 10) {
-                result.push(...otherTeams.slice(0, 10 - result.length));
+                result.push(...allOtherTeams.slice(0, 10 - result.length));
             }
 
+            console.log(`👑 Super Elite Mode: ${result.length} teams (Elite: ${superEliteTeams.length})`);
             return result.slice(0, 10);
         }
         // ÉLITE (86-87): High-rated teams
         else if (playerRating >= ELITE_PLAYER_MIN_RATING) {
             const eliteTeams = teams.filter(t => t.overall_level >= ELITE_TEAM_MIN_RATING);
-            const otherTeams = teams.filter(t => t.overall_level < ELITE_TEAM_MIN_RATING);
+            const allOtherTeams = teams.filter(t => t.overall_level < ELITE_TEAM_MIN_RATING);
 
             eliteTeams.sort((a, b) => b.overall_level - a.overall_level);
-            otherTeams.sort((a, b) => b.overall_level - a.overall_level);
+            allOtherTeams.sort((a, b) => b.overall_level - a.overall_level);
 
-            if (eliteTeams.length >= 3) {
-                return eliteTeams.slice(0, Math.min(10, eliteTeams.length));
-            } else {
-                return [...eliteTeams, ...otherTeams.slice(0, 10 - eliteTeams.length)];
+            let result = [...eliteTeams];
+            if (result.length < 10) {
+                result.push(...allOtherTeams.slice(0, 10 - result.length));
             }
+
+            console.log(`⭐ Elite Mode: ${result.length} teams (Elite: ${eliteTeams.length})`);
+            return result.slice(0, 10);
         }
     }
 
-    // For regular players, return all teams sorted by rating
-    return teams.sort((a, b) => b.overall_level - a.overall_level);
+    // For regular players, return all teams sorted by rating (RELAXED)
+    const result = teams.sort((a, b) => b.overall_level - a.overall_level);
+    console.log(`✅ Regular Mode: Returning ${Math.min(10, result.length)} teams`);
+    return result.slice(0, 10);
 }
 
 /**
@@ -423,8 +459,21 @@ async function analyzeResults() {
         await loadDatabase();
     }
 
+    // CRITICAL: Verify database loaded successfully
+    if (!fc26Database || !fc26Database.teams || fc26Database.teams.length === 0) {
+        console.error('❌ DATABASE NOT LOADED OR EMPTY!');
+        alert('Error: No se pudo cargar la base de datos. Asegúrate de que EAFC26-Men.csv esté en la carpeta.');
+        hideAllScreens();
+        document.getElementById('welcomeScreen').classList.add('active');
+        return;
+    }
+
+    console.log(`✅ Database loaded: ${fc26Database.teams.length} teams available`);
+
     const playerRating = parseInt(document.getElementById('playerRating').value) || 80;
     const playerAge = answers.age || 21;
+
+    console.log(`👤 Player: Rating=${playerRating}, Age=${playerAge}, Position=${answers.position}, GameMode=${answers.game_mode}`);
 
     const userStyle = {
         possession: answers.possession,
@@ -441,9 +490,13 @@ async function analyzeResults() {
         selectedLeagues = ['la_liga', 'premier_league', 'bundesliga', 'serie_a', 'ligue_1'];
     }
 
+    console.log(`🏆 Selected Leagues: ${selectedLeagues.join(', ')}`);
+
     // Filter teams by player tier AND game mode
     const gameMode = answers.game_mode || 'star';
     const teamsByTier = filterTeamsByPlayerTier(playerRating, fc26Database.teams, gameMode);
+
+    console.log(`🔍 Teams after tier filter: ${teamsByTier.length}`);
 
     // Analyze each team
     const teamAnalysis = teamsByTier
@@ -510,8 +563,20 @@ async function analyzeResults() {
         })
         .sort((a, b) => b.finalScore - a.finalScore);
 
-    // Get top 3 results
-    const top3 = teamAnalysis.slice(0, 3);
+    console.log(`📊 Team Analysis Complete: ${teamAnalysis.length} teams analyzed`);
+
+    // CRITICAL: Ensure we always have at least 3 results
+    if (teamAnalysis.length === 0) {
+        console.error('❌ NO TEAMS FOUND - This should not happen!');
+        alert('No se encontraron equipos que coincidan con tus criterios. Intenta con diferentes opciones.');
+        hideAllScreens();
+        document.getElementById('welcomeScreen').classList.add('active');
+        return;
+    }
+
+    // Get top 3 results (or fewer if not enough teams)
+    const top3 = teamAnalysis.slice(0, Math.min(3, teamAnalysis.length));
+    console.log(`✅ Top ${top3.length} results selected`);
 
     // Display results
     displayResults(top3, playerRating);
@@ -545,6 +610,26 @@ function hideAllScreens() {
 
 // Display results on screen
 function displayResults(results, playerRating) {
+    console.log(`🎯 Displaying ${results.length} results for player rating ${playerRating}`);
+
+    // CRITICAL: Check if we have results
+    if (!results || results.length === 0) {
+        console.error('❌ NO RESULTS TO DISPLAY!');
+        const container = document.getElementById('resultsContainer');
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <h2 style="color: #d4af37;">⚠️ No se encontraron resultados</h2>
+                <p style="color: #a0a5b9;">Intenta con diferentes opciones de liga o posición.</p>
+                <button class="btn btn-primary" onclick="restart()" style="margin-top: 20px;">
+                    ← Volver a intentar
+                </button>
+            </div>
+        `;
+        hideAllScreens();
+        document.getElementById('resultsScreen').classList.add('active');
+        return;
+    }
+
     hideAllScreens();
 
     document.getElementById('resultPlayerRating').textContent = playerRating;
@@ -557,6 +642,7 @@ function displayResults(results, playerRating) {
     let html = '';
 
     results.forEach((result, index) => {
+        console.log(`📊 Result #${index + 1}: ${result.team.name} (Score: ${result.finalScore.toFixed(0)})`);
         const medal = medals[index];
         const rankLabel = rankLabels[index];
         const team = result.team;
