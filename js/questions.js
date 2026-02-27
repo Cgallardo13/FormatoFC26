@@ -212,8 +212,11 @@ function loadQuestion(index) {
             html += `
                 <div class="league-option ${isSelected ? 'selected' : ''}"
                      onclick="toggleLeague('${option.id}')">
-                    <div class="league-flag-container">
-                        <img src="${flagUrl}" class="league-flag-full" alt="${option.name}">
+                    <div class="league-card">
+                        <div class="league-flag-container">
+                            <img src="${flagUrl}" class="league-flag-full" alt="${option.name}">
+                        </div>
+                        <div class="league-label">${option.name}</div>
                     </div>
                 </div>
             `;
@@ -221,6 +224,20 @@ function loadQuestion(index) {
         html += '</div>';
     } else if (question.type === 'formation_selection') {
         html += '<div class="formation-options">';
+
+        // Show custom formation if it exists and is not one of the presets
+        const customFormation = answers.formation && !question.options.some(opt => opt.id === answers.formation);
+        if (customFormation) {
+            const formationDisplay = answers.formation.replace(/_/g, '-');
+            html += `
+                <div class="formation-option selected"
+                     onclick="selectFormation('${answers.formation}')">
+                    <div class="formation-name">✏️ ${formationDisplay}</div>
+                    <div class="formation-desc">Tu formación personalizada</div>
+                </div>
+            `;
+        }
+
         question.options.forEach(option => {
             const isSelected = answers.formation === option.id;
             html += `

@@ -63,42 +63,6 @@ function getTeamInitials(teamName) {
 // CORE ANALYSIS FUNCTIONS
 // ============================================
 
-// Calculate formation compatibility score (NEW)
-function calculateFormationCompatibility(userFormation, teamFormation) {
-    // If user hasn't selected a formation, return neutral score
-    if (!userFormation) return 50;
-
-    // Convert user formation ID (e.g., "4_3_3") to array [4, 3, 3]
-    const userFormationArray = userFormation.split('_').map(Number);
-
-    // Team formation might be in different formats, try to parse
-    let teamFormationArray;
-    if (typeof teamFormation === 'string') {
-        teamFormationArray = teamFormation.split('-').map(Number);
-    } else {
-        teamFormationArray = [4, 3, 3]; // Default fallback
-    }
-
-    // Calculate similarity
-    const totalLines = Math.max(userFormationArray.length, teamFormationArray.length);
-    let similarityScore = 0;
-
-    for (let i = 0; i < Math.min(userFormationArray.length, teamFormationArray.length); i++) {
-        const diff = Math.abs(userFormationArray[i] - teamFormationArray[i]);
-        if (diff === 0) {
-            similarityScore += 100; // Exact match
-        } else if (diff === 1) {
-            similarityScore += 70; // Very similar
-        } else if (diff === 2) {
-            similarityScore += 40; // Somewhat similar
-        } else {
-            similarityScore += 10; // Not similar
-        }
-    }
-
-    return similarityScore / totalLines;
-}
-
 // Calculate style compatibility score
 function calculateStyleCompatibility(userStyle, teamStyle) {
     let totalDiff = 0;
@@ -590,7 +554,8 @@ async function analyzeResults() {
             const userFormationId = answers.formation || '4_3_3';
 
             const styleMatch = calculateStyleCompatibility(userStyle, team.style);
-            const formationMatch = calculateFormationCompatibility(userFormationId, team.formation);
+            const formationMatch = calculateFormationCompatibility(userFormationId, team);
+            const tacticalMatch = calculateTacticalCompatibility(team); // NEW: Uses TEAM_TACTICS_DB
 
             // Analyze real competition using CSV data
             const userPosition = answers.position || findBestPosition(playerRating, team.squad_gaps).position;
@@ -625,12 +590,14 @@ async function analyzeResults() {
                 startingBonus = 10;
             }
 
-            // NEW: Include formation match in final score (20% weight)
-            const finalScore = (styleMatch * 0.30) + (formationMatch * 0.20) + startingBonus + (growthPotential * 0.20) + (generationalBonus * 0.15) + (difficultyPenalty * 0.30);
+            // Calculate final score with ALL factors including REAL tactical data
+            const finalScore = (styleMatch * 0.20) + (formationMatch * 0.15) + (tacticalMatch * 0.25) + startingBonus + (growthPotential * 0.15) + (generationalBonus * 0.10) + (difficultyPenalty * 0.25);
 
             return {
                 team: team,
                 styleMatch: styleMatch,
+                tacticalMatch: tacticalMatch, // NEW: Real tactical compatibility using TEAM_TACTICS_DB
+                formationMatch: formationMatch,
                 bestPosition: {
                     position: userPosition,
                     currentPlayer: competition.competitor.player,
