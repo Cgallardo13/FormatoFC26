@@ -23,10 +23,10 @@
             </button>
         </header>
 
-        <!-- Footer con Test API -->
+        <!-- Footer con Test CSV -->
         <footer class="footer">
-            <button class="test-api-btn" onclick="testAllConnections()" title="Testear conexiones de API">
-                🔧 Test API
+            <button class="test-api-btn" onclick="testCSVLoading()" title="Testear carga de CSV y Logos">
+                🔧 Test CSV
             </button>
         </footer>
 
@@ -41,11 +41,6 @@
                     <div class="input-group">
                         <label for="playerRating">🎯 Media de tu jugador</label>
                         <input type="number" id="playerRating" min="50" max="99" value="80" placeholder="80">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="geminiStyle">🤖 ¿Cómo juegas? (Describir tu estilo ayuda a Gemini a analizar)</label>
-                        <textarea id="geminiStyle" rows="3" placeholder="Ej: Juego rápido por las bandas, muchos centros, presiono alto..."></textarea>
                     </div>
 
                     <button class="btn btn-primary" onclick="startInterview(event)">

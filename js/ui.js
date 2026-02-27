@@ -230,8 +230,8 @@ function showDataSourceInfo() {
     alert(message);
 }
 
-// Test all API connections
-async function testAllConnections() {
+// Test CSV and Logos only (NO APIs)
+async function testCSVLoading() {
     const btn = document.querySelector('.test-api-btn');
     const originalText = btn.textContent;
 
@@ -239,180 +239,152 @@ async function testAllConnections() {
         btn.textContent = '🔄 Testing...';
         btn.disabled = true;
 
-        console.log('🧪 Starting API connection tests...');
+        console.log('🧪 Starting CSV & Logos test...');
 
-        // Test 1: MSMC Direct
-        console.log('Test 1: MSMC Direct API...');
-        let msmcDirectStatus = '❌ Failed';
-        let msmcDirectError = '';
+        // Test 1: EAFC26-Men.csv (PRIMARY DATA SOURCE)
+        console.log('Test 1: EAFC26-Men.csv (18,000+ players)...');
+        let csvStatus = '❌ Failed';
+        let csvError = '';
+        let playerCount = 0;
 
         try {
-            const msmcResponse = await fetch('https://api.msmc.cc/eafc/', {
-                method: 'GET',
-                mode: 'cors'
-            });
+            const csvResponse = await fetch('EAFC26-Men.csv');
 
-            if (msmcResponse.ok) {
-                msmcDirectStatus = '✅ OK';
-                console.log('✅ MSMC Direct is reachable');
+            if (csvResponse.ok) {
+                const csvText = await csvResponse.text();
+                const lines = csvText.split('\n').length;
+                playerCount = lines - 1; // Subtract header
+                csvStatus = `✅ OK (${playerCount.toLocaleString()} players)`;
+                console.log(`✅ EAFC26-Men.csv found! ${playerCount} players`);
             } else {
-                msmcDirectError = `HTTP ${msmcResponse.status}`;
-                console.warn(`⚠️ MSMC Direct returned: ${msmcResponse.status}`);
+                csvError = `HTTP ${csvResponse.status}`;
+                console.warn(`⚠️  CSV not found: ${csvResponse.status}`);
             }
         } catch (err) {
-            msmcDirectError = err.message;
-            console.warn('❌ MSMC Direct error:', err.message);
+            csvError = err.message;
+            console.warn('❌ CSV error:', err.message);
         }
 
-        // Test 2: AllOrigins Proxy
-        console.log('Test 2: AllOrigins Proxy...');
-        let proxyStatus = '❌ Failed';
-        let proxyError = '';
+        // Test 2: Team Logos
+        console.log('Test 2: Team Logos...');
+        let logoStatus = '❌ Failed';
+        let logoError = '';
+        let testedLogos = 0;
+        let workingLogos = 0;
 
-        try {
-            const encodedUrl = encodeURIComponent('https://api.msmc.cc/eafc/teams');
-            const proxyResponse = await fetch(`https://api.allorigins.win/raw?url=${encodedUrl}`, {
-                method: 'GET',
-                mode: 'cors'
-            });
+        if (fc26Database && fc26Database.teams && fc26Database.teams.length > 0) {
+            const testTeams = fc26Database.teams.slice(0, 10); // Test first 10 teams
 
-            if (proxyResponse.ok) {
-                const data = await proxyResponse.json();
-                proxyStatus = `✅ OK (${Array.isArray(data) ? data.length : 'object'} items)`;
-                console.log('✅ AllOrigins proxy works!');
-            } else {
-                proxyError = `HTTP ${proxyResponse.status}`;
-                console.warn(`⚠️ AllOrigins returned: ${proxyResponse.status}`);
-            }
-        } catch (err) {
-            proxyError = err.message;
-            console.warn('❌ AllOrigins error:', err.message);
-        }
+            for (const team of testTeams) {
+                testedLogos++;
+                const logoUrl = team.team_logo;
 
-        // Test 3: Local JSON
-        console.log('Test 3: Local JSON...');
-        let localStatus = '❌ Failed';
-        let localError = '';
-
-        try {
-            const localResponse = await fetch('teams.json');
-
-            if (localResponse.ok) {
-                const data = await localResponse.json();
-                localStatus = `✅ OK (${data.teams?.length || 0} teams)`;
-                console.log('✅ Local JSON works!');
-            } else {
-                localError = `HTTP ${localResponse.status}`;
-            }
-        } catch (err) {
-            localError = err.message;
-            console.warn('❌ Local JSON error:', err.message);
-        }
-
-        // Test 4: Gemini API (via Netlify Function)
-        console.log('Test 4: Gemini API (Netlify Function)...');
-        let geminiStatus = '❌ Failed';
-        let geminiError = '';
-
-        try {
-            const isNetlifyEnv = window.location.hostname.includes('netlify.app');
-
-            if (!isNetlifyEnv) {
-                geminiStatus = '⚠️ Skipped (local dev)';
-                geminiError = 'Gemini Function only available on Netlify';
-                console.warn('⚠️  Gemini test skipped - Not on Netlify');
-            } else {
-                // Test with a timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                const geminiResponse = await fetch(
-                    '/.netlify/functions/gemini-proxy',
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: 'test' }] }]
-                        }),
-                        signal: controller.signal
+                try {
+                    const logoResponse = await fetch(logoUrl, { method: 'HEAD' });
+                    if (logoResponse.ok) {
+                        workingLogos++;
+                        console.log(`✅ ${team.name}: ${logoUrl}`);
+                    } else {
+                        console.warn(`⚠️  ${team.name}: HTTP ${logoResponse.status}`);
                     }
-                );
-
-                clearTimeout(timeoutId);
-
-                if (geminiResponse.ok || geminiResponse.status === 400) {
-                    // 400 means API is working but key might be invalid - that's OK for connectivity test
-                    geminiStatus = '✅ OK';
-                    console.log('✅ Gemini Netlify Function is reachable');
-                } else {
-                    geminiError = `HTTP ${geminiResponse.status}`;
-                    console.warn(`⚠️ Gemini Function returned: ${geminiResponse.status}`);
+                } catch (err) {
+                    console.warn(`❌ ${team.name}: ${err.message}`);
                 }
             }
-        } catch (err) {
-            if (err.name === 'AbortError') {
-                geminiError = 'Timeout (5s)';
+
+            if (workingLogos > 0) {
+                logoStatus = `✅ OK (${workingLogos}/${testedLogos} working)`;
             } else {
-                geminiError = err.message;
+                logoError = 'No logos loaded';
+                logoStatus = '❌ Failed';
             }
-            console.warn('❌ Gemini API error:', err.message);
+        } else {
+            logoError = 'Database not loaded';
+        }
+
+        // Test 3: League Logos
+        console.log('Test 3: League Logos...');
+        let leagueStatus = '❌ Failed';
+        let leagueError = '';
+        const testedLeagues = [
+            { name: 'La Liga', url: 'https://www.laliga.com/assets/images/logos/laliga-h-monochrome-white.png' },
+            { name: 'Premier League', url: 'https://www.premierleague.com/resources/rebrand/v7.129.0/i/elements/pl-main-logo.png' },
+            { name: 'Bundesliga', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Bundesliga_logo_%282017%29.svg/240px-Bundesliga_logo_%282017%29.svg.png' }
+        ];
+
+        let workingLeagues = 0;
+
+        for (const league of testedLeagues) {
+            try {
+                const response = await fetch(league.url, { method: 'HEAD' });
+                if (response.ok) {
+                    workingLeagues++;
+                    console.log(`✅ ${league.name}: Working`);
+                } else {
+                    console.warn(`⚠️  ${league.name}: HTTP ${response.status}`);
+                }
+            } catch (err) {
+                console.warn(`❌ ${league.name}: ${err.message}`);
+            }
+        }
+
+        if (workingLeagues > 0) {
+            leagueStatus = `✅ OK (${workingLeagues}/${testedLeagues.length} working)`;
+        } else {
+            leagueError = 'All league logos failed';
         }
 
         // Build comprehensive report
         const report = `
-🔧 DIAGNÓSTICO COMPLETO DE APIs
+📊 DIAGNÓSTICO CSV Y LOGOS (Sin APIs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📡 MSMC API (Directo)
-Estado: ${msmcDirectStatus}
-${msmcDirectError ? `Error: ${msmcDirectError}` : ''}
+📊 EAFC26-Men.csv (18,000+ jugadores)
+Estado: ${csvStatus}
+${csvError ? `Error: ${csvError}` : ''}
+${playerCount > 0 ? `✅ Base de datos con ${playerCount.toLocaleString()} jugadores` : ''}
 
-🌐 AllOrigins Proxy
-Estado: ${proxyStatus}
-${proxyError ? `Error: ${proxyError}` : ''}
+🎨 Logos de Equipos
+Estado: ${logoStatus}
+${logoError ? `Error: ${logoError}` : ''}
+${workingLogos > 0 ? `✅ ${workingLogos}/${testedLogos} logos funcionando` : ''}
 
-📁 Local JSON (Backup)
-Estado: ${localStatus}
-${localError ? `Error: ${localError}` : ''}
-
-🤖 Gemini AI (Netlify Function)
-Estado: ${geminiStatus}
-${geminiError ? `Error: ${geminiError}` : ''}
+🏆 Logos de Ligas
+Estado: ${leagueStatus}
+${leagueError ? `Error: ${leagueError}` : ''}
+${workingLeagues > 0 ? `✅ ${workingLeagues}/${testedLeagues.length} ligas con logos` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 RESUMEN:
-${proxyStatus.includes('✅') || msmcDirectStatus === '✅ OK'
-    ? '✅ La app puede cargar datos'
-    : '❌ No se pueden cargar datos - Requiere Local JSON'}
+${csvStatus.includes('✅')
+    ? `✅ CSV Cargado: ${playerCount.toLocaleString()} jugadores disponibles`
+    : '❌ CSV no encontrado - Requiere EAFC26-Men.csv en la raíz'}
 
-${localStatus.includes('✅')
-    ? '✅ Backup local disponible'
-    : '⚠️ Backup local no encontrado'}
+${logoStatus.includes('✅')
+    ? `✅ Logos de equipos funcionando (${workingLogos}/${testedLogos})`
+    : '⚠️ Logos de equipos no cargan correctamente'}
 
-${geminiStatus === '✅ OK'
-    ? '✅ Análisis AI disponible (vía Netlify Function - Seguro)'
-    : geminiStatus.includes('Skipped')
-    ? '⚠️ AI solo disponible en Netlify Production'
-    : '⚠️ AI no funcionará (usará análisis simulado)'}
+${leagueStatus.includes('✅')
+    ? '✅ Logos de ligas funcionando (LaLiga, Premier, Bundesliga)'
+    : '⚠️ Logos de ligas no disponibles'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💡 RECOMENDACIONES:
-${localStatus.includes('✅')
-    ? '✅ La app funcionará con datos locales'
-    : '❌ CRÍTICO:teams.json no encontrado'}
-${proxyStatus.includes('✅')
-    ? '✅ El proxy allorigins funciona'
-    : '⚠️ Proxy fallando - verificar Netlify/CORS'}
-${geminiStatus === '✅ OK'
-    ? '✅ API Key segura en Netlify Environment Variables'
-    : '💡 Configura GEMINI_API_KEY en Netlify Dashboard'}
+💡 ESTADO DEL SISTEMA:
+${csvStatus.includes('✅') && logoStatus.includes('✅') && leagueStatus.includes('✅')
+    ? '✅ SISTEMA COMPLETO: CSV + Logos listos para usar'
+    : '⚠️ Revisa los errores arriba para completar la configuración'}
+
+🚀 Análisis: LOCAL (Sin APIs)
+${csvStatus.includes('✅')
+    ? '✅ Recomendaciones basadas en datos reales de FC26'
+    : '❌ Análisis no disponible sin CSV'}
         `.trim();
 
         alert(report);
-        console.log('✅ Connection test complete');
+        console.log('✅ CSV & Logos test complete');
 
     } catch (error) {
         console.error('Test error:', error);
