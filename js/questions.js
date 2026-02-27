@@ -198,13 +198,15 @@ function loadQuestion(index) {
         question.options.forEach(option => {
             const isSelected = answers.league.includes(option.id);
 
-            // League logos from Sofascore API (Official and reliable)
+            // League logos from Sofascore API with Google Focus Proxy
+            const GOOGLE_FOCUS_PROXY = 'https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&refresh=2592000&url=';
+
             const leagueLogos = {
-                'la_liga': 'https://api.sofascore.app/api/v1/unique-tournament/8/image',
-                'premier_league': 'https://api.sofascore.app/api/v1/unique-tournament/17/image',
-                'bundesliga': 'https://api.sofascore.app/api/v1/unique-tournament/35/image',
-                'serie_a': 'https://api.sofascore.app/api/v1/unique-tournament/23/image',
-                'ligue_1': 'https://api.sofascore.app/api/v1/unique-tournament/34/image'
+                'la_liga': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/8/image'),
+                'premier_league': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/17/image'),
+                'bundesliga': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/35/image'),
+                'serie_a': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/23/image'),
+                'ligue_1': GOOGLE_FOCUS_PROXY + encodeURIComponent('https://api.sofascore.app/api/v1/unique-tournament/34/image')
             };
 
             const logoUrl = leagueLogos[option.id] || '';

@@ -15,6 +15,50 @@ const ELITE_TEAMS = [
     'Bayern Munich', 'PSG', 'Inter', 'AC Milan', 'Juventus'
 ];
 
+// Generate initials for CSS fallback crest
+function getTeamInitials(teamName) {
+    const name = teamName.toLowerCase().trim();
+
+    // Common abbreviations
+    const commonAbbr = {
+        'real madrid': 'RMA',
+        'fc barcelona': 'FCB',
+        'atletico madrid': 'ATM',
+        'manchester city': 'MCI',
+        'manchester united': 'MUN',
+        'arsenal': 'ARS',
+        'liverpool': 'LIV',
+        'chelsea': 'CHE',
+        'tottenham': 'TOT',
+        'bayern munich': 'BAY',
+        'borussia dortmund': 'BVB',
+        'inter milan': 'INT',
+        'ac milan': 'MIL',
+        'juventus': 'JUV',
+        'psg': 'PSG',
+        'paris saint-germain': 'PSG'
+    };
+
+    if (commonAbbr[name]) {
+        return commonAbbr[name];
+    }
+
+    // Generate initials from name
+    const words = teamName.toUpperCase().split(/\s+/);
+
+    // For "FC TeamName" or "TeamName FC", use first letters
+    if (words.length === 1) {
+        // Single word: use first 2-3 letters
+        return words[0].substring(0, Math.min(3, words[0].length));
+    } else if (words.length === 2) {
+        // Two words: use first letter of each
+        return words[0][0] + words[1][0];
+    } else {
+        // Three or more: use first letter of first 2 words
+        return words[0][0] + words[1][0];
+    }
+}
+
 // ============================================
 // CORE ANALYSIS FUNCTIONS
 // ============================================
@@ -709,10 +753,10 @@ function displayResults(results, playerRating) {
             ? `<img src="${team.league_logo}" alt="${team.league}" class="league-logo-img" style="width:40px;height:40px;object-fit:contain;margin-right:8px;background:rgba(255,255,255,0.1);border-radius:8px;padding:4px;" onerror="this.style.display='none';">`
             : '';
 
-        // Team logo with BETTER fallback
+        // Team logo with CSS initials fallback
         const teamLogoHtml = team.team_logo
-            ? `<img src="${team.team_logo}" alt="${team.name}" class="team-logo-img" style="width:50px;height:50px;object-fit:contain;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team.name)}&background=random&color=fff';">`
-            : '';
+            ? `<img src="${team.team_logo}" alt="${team.name}" class="team-logo-img" style="width:50px;height:50px;object-fit:contain;">`
+            : `<div class="team-logo-fallback" style="width:50px;height:50px;font-size:14px;">${team.team_initials || getTeamInitials(team.name)}</div>`;
 
         // Dynamic analysis
         const dynamicAnalysis = generateDynamicAnalysis(result, playerRating);
