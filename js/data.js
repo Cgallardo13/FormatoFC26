@@ -18,14 +18,15 @@ async function loadFromAPI() {
     try {
         console.log('🌐 Sincronizando base de datos de 18,000 jugadores...');
 
-        // Try multiple endpoints including CORS proxies
+        // PRIORITY: Try allorigins proxy FIRST (most reliable for Netlify)
         const endpoints = [
-            // Direct endpoints (will fail on Netlify due to CORS)
+            // PRIMARY: AllOrigins proxy (works on Netlify, no CORS issues)
+            'https://api.allorigins.win/raw?url=https://api.msmc.cc/eafc/teams',
+            // BACKUP: Try without /teams endpoint
+            'https://api.allorigins.win/raw?url=https://api.msmc.cc/eafc/',
+            // LAST RESORT: Direct endpoints (will fail on Netlify due to CORS)
             'https://api.msmc.cc/eafc/teams',
-            'https://api.msmc.cc/eafc/',
-            // CORS proxies (bypass Netlify CORS restriction)
-            'https://cors-anywhere.herokuapp.com/https://api.msmc.cc/eafc/teams',
-            'https://api.allorigins.win/raw?url=https://api.msmc.cc/eafc/teams'
+            'https://api.msmc.cc/eafc/'
         ];
 
         let apiData = null;
@@ -38,11 +39,7 @@ async function loadFromAPI() {
                 const response = await fetch(endpoint, {
                     method: 'GET',
                     headers: {
-                        'Accept': 'application/json',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
+                        'Accept': 'application/json'
                     },
                     mode: 'cors'
                 });
