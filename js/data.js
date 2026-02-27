@@ -18,23 +18,39 @@ async function loadFromAPI() {
     try {
         console.log('🌐 Sincronizando base de datos de 18,000 jugadores...');
 
-        // PRIORITY: Try allorigins proxy FIRST (most reliable for Netlify)
-        const endpoints = [
-            // PRIMARY: AllOrigins proxy (works on Netlify, no CORS issues)
+        // PRIORITY: Try Netlify proxy first (production), then fallback methods
+        const isNetlify = window.location.hostname.includes('netlify.app') || 
+                         window.location.hostname.includes('netlify.com');
+
+        const endpoints = [];
+        
+        if (isNetlify) {
+            // PRODUCTION: Use Netlify proxy (defined in netlify.toml)
+            console.log('🔧 Detected Netlify environment, using proxy...');
+            endpoints.push(
+                '/api/teams',           // Netlify proxy (best option)
+                '/api/eafc'             // Netlify proxy root
+            );
+        }
+        
+        // FALLBACK: Try direct methods (for local development)
+        const encodedUrl = encodeURIComponent('https://api.msmc.cc/eafc/teams');
+        endpoints.push(
+            // AllOrigins with encoded URL
+            `https://api.allorigins.win/raw?url=${encodedUrl}`,
+            // AllOrigins without encoding
             'https://api.allorigins.win/raw?url=https://api.msmc.cc/eafc/teams',
-            // BACKUP: Try without /teams endpoint
-            'https://api.allorigins.win/raw?url=https://api.msmc.cc/eafc/',
-            // LAST RESORT: Direct endpoints (will fail on Netlify due to CORS)
-            'https://api.msmc.cc/eafc/teams',
-            'https://api.msmc.cc/eafc/'
-        ];
+            // Direct (will likely fail due to CORS)
+            'https://api.msmc.cc/eafc/teams'
+        );
 
         let apiData = null;
         let lastError = null;
 
-        for (let endpoint of endpoints) {
+        for (let i = 0; i < endpoints.length; i++) {
+            const endpoint = endpoints[i];
             try {
-                console.log(`🔄 Trying endpoint: ${endpoint}`);
+                console.log(`🔄 [${i+1}/${endpoints.length}] Trying: ${endpoint.substring(0, 60)}...`);
 
                 const response = await fetch(endpoint, {
                     method: 'GET',
@@ -44,23 +60,33 @@ async function loadFromAPI() {
                     mode: 'cors'
                 });
 
+                console.log(`   Status: ${response.status} ${response.statusText}`);
+
                 if (response.ok) {
-                    apiData = await response.json();
-                    console.log(`✅ Success from: ${endpoint}`);
-                    console.log(`📊 Received ${Array.isArray(apiData) ? apiData.length : 'N/A'} teams`);
-                    break;
+                    const data = await response.json();
+                    console.log(`✅ SUCCESS! Got data from endpoint ${i+1}`);
+
+                    // Validate data
+                    if (data && (Array.isArray(data) || data.teams || data.data)) {
+                        apiData = data;
+                        console.log(`📊 Data type: ${Array.isArray(data) ? 'Array' : 'Object'}`);
+                        console.log(`📊 Items: ${Array.isArray(data) ? data.length : 'N/A'}`);
+                        break;
+                    } else {
+                        console.warn('⚠️  Response received but data format is invalid');
+                    }
                 } else {
                     console.warn(`⚠️  HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (err) {
-                console.warn(`❌ Endpoint failed: ${endpoint} - ${err.message}`);
+                console.error(`❌ Endpoint ${i+1} failed:`, err.message);
                 lastError = err;
                 continue;
             }
         }
 
         if (!apiData) {
-            throw new Error(`All endpoints failed. Last error: ${lastError?.message || 'CORS/Network error'}`);
+            throw new Error(`All ${endpoints.length} endpoints failed. Last error: ${lastError?.message || 'Unknown'}`);
         }
 
         // Filter and transform data
@@ -80,7 +106,7 @@ async function loadFromAPI() {
         return fc26Database;
 
     } catch (error) {
-        console.warn('⚠️  API load failed:', error.message);
+        console.error('❌ API load failed:', error.message);
         console.warn('💡 Falling back to local JSON backup...');
         // Silently return null - don't show alert
         return null;

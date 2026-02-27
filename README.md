@@ -14,16 +14,29 @@ Web app que te ayuda a encontrar el equipo perfecto para tu jugador en FC26 bas�
 
 ```
 FormatoFC26/
-├── index.html          # Página principal
+├── index.html              # Página principal
 ├── css/
-│   └── styles.css      # Estilos mobile-first
+│   └── styles.css          # Estilos mobile-first Ultimate Team
 ├── js/
-│   ├── data.js         # Base de datos de 43 equipos
-│   ├── questions.js    # Lógica de la entrevista
-│   ├── analyzer.js     # Algoritmo de matching
-│   └── ui.js           # Manejo de interfaz
-└── README.md           # Este archivo
+│   ├── data.js             # Base de datos con API loading
+│   ├── questions.js        # Lógica de la entrevista
+│   ├── analyzer.js         # Algoritmo de matching + Gemini AI
+│   └── ui.js               # Manejo de interfaz
+├── netlify/
+│   └── functions/
+│       └── gemini-proxy.js # Netlify Function para Gemini API (seguro)
+├── netlify.toml            # Configuración de redirects (CORS fix)
+├── package.json            # Dependencias para Netlify Functions
+├── teams.json              # Backup local de datos (96 equipos)
+└── README.md               # Este archivo
 ```
+
+### Archivos clave:
+
+- **netlify.toml**: Configura proxies para evitar CORS en Netlify
+- **netlify/functions/gemini-proxy.js**: Función serverless que llama a Gemini API de forma segura
+- **js/analyzer.js**: Algoritmo principal + integración con Gemini (usa Netlify Function en producción)
+- **js/data.js**: Carga datos desde API MSMC o fallback a teams.json
 
 ## 🚀 Cómo usarlo
 
@@ -31,16 +44,40 @@ FormatoFC26/
 1. Simplemente abre el archivo `index.html` en tu navegador
 2. ¡Listo! No necesitas servidor ni instalar nada
 
-### Opción 2: Deploy en Netlify (Recomendado para iPhone)
+### Opción 2: Deploy en Netlify (Recomendado para iPhone + Gemini AI)
+
+#### Paso 1: Deploy inicial
 1. Ve a [Netlify Drop](https://app.netlify.com/drop)
 2. Arrastra la carpeta `FormatoFC26` completa
-3. En segundos tendrás un link funcional para compartir
+3. En segundos tendrás un link funcional
+
+#### Paso 2: Configurar Gemini API (Opcional, para análisis AI)
+
+1. **Obtener API Key**:
+   - Ve a https://aistudio.google.com/app/apikey
+   - Crea una nueva API key
+   - Copia la key (empieza con `AIzaSy...`)
+
+2. **Configurar en Netlify**:
+   - Ve a tu sitio en Netlify Dashboard
+   - Settings → Environment variables
+   - Agrega nueva variable:
+     - Key: `GEMINI_API_KEY`
+     - Value: [tu API key]
+   - Guarda y redeploy
+
+3. **Verificar que funciona**:
+   - Abre la app
+   - Haz clic en "🔧 Test API" (footer)
+   - Debería decir: "✅ Análisis AI disponible (vía Netlify Function - Seguro)"
 
 ### Opción 3: Deploy en GitHub Pages
 1. Crea un nuevo repositorio en GitHub
 2. Sube todos los archivos
 3. Ve a Settings > Pages
 4. Activa GitHub Pages desde la rama main
+
+**Nota**: Gemini AI solo funciona en Netlify (por seguridad). En GitHub Pages o local, la app usará análisis simulado.
 
 ## 🎮 Cómo funciona el análisis
 

@@ -534,14 +534,19 @@ function displayResults(results, playerRating, playerAge, userStyle) {
 // GEMINI AI INTEGRATION
 // ============================================
 
-// TODO: Add your Gemini API Key here when ready
-// Get your API key from: https://aistudio.google.com/app/apikey
-const GEMINI_API_KEY = 'AIzaSyBJ1Wsco6w5EkCQP2mX7WlwH04uSv-NUeg'; // To be configured later
+// Gemini API configuration
+// IMPORTANT: In production (Netlify), the API key is stored in environment variables
+// and accessed securely via Netlify Functions. No key is exposed in client code.
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+
+// Detect if running on Netlify
+const isNetlify = window.location.hostname.includes('netlify.app') ||
+                  window.location.hostname === 'localhost'; // Also true for Netlify dev
 
 // Export for test API function
 function getGeminiAPIKey() {
-    return GEMINI_API_KEY;
+    // Return empty - key is now in Netlify environment variables
+    return '';
 }
 
 function getGeminiAPIURL() {
@@ -557,54 +562,130 @@ async function getAIFeedback(top3Results) {
     // Get user's style description from textarea
     const userStyleText = document.getElementById('geminiStyle')?.value || '';
 
-    // If no API key configured or no user input, return simulated analysis
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE' || !userStyleText.trim()) {
+    // If no user input, return simulated analysis immediately
+    if (!userStyleText.trim()) {
+        console.log('ℹ️  No user style description provided, using simulated analysis');
         return generateSimulatedAnalysis(top3Results, userStyleText);
     }
 
-    // Try to call Gemini API with 5-second timeout
+    // Try to call Gemini API with 15-second timeout
     try {
+        console.log('🤖 Calling Gemini API...');
+
         const prompt = buildGeminiPrompt(top3Results, userStyleText);
-
-        // Create AbortController for timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            controller.abort();
-            console.warn('⏰ Gemini API timeout after 5 seconds, using simulated analysis');
-        }, 5000);
-
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
+        const requestBody = {
+            contents: [{
+                parts: [{
+                    text: prompt
                 }]
-            }),
-            signal: controller.signal
-        });
+            }]
+        };
 
-        clearTimeout(timeoutId);
+        let response;
+        let useNetlifyFunction = false;
+
+        // Method 1: Use Netlify Function (secure, production)
+        if (isNetlify) {
+            try {
+                console.log('🔐 Using Netlify Function for secure Gemini API call');
+                useNetlifyFunction = true;
+
+                // Create AbortController for timeout (15 seconds)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                    console.warn('⏰ Gemini API timeout after 15 seconds');
+                }, 15000);
+
+                response = await fetch('/.netlify/functions/gemini-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+            } catch (netlifyError) {
+                console.warn('⚠️  Netlify Function failed, falling back to direct call:', netlifyError.message);
+                useNetlifyFunction = false;
+            }
+        }
+
+        // Method 2: Direct call (for local development without Netlify)
+        if (!useNetlifyFunction && !isNetlify) {
+            console.log('🔓 Using direct Gemini API call (development mode)');
+            const API_KEY = prompt('Enter your Gemini API key (or leave empty for simulated analysis):\n\nGet your key from: https://aistudio.google.com/app/apikey');
+
+            if (!API_KEY || API_KEY.trim().length < 20) {
+                console.log('ℹ️  No API key provided, using simulated analysis');
+                return generateSimulatedAnalysis(top3Results, userStyleText);
+            }
+
+            // Create AbortController for timeout (15 seconds)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                console.warn('⏰ Gemini API timeout after 15 seconds');
+            }, 15000);
+
+            response = await fetch(`${GEMINI_API_URL}?key=${API_KEY}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+        }
+
+        // Check response
+        if (!response) {
+            throw new Error('No response received');
+        }
+
+        console.log(`📡 Gemini response status: ${response.status}`);
 
         if (!response.ok) {
-            console.warn('Gemini API call failed, using simulated analysis');
+            const errorText = await response.text();
+            console.error(`❌ Gemini API error (${response.status}):`, errorText);
+
+            // Specific error handling
+            if (response.status === 400) {
+                console.warn('⚠️  Bad request - check prompt format');
+            } else if (response.status === 401 || response.status === 403) {
+                console.warn('⚠️  Authentication failed - Check GEMINI_API_KEY in Netlify environment variables');
+            } else if (response.status === 429) {
+                console.warn('⚠️  Rate limit exceeded - too many requests');
+            } else if (response.status === 500) {
+                console.warn('⚠️  Netlify Function error - Check server logs');
+            }
+
             return generateSimulatedAnalysis(top3Results, userStyleText);
         }
 
         const data = await response.json();
+        console.log('✅ Gemini API response received');
+
         const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        return aiResponse || generateSimulatedAnalysis(top3Results, userStyleText);
+        if (!aiResponse) {
+            console.warn('⚠️  Gemini response format unexpected:', data);
+            return generateSimulatedAnalysis(top3Results, userStyleText);
+        }
+
+        console.log(`✅ AI analysis generated successfully (${useNetlifyFunction ? 'via Netlify Function' : 'direct'})`);
+        return aiResponse;
 
     } catch (error) {
         if (error.name === 'AbortError') {
-            console.warn('⏰ Gemini API timed out, using simulated analysis');
+            console.warn('⏰ Gemini API timed out after 15 seconds, using simulated analysis');
         } else {
-            console.warn('Gemini API error:', error);
+            console.error('❌ Gemini API error:', error.message);
         }
         return generateSimulatedAnalysis(top3Results, userStyleText);
     }

@@ -1,0 +1,23 @@
+{
+  "name": "fc26-team-finder",
+  "version": "1.0.0",
+  "description": "FC26 Team Finder - Encuentra tu equipo perfecto en EA Sports FC 26",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step needed for static site'",
+    "test": "echo 'Run tests in browser console'"
+  },
+  "keywords": [
+    "fc26",
+    "ea sports fc",
+    "team finder",
+    "football",
+    "soccer"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

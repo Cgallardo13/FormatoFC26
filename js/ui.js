@@ -241,10 +241,10 @@ async function testAllConnections() {
 
         console.log('🧪 Starting API connection tests...');
 
-        // Test 1: MSMC API
-        console.log('Test 1: MSMC API...');
-        let msmcStatus = '❌ Failed';
-        let msmcError = '';
+        // Test 1: MSMC Direct
+        console.log('Test 1: MSMC Direct API...');
+        let msmcDirectStatus = '❌ Failed';
+        let msmcDirectError = '';
 
         try {
             const msmcResponse = await fetch('https://api.msmc.cc/eafc/', {
@@ -253,78 +253,162 @@ async function testAllConnections() {
             });
 
             if (msmcResponse.ok) {
-                msmcStatus = '✅ OK';
-                console.log('✅ MSMC API is reachable');
+                msmcDirectStatus = '✅ OK';
+                console.log('✅ MSMC Direct is reachable');
             } else {
-                msmcError = `HTTP ${msmcResponse.status}`;
-                console.warn(`⚠️ MSMC API returned: ${msmcResponse.status}`);
+                msmcDirectError = `HTTP ${msmcResponse.status}`;
+                console.warn(`⚠️ MSMC Direct returned: ${msmcResponse.status}`);
             }
         } catch (err) {
-            msmcError = err.message;
-            console.warn('❌ MSMC API error:', err.message);
+            msmcDirectError = err.message;
+            console.warn('❌ MSMC Direct error:', err.message);
         }
 
-        // Test 2: Gemini API
-        console.log('Test 2: Gemini API...');
+        // Test 2: AllOrigins Proxy
+        console.log('Test 2: AllOrigins Proxy...');
+        let proxyStatus = '❌ Failed';
+        let proxyError = '';
+
+        try {
+            const encodedUrl = encodeURIComponent('https://api.msmc.cc/eafc/teams');
+            const proxyResponse = await fetch(`https://api.allorigins.win/raw?url=${encodedUrl}`, {
+                method: 'GET',
+                mode: 'cors'
+            });
+
+            if (proxyResponse.ok) {
+                const data = await proxyResponse.json();
+                proxyStatus = `✅ OK (${Array.isArray(data) ? data.length : 'object'} items)`;
+                console.log('✅ AllOrigins proxy works!');
+            } else {
+                proxyError = `HTTP ${proxyResponse.status}`;
+                console.warn(`⚠️ AllOrigins returned: ${proxyResponse.status}`);
+            }
+        } catch (err) {
+            proxyError = err.message;
+            console.warn('❌ AllOrigins error:', err.message);
+        }
+
+        // Test 3: Local JSON
+        console.log('Test 3: Local JSON...');
+        let localStatus = '❌ Failed';
+        let localError = '';
+
+        try {
+            const localResponse = await fetch('teams.json');
+
+            if (localResponse.ok) {
+                const data = await localResponse.json();
+                localStatus = `✅ OK (${data.teams?.length || 0} teams)`;
+                console.log('✅ Local JSON works!');
+            } else {
+                localError = `HTTP ${localResponse.status}`;
+            }
+        } catch (err) {
+            localError = err.message;
+            console.warn('❌ Local JSON error:', err.message);
+        }
+
+        // Test 4: Gemini API (via Netlify Function)
+        console.log('Test 4: Gemini API (Netlify Function)...');
         let geminiStatus = '❌ Failed';
         let geminiError = '';
 
         try {
-            const apiKey = typeof getGeminiAPIKey === 'function' ? getGeminiAPIKey() : GEMINI_API_KEY;
+            const isNetlifyEnv = window.location.hostname.includes('netlify.app');
 
-            // Test with a timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-            const geminiResponse = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: 'test' }] }]
-                    }),
-                    signal: controller.signal
-                }
-            );
-
-            clearTimeout(timeoutId);
-
-            if (geminiResponse.ok || geminiResponse.status === 400) {
-                // 400 means API is working but key might be invalid - that's OK for connectivity test
-                geminiStatus = '✅ OK';
-                console.log('✅ Gemini API is reachable');
+            if (!isNetlifyEnv) {
+                geminiStatus = '⚠️ Skipped (local dev)';
+                geminiError = 'Gemini Function only available on Netlify';
+                console.warn('⚠️  Gemini test skipped - Not on Netlify');
             } else {
-                geminiError = `HTTP ${geminiResponse.status}`;
+                // Test with a timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                const geminiResponse = await fetch(
+                    '/.netlify/functions/gemini-proxy',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: 'test' }] }]
+                        }),
+                        signal: controller.signal
+                    }
+                );
+
+                clearTimeout(timeoutId);
+
+                if (geminiResponse.ok || geminiResponse.status === 400) {
+                    // 400 means API is working but key might be invalid - that's OK for connectivity test
+                    geminiStatus = '✅ OK';
+                    console.log('✅ Gemini Netlify Function is reachable');
+                } else {
+                    geminiError = `HTTP ${geminiResponse.status}`;
+                    console.warn(`⚠️ Gemini Function returned: ${geminiResponse.status}`);
+                }
             }
         } catch (err) {
             if (err.name === 'AbortError') {
-                geminiError = 'Timeout (3s)';
+                geminiError = 'Timeout (5s)';
             } else {
                 geminiError = err.message;
             }
             console.warn('❌ Gemini API error:', err.message);
         }
 
-        // Build report
+        // Build comprehensive report
         const report = `
-🔧 DIAGNÓSTICO DE CONEXIONES
+🔧 DIAGNÓSTICO COMPLETO DE APIs
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📡 MSMC API (https://api.msmc.cc/eafc/)
-Estado: ${msmcStatus}
-${msmcError ? `Error: ${msmcError}` : ''}
+📡 MSMC API (Directo)
+Estado: ${msmcDirectStatus}
+${msmcDirectError ? `Error: ${msmcDirectError}` : ''}
 
-🤖 Gemini API
+🌐 AllOrigins Proxy
+Estado: ${proxyStatus}
+${proxyError ? `Error: ${proxyError}` : ''}
+
+📁 Local JSON (Backup)
+Estado: ${localStatus}
+${localError ? `Error: ${localError}` : ''}
+
+🤖 Gemini AI (Netlify Function)
 Estado: ${geminiStatus}
 ${geminiError ? `Error: ${geminiError}` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-${msmcStatus === '✅ OK' && geminiStatus === '✅ OK'
-    ? '✅ TODAS LAS CONEXIONES FUNCIONAN'
-    : '⚠️ Algunas conexiones fallaron - Revisa la consola para más detalles'}
+📊 RESUMEN:
+${proxyStatus.includes('✅') || msmcDirectStatus === '✅ OK'
+    ? '✅ La app puede cargar datos'
+    : '❌ No se pueden cargar datos - Requiere Local JSON'}
+
+${localStatus.includes('✅')
+    ? '✅ Backup local disponible'
+    : '⚠️ Backup local no encontrado'}
+
+${geminiStatus === '✅ OK'
+    ? '✅ Análisis AI disponible (vía Netlify Function - Seguro)'
+    : geminiStatus.includes('Skipped')
+    ? '⚠️ AI solo disponible en Netlify Production'
+    : '⚠️ AI no funcionará (usará análisis simulado)'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 RECOMENDACIONES:
+${localStatus.includes('✅')
+    ? '✅ La app funcionará con datos locales'
+    : '❌ CRÍTICO:teams.json no encontrado'}
+${proxyStatus.includes('✅')
+    ? '✅ El proxy allorigins funciona'
+    : '⚠️ Proxy fallando - verificar Netlify/CORS'}
+${geminiStatus === '✅ OK'
+    ? '✅ API Key segura en Netlify Environment Variables'
+    : '💡 Configura GEMINI_API_KEY en Netlify Dashboard'}
         `.trim();
 
         alert(report);
