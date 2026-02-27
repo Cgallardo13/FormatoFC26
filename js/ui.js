@@ -230,8 +230,8 @@ function showDataSourceInfo() {
     alert(message);
 }
 
-// Test CSV and Logos only (NO APIs)
-async function testCSVLoading() {
+// Test system - CSV + Logos + Database
+async function testSystem() {
     const btn = document.querySelector('.test-api-btn');
     const originalText = btn.textContent;
 

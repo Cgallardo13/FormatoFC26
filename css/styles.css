@@ -546,17 +546,43 @@ input[type="range"]::-moz-range-thumb:hover {
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
 }
 
+.league-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    min-height: 90px;
+}
+
 .league-logo {
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
     object-fit: contain;
-    margin-bottom: 10px;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
-    transition: transform 0.3s;
+    transition: transform 0.3s, filter 0.3s;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 8px;
 }
 
 .league-option:hover .league-logo {
     transform: scale(1.1);
+    filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
+}
+
+.league-option.selected .league-logo {
+    background: rgba(212, 175, 55, 0.15);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.league-flag-large {
+    font-size: 3.5rem;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+}
+
+.league-fallback {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .league-name {

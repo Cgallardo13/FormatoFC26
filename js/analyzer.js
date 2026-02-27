@@ -415,27 +415,37 @@ function generateDynamicAnalysis(result, playerRating) {
 }
 
 /**
- * Calculate team's average stats from squad_gaps
+ * Calculate team's average stats from squad_gaps (handles missing player stats)
  */
 function calculateTeamAverageStats(squadGaps) {
     if (!squadGaps || squadGaps.length === 0) {
         return { pac: 70, sho: 70, pas: 70, dri: 70, def: 70, phy: 70, ovr: 75 };
     }
 
+    console.log(`📊 Calculating team average for ${squadGaps.length} players`);
+
     const sum = squadGaps.reduce((acc, player) => {
+        // Try to get individual stats, fallback to rating
+        const playerPac = player.pac || player.PAC || player.rating || 70;
+        const playerSho = player.sho || player.SHO || player.rating || 70;
+        const playerPas = player.pas || player.PAS || player.rating || 70;
+        const playerDri = player.dri || player.DRI || player.rating || 70;
+        const playerDef = player.def || player.DEF || player.rating || 70;
+        const playerPhy = player.phy || player.PHY || player.rating || 70;
+
         return {
-            pac: acc.pac + (player.pac || player.rating || 70),
-            sho: acc.sho + (player.sho || player.rating || 70),
-            pas: acc.pas + (player.pas || player.rating || 70),
-            dri: acc.dri + (player.dri || player.rating || 70),
-            def: acc.def + (player.def || player.rating || 70),
-            phy: acc.phy + (player.phy || player.rating || 70),
+            pac: acc.pac + playerPac,
+            sho: acc.sho + playerSho,
+            pas: acc.pas + playerPas,
+            dri: acc.dri + playerDri,
+            def: acc.def + playerDef,
+            phy: acc.phy + playerPhy,
             ovr: acc.ovr + player.rating
         };
     }, { pac: 0, sho: 0, pas: 0, dri: 0, def: 0, phy: 0, ovr: 0 });
 
     const count = squadGaps.length;
-    return {
+    const avg = {
         pac: Math.round(sum.pac / count),
         sho: Math.round(sum.sho / count),
         pas: Math.round(sum.pas / count),
@@ -444,6 +454,10 @@ function calculateTeamAverageStats(squadGaps) {
         phy: Math.round(sum.phy / count),
         ovr: Math.round(sum.ovr / count)
     };
+
+    console.log(`✅ Team average: PAC=${avg.pac}, SHO=${avg.sho}, PAS=${avg.pas}, DRI=${avg.dri}, DEF=${avg.def}, PHY=${avg.phy}, OVR=${avg.ovr}`);
+
+    return avg;
 }
 
 // ============================================
@@ -692,12 +706,12 @@ function displayResults(results, playerRating) {
 
         // League logo with fallback
         const leagueLogoHtml = team.league_logo
-            ? `<img src="${team.league_logo}" alt="${team.league}" class="league-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display:none">${team.league_flag}</span>`
-            : `<span>${team.league_flag}</span>`;
+            ? `<img src="${team.league_logo}" alt="${team.league}" class="league-logo-img" style="width:40px;height:40px;object-fit:contain;margin-right:8px;background:rgba(255,255,255,0.1);border-radius:8px;padding:4px;" onerror="this.style.display='none';">`
+            : '';
 
-        // Team logo
+        // Team logo with BETTER fallback
         const teamLogoHtml = team.team_logo
-            ? `<img src="${team.team_logo}" alt="${team.name}" class="team-logo-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDQ5ZjM3IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgMnwxMCAxMC0xMCAxME0yIDEybDEwIDEwLTEwIi8+PC9zdmc+'">`
+            ? `<img src="${team.team_logo}" alt="${team.name}" class="team-logo-img" style="width:50px;height:50px;object-fit:contain;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team.name)}&background=random&color=fff';">`
             : '';
 
         // Dynamic analysis

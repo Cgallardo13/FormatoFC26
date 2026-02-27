@@ -445,287 +445,236 @@ function getLeagueFlag(leagueName) {
 }
 
 // ============================================
-// TEAM LOGO SYSTEM - Multi-source with fallbacks
+// SOFASCORE API - Logo System
+// Single source of truth for ALL logos
 // ============================================
+
+// Sofascore IDs for Leagues
+const SOFASCORE_LEAGUE_IDS = {
+    'La Liga': 8,
+    'Premier League': 17,
+    'Bundesliga': 35,
+    'Serie A': 23,
+    'Ligue 1': 34
+};
+
+// Sofascore IDs for ALL Teams from 5 Major Leagues
+const SOFASCORE_TEAM_IDS = {
+    // ==================== LA LIGA (Spain) ====================
+    'real madrid': 2829,
+    'madrid': 2829,
+    'fc barcelona': 2817,
+    'barcelona': 2817,
+    'atletico madrid': 2836,
+    'atletico': 2836,
+    'real sociedad': 2822,
+    'sociedad': 2822,
+    'athletic club': 2818,
+    'athletic bilbao': 2818,
+    'villarreal': 2815,
+    'real betis': 2816,
+    'betis': 2816,
+    'valencia cf': 2806,
+    'valencia': 2806,
+    'sevilla fc': 2813,
+    'sevilla': 2813,
+    'getafe cf': 6447,
+    'getafe': 6447,
+    'celta vigo': 2803,
+    'rcd mallorca': 2807,
+    'mallorca': 2807,
+    'rayo vallecano': 6441,
+    'rayo': 6441,
+    'ca osasuna': 2802,
+    'osasuna': 2802,
+    'girona fc': 2805,
+    'girona': 2805,
+    'cadiz cf': 2810,
+    'cadiz': 2810,
+    'ud almeria': 2811,
+    'almeria': 2811,
+    'las palmas': 2809,
+    'deportivo alaves': 2812,
+    'alaves': 2812,
+    'levante ud': 2827,
+    'levante': 2827,
+    'real valladolid': 2828,
+    'valladolid': 2828,
+    'elche cf': 2824,
+    'elche': 2824,
+    'rcd espanyol': 2819,
+    'espanyol': 2819,
+    'real valladolid cf': 2828,
+
+    // ==================== PREMIER LEAGUE (England) ====================
+    'manchester city': 17,
+    'manchester': 17,
+    'arsenal': 42,
+    'liverpool': 44,
+    'manchester united': 33,
+    'chelsea': 38,
+    'tottenham': 47,
+    'spurs': 47,
+    'newcastle': 34,
+    'aston villa': 35,
+    'west ham': 45,
+    'brighton': 43,
+    'crystal palace': 41,
+    'everton': 40,
+    'brentford': 6781,
+    'fulham': 36,
+    'nottingham forest': 46,
+    'bournemouth': 39,
+    'wolves': 37,
+    'luton town': 1022,
+    'burnley': 1019,
+    'sheffield united': 1023,
+    'leeds united': 48,
+    'leicester city': 49,
+    'southampton': 50,
+    'ipswich town': 1022,
+
+    // ==================== BUNDESLIGA (Germany) ====================
+    'bayern munich': 157,
+    'bayern': 157,
+    'borussia dortmund': 165,
+    'dortmund': 165,
+    'rb leipzig': 2631,
+    'leipzig': 2631,
+    'bayer leverkusen': 163,
+    'leverkusen': 163,
+    'union berlin': 2636,
+    'freiburg': 162,
+    'eintracht frankfurt': 161,
+    'frankfurt': 161,
+    'vfl wolfsburg': 168,
+    'wolfsburg': 168,
+    '1 fc mainz': 2635,
+    'mainz': 2635,
+    'borussia monchengladbach': 160,
+    'monchengladbach': 160,
+    'fc koln': 164,
+    'koln': 164,
+    'tsg hoffenheim': 167,
+    'hoffenheim': 167,
+    'vfl bochum': 2633,
+    'bochum': 2633,
+    'fc augsburg': 2634,
+    'augsburg': 2634,
+    'vfb stuttgart': 166,
+    'stuttgart': 166,
+    'sv darmstadt': 2632,
+    'darmstadt': 2632,
+    '1 fc heidenheim': 2637,
+    'heidenheim': 2637,
+    'werder bremen': 169,
+    'bremen': 169,
+
+    // ==================== SERIE A (Italy) ====================
+    'inter milan': 505,
+    'inter': 505,
+    'ac milan': 498,
+    'milan': 498,
+    'juventus': 496,
+    'napoli': 502,
+    'roma': 504,
+    'as roma': 504,
+    'lazio': 503,
+    'atalanta': 499,
+    'fiorentina': 500,
+    'torino': 506,
+    'bologna': 507,
+    'sassuolo': 2668,
+    'udinese': 508,
+    'sampdoria': 511,
+    'hellas verona': 509,
+    'verona': 509,
+    'genoa': 510,
+    'cagliari': 512,
+    'lecce': 2671,
+    'cremonese': 2672,
+    'empoli': 2673,
+    'spezia': 2674,
+    'monza': 2669,
+
+    // ==================== LIGUE 1 (France) ====================
+    'psg': 85,
+    'paris saint-germain': 85,
+    'paris': 85,
+    'as monaco': 90,
+    'monaco': 90,
+    'olympique marseille': 91,
+    'marseille': 91,
+    'olympique lyon': 80,
+    'lyon': 80,
+    'lille': 82,
+    'rc lens': 2670,
+    'lens': 2670,
+    'ogc nice': 86,
+    'nice': 86,
+    'stade rennais': 94,
+    'rennes': 94,
+    'fc nantes': 95,
+    'nantes': 95,
+    'stade de reims': 96,
+    'reims': 96,
+    'rc strasbourg': 97,
+    'strasbourg': 97,
+    'stade brestois': 98,
+    'brest': 98,
+    'fc lorient': 99,
+    'lorient': 99,
+    'montpellier': 100,
+    'toulouse fc': 101,
+    'toulouse': 101,
+    'clermont foot': 102,
+    'clermont': 102,
+    'le havre ac': 103,
+    'le havre': 103,
+    'fc metz': 104,
+    'metz': 104
+};
 
 // Normalize team name for logo lookup
 function normalizeTeamName(teamName) {
     const name = teamName.toLowerCase().trim();
-
-    // Remove common suffixes and variations
-    const removeSuffixes = [
-        'fc', 'cf', 'ac', 'sd', 'ud', 'rcd',
-        'balompie', 'balompié',
-        'football club', 'club',
-        'fv', 'bv', 'vfb', 'ssc', 'ssc'
-    ];
-
-    let normalized = name;
-    for (const suffix of removeSuffixes) {
-        const regex = new RegExp(`\\b${suffix}\\b`, 'gi');
-        normalized = normalized.replace(regex, '');
-    }
-
-    // Remove extra spaces and trim
-    normalized = normalized.replace(/\s+/g, ' ').trim();
-
-    return normalized;
+    return name;
 }
 
-// Team name mapping to reliable logo URLs
-const TEAM_LOGO_MAP = {
-    // La Liga Teams (con URLs directas de BeinSports y Football-Data)
-    'real madrid': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/102.png',
-    'madrid': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/102.png',
-    'fc barcelona': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/103.png',
-    'barcelona': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/103.png',
-    'atletico madrid': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/105.png',
-    'atletico': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/105.png',
-    'real sociedad': 'https://crests.football-data.org/92.svg',
-    'sociedad': 'https://crests.football-data.org/92.svg',
-    'athletic club': 'https://crests.football-data.org/84.svg',
-    'athletic bilbao': 'https://crests.football-data.org/84.svg',
-    'villarreal': 'https://crests.football-data.org/95.svg',
-    'real betis': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/104.png',
-    'betis': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/104.png',
-    'valencia cf': 'https://crests.football-data.org/83.svg',
-    'valencia': 'https://crests.football-data.org/83.svg',
-    'sevilla fc': 'https://crests.football-data.org/79.svg',
-    'sevilla': 'https://crests.football-data.org/79.svg',
-    'getafe cf': 'https://crests.football-data.org/557.svg',
-    'getafe': 'https://crests.football-data.org/557.svg',
-    'celta vigo': 'https://crests.football-data.org/87.svg',
-    'rcd mallorca': 'https://crests.football-data.org/90.svg',
-    'mallorca': 'https://crests.football-data.org/90.svg',
-    'rayo vallecano': 'https://crests.football-data.org/93.svg',
-    'rayo': 'https://crests.football-data.org/93.svg',
-    'ca osasuna': 'https://crests.football-data.org/82.svg',
-    'osasuna': 'https://crests.football-data.org/82.svg',
-    'girona fc': 'https://crests.football-data.org/229.svg',
-    'girona': 'https://crests.football-data.org/229.svg',
-    'cadiz cf': 'https://crests.football-data.org/274.svg',
-    'cadiz': 'https://crests.football-data.org/274.svg',
-    'ud almeria': 'https://crests.football-data.org/275.svg',
-    'almeria': 'https://crests.football-data.org/275.svg',
-    'las palmas': 'https://crests.football-data.org/271.svg',
-    'deportivo alaves': 'https://crests.football-data.org/280.svg',
-    'alaves': 'https://crests.football-data.org/280.svg',
-    'levante ud': 'https://crests.football-data.org/395.svg',
-    'levante': 'https://crests.football-data.org/395.svg',
-
-    // Premier League Teams (con URLs directas de BeinSports)
-    'manchester city': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/13.png',
-    'manchester': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/13.png',
-    'arsenal': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/3.png',
-    'liverpool': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/14.png',
-    'manchester united': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/22.png',
-    'chelsea': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/8.png',
-    'tottenham': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/21.png',
-    'spurs': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/21.png',
-    'newcastle': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/23.png',
-    'aston villa': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/7.png',
-    'west ham': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/20.png',
-    'brighton': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/131.png',
-    'crystal palace': 'https://crests.football-data.org/354.svg',
-    'everton': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/12.png',
-    'brentford': 'https://crests.football-data.org/402.svg',
-    'fulham': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/18.png',
-    'nottingham forest': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/15.png',
-    'bournemouth': 'https://crests.football-data.org/93.svg',
-    'wolves': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/19.png',
-    'luton town': 'https://crests.football-data.org/403.svg',
-    'burnley': 'https://crests.football-data.org/328.svg',
-    'sheffield united': 'https://crests.football-data.org/399.svg',
-
-    // Bundesliga Teams
-    'bayern munich': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/120.png',
-    'bayern': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/120.png',
-    'borussia dortmund': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/122.png',
-    'dortmund': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/122.png',
-    'rb leipzig': 'https://crests.football-data.org/721.svg',
-    'leipzig': 'https://crests.football-data.org/721.svg',
-    'bayer leverkusen': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/124.png',
-    'leverkusen': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/124.png',
-    'union berlin': 'https://crests.football-data.org/724.svg',
-    'freiburg': 'https://crests.football-data.org/170.svg',
-    'eintracht frankfurt': 'https://crests.football-data.org/168.svg',
-    'frankfurt': 'https://crests.football-data.org/168.svg',
-    'wolfsburg': 'https://crests.football-data.org/165.svg',
-    'mainz': 'https://crests.football-data.org/166.svg',
-    'borussia monchengladbach': 'https://crests.football-data.org/162.svg',
-    'monchengladbach': 'https://crests.football-data.org/162.svg',
-    'fc koln': 'https://crests.football-data.org/167.svg',
-    'koln': 'https://crests.football-data.org/167.svg',
-    'hoffenheim': 'https://crests.football-data.org/169.svg',
-    'bochum': 'https://crests.football-data.org/172.svg',
-    'augsburg': 'https://crests.football-data.org/171.svg',
-    'stuttgart': 'https://crests.football-data.org/173.svg',
-    'darmstadt': 'https://crests.football-data.org/174.svg',
-    'heidenheim': 'https://crests.football-data.org/175.svg',
-    'werder bremen': 'https://crests.football-data.org/164.svg',
-    'bremen': 'https://crests.football-data.org/164.svg',
-
-    // Serie A Teams
-    'inter milan': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/182.png',
-    'inter': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/182.png',
-    'ac milan': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/181.png',
-    'milan': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/181.png',
-    'juventus': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/183.png',
-    'napoli': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/185.png',
-    'roma': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/186.png',
-    'as roma': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/186.png',
-    'lazio': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/187.png',
-    'atalanta': 'https://crests.football-data.org/99.svg',
-    'fiorentina': 'https://crests.football-data.org/103.svg',
-    'torino': 'https://crests.football-data.org/115.svg',
-    'bologna': 'https://crests.football-data.org/101.svg',
-    'sassuolo': 'https://crests.football-data.org/114.svg',
-    'udinese': 'https://crests.football-data.org/116.svg',
-    'sampdoria': 'https://crests.football-data.org/111.svg',
-    'verona': 'https://crests.football-data.org/117.svg',
-    'genoa': 'https://crests.football-data.org/104.svg',
-    'cagliari': 'https://crests.football-data.org/102.svg',
-    'lecce': 'https://crests.football-data.org/505.svg',
-    'cremonese': 'https://crests.football-data.org/506.svg',
-    'empoli': 'https://crests.football-data.org/507.svg',
-    'spezia': 'https://crests.football-data.org/508.svg',
-
-    // Ligue 1 Teams
-    'psg': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/201.png',
-    'paris saint-germain': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/201.png',
-    'paris': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/201.png',
-    'monaco': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/203.png',
-    'marseille': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/204.png',
-    'olympique marseille': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/204.png',
-    'lyon': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/205.png',
-    'olympique lyon': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/205.png',
-    'lille': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/207.png',
-    'lens': 'https://crests.football-data.org/522.svg',
-    'nice': 'https://crests.football-data.org/523.svg',
-    'rennes': 'https://crests.football-data.org/524.svg',
-    'nantes': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/210.png',
-    'reims': 'https://crests.football-data.org/526.svg',
-    'strasbourg': 'https://crests.football-data.org/527.svg',
-    'brest': 'https://crests.football-data.org/528.svg',
-    'lorient': 'https://crests.football-data.org/529.svg',
-    'montpellier': 'https://crests.football-data.org/530.svg',
-    'toulouse': 'https://crests.football-data.org/531.svg',
-    'clermont': 'https://crests.football-data.org/532.svg',
-    'le havre': 'https://crests.football-data.org/533.svg',
-    'metz': 'https://crests.football-data.org/534.svg'
-};
-
-// Get team logo URL with multiple fallback sources (NO generic placeholders)
+// Get team logo URL using Sofascore API (Single source of truth)
 function getTeamLogoUrl(teamName, teamId) {
     const normalizedName = normalizeTeamName(teamName);
-    const fullName = teamName.toLowerCase().trim();
 
-    // 1. Try direct mapping with normalized name (most reliable - BeinSports links)
-    if (TEAM_LOGO_MAP[normalizedName]) {
-        return TEAM_LOGO_MAP[normalizedName];
+    // 1. Try exact match from our comprehensive mapping
+    if (SOFASCORE_TEAM_IDS[normalizedName]) {
+        return `https://api.sofascore.app/api/v1/team/${SOFASCORE_TEAM_IDS[normalizedName]}/image`;
     }
 
-    // 2. Try direct mapping with full name
-    if (TEAM_LOGO_MAP[fullName]) {
-        return TEAM_LOGO_MAP[fullName];
+    // 2. Try to find by partial match (e.g., "madrid" matches "real madrid")
+    for (const [key, id] of Object.entries(SOFASCORE_TEAM_IDS)) {
+        if (normalizedName.includes(key) || key.includes(normalizedName)) {
+            return `https://api.sofascore.app/api/v1/team/${id}/image`;
+        }
     }
 
-    // 3. Try Sofascore API with known team IDs (most accurate)
-    const sofascoreIds = {
-        'real madrid': 2656,
-        'barcelona': 2657,
-        'atletico madrid': 2659,
-        'manchester city': 2658,
-        'arsenal': 2655,
-        'liverpool': 2660,
-        'manchester united': 2661,
-        'chelsea': 2662,
-        'tottenham': 2663,
-        'bayern munich': 2661,
-        'borussia dortmund': 2665,
-        'psg': 2664,
-        'juventus': 2667,
-        'inter milan': 2668,
-        'ac milan': 2669
-    };
-
-    if (sofascoreIds[normalizedName]) {
-        return `https://api.sofascore.app/api/v1/team/${sofascoreIds[normalizedName]}/image`;
-    }
-
-    // 4. Try Sofascore API with provided teamId (if numeric)
+    // 3. Fallback to teamId if it's a valid Sofascore ID
     if (teamId && teamId.length > 0) {
         const numericId = parseInt(teamId);
-        if (!isNaN(numericId) && numericId > 1000) {
+        if (!isNaN(numericId) && numericId > 0) {
             return `https://api.sofascore.app/api/v1/team/${numericId}/image`;
         }
     }
 
-    // 5. Try Football-Data.org CDN with team ID
-    if (teamId && teamId.length > 0) {
-        return `https://crests.football-data.org/${teamId}.svg`;
-    }
-
-    // 6. Try MediaWiki CDN (Wikipedia logos)
-    const wikiNames = {
-        'real betis': 'Real_Betis_logo.svg',
-        'real madrid': 'Real_Madrid_CF.svg',
-        'fc barcelona': 'FC_Barcelona_(crest).svg',
-        'atletico madrid': 'Atlético_Madrid_2017_logo.svg',
-        'manchester city': 'Manchester_City_FC_badge.svg',
-        'arsenal': 'Arsenal_FC.svg',
-        'liverpool': 'Liverpool_FC.svg',
-        'manchester united': 'Manchester_United_FC_crest.svg',
-        'chelsea': 'Chelsea_FC.svg',
-        'tottenham': 'Tottenham_Hotspur.svg',
-        'psg': 'Paris_Saint-Germain_F.C..svg',
-        'bayern munich': 'FC_Bayern_München_logo_(2017).svg',
-        'juventus': 'Juventus_FC_2017_icon_(black).svg',
-        'inter milan': 'Inter_Milan_2021.svg',
-        'ac milan': 'AC_Milan_2019.svg',
-    };
-
-    if (wikiNames[normalizedName]) {
-        return `https://upload.wikimedia.org/wikipedia/en/thumb/${wikiNames[normalizedName].substring(0, 1)}/${wikiNames[normalizedName]}/200px-${wikiNames[normalizedName]}.png`;
-    }
-
-    // 7. Generate URL based on name pattern
-    const patternMap = {
-        'real': 'https://crests.football-data.org/86.svg',
-        'barcelona': 'https://crests.football-data.org/81.svg',
-        'atletico': 'https://crests.football-data.org/78.svg',
-        'manchester': 'https://crests.football-data.org/66.svg',
-        'liverpool': 'https://crests.football-data.org/64.svg',
-        'chelsea': 'https://crests.football-data.org/61.svg',
-        'arsenal': 'https://crests.football-data.org/57.svg',
-        'tottenham': 'https://crests.football-data.org/73.svg',
-        'bayern': 'https://crests.football-data.org/157.svg',
-        'dortmund': 'https://crests.football-data.org/165.svg',
-        'psg': 'https://shared.cdn.beinsports.com/content/teams/logos/64x64/201.png',
-        'juventus': 'https://crests.football-data.org/109.svg',
-        'milan': 'https://crests.football-data.org/98.svg',
-        'inter': 'https://crests.football-data.org/108.svg',
-    };
-
-    for (const [pattern, url] of Object.entries(patternMap)) {
-        if (normalizedName.includes(pattern) || fullName.includes(pattern)) {
-            return url;
-        }
-    }
-
-    // 8. Last resort - Clearbit logo search (dynamic by domain)
-    const domainName = normalizedName.replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') + '.com';
-    return `https://logo.clearbit.com/${domainName}`;
+    // 4. Last resort: Use league name to generate team-specific placeholder
+    console.warn(`⚠️ Team not found in Sofascore mapping: ${teamName}`);
+    return `https://api.sofascore.app/api/v1/team/0/image`; // Will show fallback
 }
 
-// Get league logo URL with official working URLs
+// Get league logo URL using Sofascore API (Single source of truth)
 function getLeagueLogoUrl(leagueName) {
-    const leagueLogos = {
-        'La Liga': 'https://www.laliga.com/assets/images/logos/laliga-h-monochrome-white.png',
-        'Premier League': 'https://logos-world.net/wp-content/uploads/2020/05/Premier-League-Logo.png',
-        'Bundesliga': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Bundesliga_logo_%282017%29.svg/240px-Bundesliga_logo_%282017%29.svg.png',
-        'Serie A': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Serie_A_logo_%282019%29.svg/240px-Serie_A_logo_%282019%29.svg.png',
-        'Ligue 1': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a6/Ligue_1_logo.svg/240px-Ligue_1_logo.svg.png'
-    };
-    return leagueLogos[leagueName] || '';
+    if (SOFASCORE_LEAGUE_IDS[leagueName]) {
+        return `https://api.sofascore.app/api/v1/unique-tournament/${SOFASCORE_LEAGUE_IDS[leagueName]}/image`;
+    }
+    console.warn(`⚠️ League not found in Sofascore mapping: ${leagueName}`);
+    return '';
 }
