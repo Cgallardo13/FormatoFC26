@@ -385,6 +385,116 @@ const STADIUM_ATMOSPHERE = {
 };
 
 // ============================================
+// STADIUM/CITY BACKGROUND IMAGES - DYNAMIC UNSPLASH
+// Keywords for generating unique atmospheric background images
+// ============================================
+const STADIUM_BACKGROUNDS = {
+    // La Liga
+    'fc barcelona': 'sagrada,familia,barcelona,catalonia',
+    'real madrid': 'madrid,skyline,santiago,bernabeu,spain',
+    'atletico madrid': 'madrid,wanda,metropolitano,spain',
+    'athletic club': 'bilbao,san,mames,guggenheim,basque',
+    'athletic bilbao': 'bilbao,guggenheim,basque,country',
+    'sevilla': 'seville,ramon,sanchez,pizjuan,spain',
+    'valencia': 'valencia,arts,science,mestalla,spain',
+    'villarreal': 'villarreal,ceramica,spain,mediterranean',
+    'real betis': 'seville,betis,villamarin,andalusia',
+    'real sociedad': 'san,sebastian,real,arena,basque',
+    'celta vigo': 'vigo,balaidos,galicia,spain',
+    'real valladolid': 'valladolid,jose,zorrilla,spain',
+
+    // Premier League
+    'manchester city': 'manchester,etihad,skyline,england',
+    'manchester united': 'manchester,old,trafford,england',
+    'liverpool': 'liverpool,anfield,mersey,england',
+    'arsenal': 'london,emirates,ben,parliament',
+    'chelsea': 'london,stamford,bridge,england',
+    'tottenham': 'london,hotspur,white,hart_lane',
+    'aston villa': 'birmingham,villa,park,england',
+    'newcastle': 'newcastle,st,james,park,england',
+    'everton': 'liverpool,goodison,park,england',
+    'west ham': 'london,london,stadium,olympic',
+    'brighton': 'brighton,amex,england,seaside',
+    'leicester': 'leicester,king,power,england',
+
+    // Bundesliga
+    'bayern munich': 'munich,allianz,arena,germany,bavaria',
+    'bayern': 'munich,germany,skyline,night',
+    'borussia dortmund': 'dortmund,signal,iduna,germany',
+    'dortmund': 'dortmund,westfalen,germany,industrial',
+    'bayer leverkusen': 'leverkusen,bay,arena,germany',
+    'leverkusen': 'germany,stadium,modern,rhein',
+    'rb leipzig': 'leipzig,red,bull,arena,germany',
+    'union berlin': 'berlin,olympiastadion,germany',
+    'eintracht frankfurt': 'frankfurt,deutsch,bank,park',
+    'vfl wolfsburg': 'wolfsburg,volkswagen,arena',
+    'freiburg': 'freiburg,black,forest,germany',
+    'hoffenheim': 'sinsheim,rhein,neckar,arena',
+    'stuttgart': 'stuttgart,mercedes,benz,arena',
+    'borussia monchengladbach': 'monchengladbach,germany,stadium',
+
+    // Serie A
+    'juventus': 'turin,juventus,stadium,italy',
+    'inter milan': 'milan,san,siro,italy,cathedral',
+    'inter': 'milan,duomo,italy,night,city',
+    'ac milan': 'milan,san,siro,italy,fashion',
+    'milan': 'milan,italy,galleria,duomo',
+    'napoli': 'naples,diego,maradona,italy,vesuvius',
+    'roma': 'rome,colosseum,olympic,stadium,italy',
+    'atalanta': 'bergamo,italy,gewiss,stadium',
+    'lazio': 'rome,olympic,italy,stadium',
+    'fiorentina': 'florence,italy,arte,michele,cupola',
+    'torino': 'turin,italy,alps,mountains',
+
+    // Ligue 1
+    'psg': 'paris,eiffel,tower,parc,des,princes,france',
+    'paris saint-germain': 'paris,prince,park,france',
+    'olympique marseille': 'marseille,velodrome,old,port,france',
+    'marseille': 'marseille,france,mediterranean,calanque',
+    'olympique lyon': 'lyon,groupama,stadium,france,rhone',
+    'lyon': 'lyon,france,city,historic,night',
+    'as monaco': 'monaco,louis,stadium,principality',
+    'monaco': 'monaco,mediterranean,principality,luxury',
+    'lille': 'lille,pierre,mauroy,france',
+    'nice': 'nice,france,azur,coast,promenade,angel',
+    'rennes': 'rennes,france,brittany,roazhon,park',
+    'montpellier': 'montpellier,france,sun,mediterranean',
+    'strasbourg': 'strasbourg,france,cathedral,europe,parliament'
+};
+
+/**
+ * Get DYNAMIC stadium/city background image from Unsplash
+ * Returns a different atmospheric image each time using random seed
+ * @param {string} teamName - The team name
+ * @returns {string} - Dynamic Unsplash image URL
+ */
+function getStadiumBackground(teamName) {
+    const normalizedName = teamName.toLowerCase().trim();
+    const keywords = STADIUM_BACKGROUNDS[normalizedName];
+
+    if (!keywords) {
+        // Fallback to generic stadium/city keywords
+        const fallbackKeywords = 'stadium,football,soccer,city,night';
+        const randomSeed = Math.floor(Math.random() * 1000);
+        return `https://source.unsplash.com/1600x900/?${encodeURIComponent(fallbackKeywords)}&sig=${randomSeed}`;
+    }
+
+    // Generate random seed for variety - different image each time
+    // This ensures that even for the same team, the background changes
+    const randomSeed = Math.floor(Math.random() * 10000);
+
+    // Build Unsplash Source URL with parameters
+    // - Size: 1600x900 for HD quality
+    // - Random seed: ensures different image each time
+    // Keywords: city-specific (e.g., "paris,eiffel,tower" for PSG)
+    const unsplashUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(keywords)}&sig=${randomSeed}`;
+
+    console.log(`🖼️ Dynamic background for ${teamName}: ${unsplashUrl}`);
+
+    return unsplashUrl;
+}
+
+// ============================================
 // TACTICAL RADAR CHART GENERATOR
 // ============================================
 /**
@@ -638,6 +748,134 @@ function animateCounter(element, target, duration = 1500) {
     }
 
     requestAnimationFrame(update);
+}
+
+// ============================================
+// TEAM COLORS FOR DYNAMIC GLOW EFFECTS
+// ============================================
+
+/**
+ * Get team's primary and secondary colors for glow effects
+ * @param {string} teamName - The team name
+ * @returns {Object} - { primary: hex, secondary: hex, glow: rgba }
+ */
+function getTeamColors(teamName) {
+    const normalizedName = teamName.toLowerCase().trim();
+
+    const teamColors = {
+        // ==================== LA LIGA ====================
+        'fc barcelona': { primary: '#A50044', secondary: '#004D98', glow: 'rgba(165, 0, 68, 0.6)' },
+        'barcelona': { primary: '#A50044', secondary: '#004D98', glow: 'rgba(165, 0, 68, 0.6)' },
+        'real madrid': { primary: '#FFFFFF', secondary: '#1A1A1A', glow: 'rgba(255, 255, 255, 0.5)' },
+        'atletico madrid': { primary: '#CB3524', secondary: '#3355A3', glow: 'rgba(203, 53, 36, 0.6)' },
+        'athletic club': { primary: '#EE2523', secondary: '#FFFFFF', glow: 'rgba(238, 37, 35, 0.6)' },
+        'athletic bilbao': { primary: '#EE2523', secondary: '#FFFFFF', glow: 'rgba(238, 37, 35, 0.6)' },
+        'real betis': { primary: '#0BB363', secondary: '#FFFFFF', glow: 'rgba(11, 179, 99, 0.6)' },
+        'sevilla': { primary: '#D40E2A', secondary: '#FFFFFF', glow: 'rgba(212, 14, 42, 0.6)' },
+        'valencia': { primary: '#FFFFFF', secondary: '#000000', glow: 'rgba(255, 255, 255, 0.5)' },
+        'villarreal': { primary: '#FFE500', secondary: '#004790', glow: 'rgba(255, 229, 0, 0.6)' },
+        'real sociedad': { primary: '#0067B1', secondary: '#FFFFFF', glow: 'rgba(0, 103, 177, 0.6)' },
+        'celta vigo': { primary: '#E03028', secondary: '#FFFFFF', glow: 'rgba(224, 48, 40, 0.6)' },
+
+        // ==================== PREMIER LEAGUE ====================
+        'manchester city': { primary: '#6CABDD', secondary: '#1C2C5B', glow: 'rgba(108, 171, 221, 0.6)' },
+        'manchester united': { primary: '#DA291C', secondary: '#000000', glow: 'rgba(218, 41, 28, 0.6)' },
+        'liverpool': { primary: '#C8102E', secondary: '#00B2A9', glow: 'rgba(200, 16, 46, 0.6)' },
+        'arsenal': { primary: '#EF0107', secondary: '#FFFFFF', glow: 'rgba(239, 1, 7, 0.6)' },
+        'chelsea': { primary: '#034694', secondary: '#DBA111', glow: 'rgba(3, 70, 148, 0.6)' },
+        'tottenham': { primary: '#132257', secondary: '#FFFFFF', glow: 'rgba(19, 34, 87, 0.6)' },
+        'aston villa': { primary: '#95BFE5', secondary: '#680A7F', glow: 'rgba(149, 191, 229, 0.6)' },
+        'newcastle': { primary: '#000000', secondary: '#FFFFFF', glow: 'rgba(0, 0, 0, 0.6)' },
+        'everton': { primary: '#003399', secondary: '#FFFFFF', glow: 'rgba(0, 51, 153, 0.6)' },
+        'west ham': { primary: '#7A263A', secondary: '#00A650', glow: 'rgba(122, 38, 58, 0.6)' },
+        'brighton': { primary: '#0057B8', secondary: '#FFFFFF', glow: 'rgba(0, 87, 184, 0.6)' },
+        'leicester': { primary: '#003090', secondary: '#FDBE00', glow: 'rgba(0, 48, 144, 0.6)' },
+        'leeds': { primary: '#FFCD00', secondary: '#FFFFFF', glow: 'rgba(255, 205, 0, 0.6)' },
+
+        // ==================== BUNDESLIGA ====================
+        'bayern munich': { primary: '#DC052D', secondary: '#FFFFFF', glow: 'rgba(220, 5, 45, 0.6)' },
+        'bayern': { primary: '#DC052D', secondary: '#FFFFFF', glow: 'rgba(220, 5, 45, 0.6)' },
+        'borussia dortmund': { primary: '#FDE100', secondary: '#000000', glow: 'rgba(253, 225, 0, 0.6)' },
+        'dortmund': { primary: '#FDE100', secondary: '#000000', glow: 'rgba(253, 225, 0, 0.6)' },
+        'bayer leverkusen': { primary: '#E32221', secondary: '#000000', glow: 'rgba(227, 34, 33, 0.6)' },
+        'leverkusen': { primary: '#E32221', secondary: '#000000', glow: 'rgba(227, 34, 33, 0.6)' },
+        'rb leipzig': { primary: '#DD0741', secondary: '#FFFFFF', glow: 'rgba(221, 7, 65, 0.6)' },
+        'union berlin': { primary: '#E30613', secondary: '#FFFFFF', glow: 'rgba(227, 6, 19, 0.6)' },
+        'eintracht frankfurt': { primary: '#E1000F', secondary: '#000000', glow: 'rgba(225, 0, 15, 0.6)' },
+        'vfl wolfsburg': { primary: '#65B32E', secondary: '#FFFFFF', glow: 'rgba(101, 179, 46, 0.6)' },
+        'wolfsburg': { primary: '#65B32E', secondary: '#FFFFFF', glow: 'rgba(101, 179, 46, 0.6)' },
+        'freiburg': { primary: '#E30613', secondary: '#000000', glow: 'rgba(227, 6, 19, 0.6)' },
+        'hoffenheim': { primary: '#1A3B8C', secondary: '#006CB6', glow: 'rgba(26, 59, 140, 0.6)' },
+        'stuttgart': { primary: '#E32219', secondary: '#000000', glow: 'rgba(227, 34, 25, 0.6)' },
+
+        // ==================== SERIE A ====================
+        'juventus': { primary: '#000000', secondary: '#FFFFFF', glow: 'rgba(0, 0, 0, 0.6)' },
+        'inter milan': { primary: '#0068A8', secondary: '#000000', glow: 'rgba(0, 104, 168, 0.6)' },
+        'inter': { primary: '#0068A8', secondary: '#000000', glow: 'rgba(0, 104, 168, 0.6)' },
+        'ac milan': { primary: '#FB090B', secondary: '#000000', glow: 'rgba(251, 9, 11, 0.6)' },
+        'milan': { primary: '#FB090B', secondary: '#000000', glow: 'rgba(251, 9, 11, 0.6)' },
+        'napoli': { primary: '#12A0D7', secondary: '#FFFFFF', glow: 'rgba(18, 160, 215, 0.6)' },
+        'roma': { primary: '#8E1F2F', secondary: '#F0BC26', glow: 'rgba(142, 31, 47, 0.6)' },
+        'atalanta': { primary: '#1E71B8', secondary: '#FFFFFF', glow: 'rgba(30, 113, 184, 0.6)' },
+        'lazio': { primary: '#87CEEB', secondary: '#FFFFFF', glow: 'rgba(135, 206, 235, 0.6)' },
+        'fiorentina': { primary: '#6B2E8A', secondary: '#FFFFFF', glow: 'rgba(107, 46, 138, 0.6)' },
+        'torino': { primary: '#8B0000', secondary: '#F4F6FF', glow: 'rgba(139, 0, 0, 0.6)' },
+
+        // ==================== LIGUE 1 ====================
+        'psg': { primary: '#004170', secondary: '#DA291C', glow: 'rgba(0, 65, 112, 0.6)' },
+        'paris saint-germain': { primary: '#004170', secondary: '#DA291C', glow: 'rgba(0, 65, 112, 0.6)' },
+        'olympique marseille': { primary: '#0094DA', secondary: '#FFFFFF', glow: 'rgba(0, 148, 218, 0.6)' },
+        'marseille': { primary: '#0094DA', secondary: '#FFFFFF', glow: 'rgba(0, 148, 218, 0.6)' },
+        'olympique lyon': { primary: '#004170', secondary: '#0097D2', glow: 'rgba(0, 65, 112, 0.6)' },
+        'lyon': { primary: '#004170', secondary: '#0097D2', glow: 'rgba(0, 65, 112, 0.6)' },
+        'as monaco': { primary: '#E6173F', secondary: '#FFFFFF', glow: 'rgba(230, 23, 63, 0.6)' },
+        'monaco': { primary: '#E6173F', secondary: '#FFFFFF', glow: 'rgba(230, 23, 63, 0.6)' },
+        'lille': { primary: '#E30613', secondary: '#FFFFFF', glow: 'rgba(227, 6, 19, 0.6)' },
+        'nice': { primary: '#000000', secondary: '#E30613', glow: 'rgba(0, 0, 0, 0.6)' },
+        'rennes': { primary: '#E30613', secondary: '#000000', glow: 'rgba(227, 6, 19, 0.6)' }
+    };
+
+    return teamColors[normalizedName] || { primary: '#667eea', secondary: '#764ba2', glow: 'rgba(102, 126, 234, 0.6)' };
+}
+
+/**
+ * Get team's color from TEAM_TACTICS_DB or getTeamColors
+ * Used for CSS variable --team-color
+ * @param {string} teamName - The team name
+ * @returns {string} - Team color hex
+ */
+function getTeamColorFromTactics(teamName) {
+    const normalizedName = teamName.toLowerCase().trim();
+
+    // First check TEAM_TACTICS_DB if it has color
+    if (TEAM_TACTICS_DB[normalizedName]?.color) {
+        return TEAM_TACTICS_DB[normalizedName].color;
+    }
+
+    // Fallback to getTeamColors primary color
+    const colors = getTeamColors(teamName);
+    return colors.primary;
+}
+
+/**
+ * Get icon for different stat types
+ * @param {string} type - The type of stat
+ * @returns {string} - Emoji icon
+ */
+function getStatIcon(type) {
+    const icons = {
+        'position': '📍',
+        'competition': '⚔️',
+        'rating': '⭐',
+        'status': '📋',
+        'growth': '📈',
+        'style': '🎨',
+        'formation': '📋',
+        'manager': '🗣️',
+        'tactical': '🎯',
+        'potential': '🔥'
+    };
+    return icons[type] || '📊';
 }
 
 // ============================================
@@ -1420,7 +1658,7 @@ async function analyzeResults() {
 
     // CRITICAL: ALWAYS show top 3 results, NO MATTER THE SCORE
     // This ensures users always get recommendations
-    const top3 = teamAnalysis.slice(0, Math.max(3, teamAnalysis.length));
+    const top3 = teamAnalysis.slice(0, Math.min(3, teamAnalysis.length));
     console.log(`✅ Top ${top3.length} results selected`);
 
     // Check if results have low compatibility for fallback messaging
@@ -1614,23 +1852,40 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
             </div>
         ` : '';
 
+        // Get team colors for dynamic glow
+        const teamColors = getTeamColors(team.name);
+        const cardStyle = `
+            --team-primary: ${teamColors.primary};
+            --team-glow: ${teamColors.glow};
+            --team-secondary: ${teamColors.secondary};
+        `;
+
         html += `
-            <div class="result-card ${statusClass} ${eliteClass}" style="animation-delay: ${index * 0.2}s">
+            <div class="result-card ${statusClass} ${eliteClass} cascade-entry" style="animation-delay: ${index * 0.15}s; ${cardStyle}" data-team-color="${teamColors.primary}">
+                <!-- Team glow effect -->
+                <div class="team-glow-effect"></div>
+
                 <div class="result-header">
-                    <span class="result-rank">${medal}</span>
+                    <span class="result-rank cascade-element" data-delay="0">${medal}</span>
                     ${teamLogoHtml}
                     <div class="result-team-info">
-                        <div class="result-team-name">${team.name}</div>
-                        <div class="result-league">${leagueLogoHtml} ${team.league}</div>
+                        <div class="result-team-name cascade-element" data-delay="1">${team.name}</div>
+                        <div class="result-league cascade-element" data-delay="2">${leagueLogoHtml} ${team.league}</div>
                     </div>
-                    <div class="team-rating-badge ${isElite ? 'elite-rating' : ''}">
+                    <div class="team-rating-badge ${isElite ? 'elite-rating' : ''} cascade-element" data-delay="3">
                         ${team.overall_level}
                     </div>
                 </div>
 
-                <div class="result-score">
+                <div class="result-score cascade-element" data-delay="4">
                     <div class="result-score-value" data-animate-score="${result.finalScore.toFixed(0)}">0</div>
                     <div class="result-score-label">Score de compatibilidad</div>
+                    <!-- Animated Progress Bar -->
+                    <div class="compatibility-progress-bar">
+                        <div class="compatibility-progress-fill" data-progress="${result.finalScore.toFixed(0)}">
+                            <span class="compatibility-progress-text">${result.finalScore.toFixed(0)}%</span>
+                        </div>
+                    </div>
                 </div>
                 ${formationBadge}
 
@@ -1638,14 +1893,14 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
                 ${generationalBonusText}
 
                 <!-- TACTICAL RADAR CHART -->
-                <div style="margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.2);">
+                <div class="glassmorphism-card cascade-element" data-delay="5">
                     <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 0.9rem; text-align: center;">📊 Radar Táctico</h4>
                     ${radarChart}
                 </div>
 
                 ${showTacticalChallenge ? `
                 <!-- TACTICAL CHALLENGE -->
-                <div style="margin: 12px 0; padding: 12px; background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1)); border-radius: 10px; border-left: 3px solid #ffc107;">
+                <div class="glassmorphism-card tactical-challenge cascade-element" data-delay="6">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                         <span style="font-size: 1.1rem;">${challenge.icon}</span>
                         <strong style="color: #ffc107; font-size: 0.85rem;">DESAFÍO TÁCTICO</strong>
@@ -1658,7 +1913,7 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
                 ` : ''}
 
                 <!-- MANAGER ADVICE -->
-                <div style="margin: 12px 0; padding: 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                <div class="glassmorphism-card manager-advice cascade-element" data-delay="7">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
                         <span>🗣️</span>
                         <strong style="color: #667eea; font-size: 0.8rem;">CONSEJO DEL MISTER</strong>
@@ -1668,27 +1923,27 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
                     </div>
                 </div>
 
-                <div class="result-analysis">
+                <div class="result-analysis cascade-element" data-delay="8">
                     ${dynamicAnalysis}
                 </div>
 
                 ${stadiumHtml}
 
-                <div class="result-details">
+                <div class="result-details cascade-element" data-delay="9">
                     <div class="result-detail-row">
-                        <span class="result-detail-label">Posición ideal:</span>
+                        <span class="result-detail-label">${getStatIcon('position')} Posición ideal:</span>
                         <span class="result-detail-value">${positionLabels[result.bestPosition.position] || result.bestPosition.position}</span>
                     </div>
                     <div class="result-detail-row">
-                        <span class="result-detail-label">Tu competencia directa:</span>
+                        <span class="result-detail-label">${getStatIcon('competition')} Competencia directa:</span>
                         <span class="result-detail-value">${result.bestPosition.currentPlayer} (${result.bestPosition.currentRating})</span>
                     </div>
                     <div class="result-detail-row">
-                        <span class="result-detail-label">Tu media:</span>
+                        <span class="result-detail-label">${getStatIcon('rating')} Tu media:</span>
                         <span class="result-detail-value">${playerRating} (${ratingDiffText})</span>
                     </div>
                     <div class="result-detail-row">
-                        <span class="result-detail-label">Estado:</span>
+                        <span class="result-detail-label">${getStatIcon('status')} Estado:</span>
                         <span class="result-detail-value">${statusText}</span>
                     </div>
                     <div class="result-detail-row">
@@ -1696,7 +1951,11 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
                         <span class="result-detail-value">+${result.growthPotential.toFixed(1)} puntos</span>
                     </div>
                     <div class="result-detail-row">
-                        <span class="result-label">Estilo del equipo:</span>
+                        <span class="result-label">${getStatIcon('growth')} Potencial de crecimiento:</span>
+                        <span class="result-detail-value">+${result.growthPotential.toFixed(1)} puntos</span>
+                    </div>
+                    <div class="result-detail-row">
+                        <span class="result-label">${getStatIcon('tactical')} Estilo del equipo:</span>
                         <span class="result-detail-value">${result.styleMatch.toFixed(0)}% compatible</span>
                     </div>
                 </div>
@@ -1708,14 +1967,35 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
 
     document.getElementById('resultsScreen').classList.add('active');
 
-    // Animate compatibility scores
+    // Animate compatibility scores and progress bars
     results.forEach((result, index) => {
         setTimeout(() => {
+            // Animate score counter
             const scoreElement = document.querySelector(`[data-animate-score="${result.finalScore.toFixed(0)}"]`);
             if (scoreElement) {
                 animateCounter(scoreElement, result.finalScore);
             }
-        }, index * 200 + 300);
+
+            // Animate progress bar
+            const progressElement = document.querySelector(`[data-progress="${result.finalScore.toFixed(0)}"]`);
+            if (progressElement) {
+                setTimeout(() => {
+                    progressElement.style.width = `${result.finalScore}%`;
+                }, 100);
+            }
+
+            // Trigger cascade animations for this card
+            const card = resultsContainer.children[index];
+            if (card) {
+                const cascadeElements = card.querySelectorAll('.cascade-element');
+                cascadeElements.forEach(el => {
+                    const delay = parseInt(el.dataset.delay) || 0;
+                    setTimeout(() => {
+                        el.classList.add('cascade-visible');
+                    }, delay * 100);
+                });
+            }
+        }, index * 150 + 300);
     });
 
     // Display local analysis

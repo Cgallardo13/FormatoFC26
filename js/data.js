@@ -459,7 +459,8 @@ const TEAM_TACTICS_DB = {
         aerial_balls: 52,     // Less aerial, more ground play
         high_press: 76,       // High pressing line under Flick
         formation: '4-3-3',   // Primary formation 2025/26
-        goals_scored: 67      // 67 goals in 24/25 season
+        goals_scored: 67,    // 67 goals in 24/25 season
+        color: '#A50044'      // Barcelona garnet
     },
     'real madrid': {
         wing_play: 88,        // Vinícius, Rodrygo on wings
@@ -468,7 +469,8 @@ const TEAM_TACTICS_DB = {
         aerial_balls: 72,     // Bellingham, Carvajal headers
         high_press: 78,       // Intense pressing under Ancelotti
         formation: '4-3-3',   // Primary formation
-        goals_scored: 72      // 72 goals in 24/25 season
+        goals_scored: 72,    // 72 goals in 24/25 season
+        color: '#FFFFFF'      // Madrid white
     },
     'villarreal': {
         wing_play: 80,        // Baena, Güler wide play
@@ -477,7 +479,8 @@ const TEAM_TACTICS_DB = {
         aerial_balls: 54,
         high_press: 66,
         formation: '4-3-3',
-        goals_scored: 58
+        goals_scored: 58,
+        color: '#FFE500'      // Villarreal yellow
     },
     'atletico madrid': {
         wing_play: 52,        // More narrow under Simeone
