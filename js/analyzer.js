@@ -1745,6 +1745,89 @@ async function analyzeResults() {
 
     console.log(`📊 Team Analysis Complete: ${teamAnalysis.length} teams analyzed`);
 
+    // CRITICAL FIX: Only expand if we TRULY have less than 3 teams
+    // Do NOT expand if user has enough teams in their selected league
+    if (teamAnalysis.length < 3) {
+        console.log(`⚠️ Only ${teamAnalysis.length} teams found in selected leagues.`);
+        console.log(`⚠️ This should NOT happen - expanding to other leagues as fallback...`);
+
+        const allLeagues = ['la_liga', 'premier_league', 'bundesliga', 'serie_a', 'ligue_1'];
+        const additionalLeagues = allLeagues.filter(league => !selectedLeagues.includes(league));
+
+        console.log(`🌍 Expanding to: ${additionalLeagues.join(', ')}`);
+
+        // Analyze teams from additional leagues
+        const additionalTeams = teamsByTier
+            .filter(team => {
+                const teamLeagueId = getLeagueId(team.league);
+                return additionalLeagues.includes(teamLeagueId);
+            })
+            .map(team => {
+                const userFormationId = answers.formation || '4_3_3';
+                const styleMatch = calculateStyleCompatibility(userStyle, team.style);
+                const formationMatch = calculateFormationCompatibility(userFormationId, team);
+                const tacticalMatch = calculateTacticalCompatibility(team);
+                const userPosition = answers.position || findBestPosition(playerRating, team.squad_gaps).position;
+                const competition = analyzeRealCompetition(playerRating, userPosition, team);
+                const wouldStart = competition.wouldStart;
+                const tooDifficult = competition.ratingDiff < -7;
+                const growthPotential = calculateGrowthPotential(playerRating, team.overall_level, wouldStart);
+                const bestPosition = {
+                    currentAge: competition.competitor.age,
+                    is_young: answers.age < 23,
+                    is_star: competition.competitor.is_star
+                };
+                const generationalBonus = calculateGenerationalBonus(bestPosition, playerRating, playerAge);
+                const difficultyPenalty = tooDifficult ? -25 : 0;
+
+                let startingBonus;
+                if (tooDifficult) {
+                    startingBonus = 5;
+                } else if (wouldStart) {
+                    startingBonus = 35;
+                } else if (competition.ratingDiff >= -2) {
+                    startingBonus = 20;
+                } else {
+                    startingBonus = 10;
+                }
+
+                const finalScore = (styleMatch * 0.20) + (formationMatch * 0.15) + (tacticalMatch * 0.25) + startingBonus + (growthPotential * 0.15) + (generationalBonus * 0.10) + (difficultyPenalty * 0.25);
+
+                return {
+                    team: team,
+                    styleMatch: styleMatch,
+                    tacticalMatch: tacticalMatch,
+                    formationMatch: formationMatch,
+                    bestPosition: {
+                        position: userPosition,
+                        currentPlayer: competition.competitor.player,
+                        currentRating: competition.competitor.rating,
+                        currentAge: competition.competitor.age,
+                        is_star: competition.competitor.is_star
+                    },
+                    competition: competition,
+                    wouldStart: wouldStart,
+                    ratingDiff: competition.ratingDiff,
+                    growthPotential: growthPotential,
+                    generationalBonus: generationalBonus,
+                    tooDifficult: tooDifficult,
+                    finalScore: Math.max(0, finalScore)
+                };
+            })
+            .sort((a, b) => b.finalScore - a.finalScore);
+
+        // Merge results
+        teamAnalysis = [...teamAnalysis, ...additionalTeams]
+            .sort((a, b) => b.finalScore - a.finalScore);
+
+        console.log(`✅ After expansion: ${teamAnalysis.length} teams available`);
+    } else {
+        console.log(`✅ Has ${teamAnalysis.length} teams from selected leagues - NO EXPANSION NEEDED`);
+        console.log(`✅ Selected leagues: ${selectedLeagues.join(', ')}`);
+    }
+
+    console.log(`📊 Final team count: ${teamAnalysis.length}`);
+
     // CRITICAL: ALWAYS show top 3 results, NO MATTER THE SCORE
     // This ensures users always get recommendations
     const top3 = teamAnalysis.slice(0, Math.min(3, teamAnalysis.length));
@@ -1785,205 +1868,10 @@ function hideAllScreens() {
 }
 
 // Display results on screen
+// DEPRECATED: This function has been replaced by poster-cards.js displayResults
+// Commented out to avoid conflicts - only poster-cards.js version should be used
+/*
 function displayResults(results, playerRating, hasLowCompatibility = false) {
-    console.log(`🎯 Displaying ${results.length} results for player rating ${playerRating}`);
-    console.log(`📊 Has low compatibility: ${hasLowCompatibility}`);
-
-    // CRITICAL: Always show results - NO MORE BLOCKING
-    // We guarantee at least 3 results from the analysis function
-
-    hideAllScreens();
-
-    document.getElementById('resultPlayerRating').textContent = playerRating;
-
-    const container = document.getElementById('resultsContainer');
-
-    // Intro message based on compatibility
-    if (hasLowCompatibility) {
-        container.innerHTML = `
-            <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 152, 0, 0.1)); border-radius: 10px; border: 1px solid rgba(255, 152, 0, 0.3);">
-                <h3 style="color: #ffc107; margin: 0 0 10px 0; font-size: 1.2rem;">💡 Tu estilo es único</h3>
-                <p style="color: #a0a5b9; margin: 0; font-size: 0.95rem;">
-                    Aunque tus preferencias son muy específicas, estos son los clubes donde mejor podrías adaptarte.
-                    <br><strong>La perfección requiere adaptación mutua.</strong>
-                </p>
-            </div>
-            <div id="resultsCards"></div>
-        `;
-    } else {
-        container.innerHTML = `
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="color: #667eea; margin: 0; font-size: 1.3rem;">🎯 ¡Encontramos tu equipo ideal!</h2>
-            </div>
-            <div id="resultsCards"></div>
-        `;
-    }
-
-    const resultsContainer = document.getElementById('resultsCards');
-    const medals = ['🥇', '🥈', '🥉'];
-    const rankLabels = ['RECOMENDACIÓN #1', 'RECOMENDACIÓN #2', 'RECOMENDACIÓN #3'];
-
-    let html = '';
-
-    results.forEach((result, index) => {
-        console.log(`📊 Result #${index + 1}: ${result.team.name} (Score: ${result.finalScore.toFixed(0)})`);
-        const medal = medals[index];
-        const rankLabel = rankLabels[index];
-        const team = result.team;
-
-        const positionLabels = {
-            'ST': 'Delantero centro',
-            'LW': 'Extremo izquierdo',
-            'RW': 'Extremo derecho',
-            'CAM': 'Mediocampista ofensivo',
-            'CM': 'Mediocampista central',
-            'CDM': 'Mediocampo defensivo',
-            'LB': 'Lateral izquierdo',
-            'LWB': 'Carrilero izquierdo',
-            'RB': 'Lateral derecho',
-            'RWB': 'Carrilero derecho',
-            'CB': 'Defensa central'
-        };
-
-        let statusText;
-        let statusClass;
-
-        if (result.tooDifficult) {
-            statusText = '<span class="suplente-badge">Muy Difícil</span>';
-            statusClass = 'too-difficult';
-        } else if (result.wouldStart) {
-            statusText = '<span class="titular-badge">¡Serías TITULAR!</span>';
-            statusClass = 'starting';
-        } else {
-            statusText = '<span class="suplente-badge">Serías SUPLENTE</span>';
-            statusClass = 'substitute';
-        }
-
-        const ratingDiffText = result.ratingDiff >= 0
-            ? `+${result.ratingDiff} de diferencia`
-            : `${result.ratingDiff} de diferencia`;
-
-        const difficultyWarning = result.tooDifficult
-            ? '<div class="difficulty-warning">⚠️ Diferencia de más de 7 puntos con el titular. Sería muy difícil jugar aquí.</div>'
-            : '';
-
-        const generationalBonusText = result.generationalBonus > 0
-            ? `<div class="generational-bonus">✨ +${result.generationalBonus} bono por relevo generacional</div>`
-            : '';
-
-        const isElite = team.overall_level > 82;
-        const eliteClass = isElite ? 'elite-team' : '';
-
-        // League logo with fallback
-        const leagueLogoHtml = team.league_logo
-            ? `<img src="${team.league_logo}" alt="${team.league}" class="league-logo-img" style="width:40px;height:40px;object-fit:contain;margin-right:8px;background:rgba(255,255,255,0.1);border-radius:8px;padding:4px;" onerror="this.style.display='none';">`
-            : '';
-
-        // Team logo: Use SVG file if available, fallback to CSS crest with initials
-        const teamLogoPath = getTeamLogoPath(team.name, team.league);
-        const teamInitials = team.team_initials || getTeamInitials(team.name);
-
-        const teamLogoHtml = teamLogoPath
-            ? `<div class="team-logo-wrapper">
-                <img src="${teamLogoPath}" alt="${team.name}" class="team-logo-img" style="width:50px;height:50px;object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="team-logo-circular" style="display:none;">${teamInitials}</div>
-            </div>`
-            : `<div class="team-logo-circular">${teamInitials}</div>`;
-
-        // Dynamic analysis
-        const dynamicAnalysis = generateDynamicAnalysis(result, playerRating);
-
-        // Get tactical stats for radar chart
-        const userTacticalStats = {
-            wing_play: answers.wing_play || 50,
-            possession: answers.possession || 50,
-            counter_attack: answers.counter_attack || 50,
-            aerial_balls: answers.aerial_balls || 50,
-            high_press: answers.high_press || 50
-        };
-
-        const teamTactics = TEAM_TACTICS_DB[team.name.toLowerCase().trim()] || team.style;
-        const teamTacticalStats = {
-            wing_play: teamTactics.wing_play || 50,
-            possession: teamTactics.possession || 50,
-            counter_attack: teamTactics.counter_attack || 50,
-            aerial_balls: teamTactics.aerial_balls || 50,
-            high_press: teamTactics.high_press || 50
-        };
-
-        // Generate radar chart
-        const radarChart = createTacticalRadar(userTacticalStats, teamTacticalStats);
-
-        // Get tactical challenge
-        const challenge = getTacticalChallenge(userTacticalStats, teamTacticalStats);
-        const showTacticalChallenge = challenge.diff > 15;
-
-        // Get stadium atmosphere
-        const stadiumInfo = STADIUM_ATMOSPHERE[team.name.toLowerCase().trim()];
-        const stadiumHtml = stadiumInfo ? `
-            <div style="margin-top: 12px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.85rem; line-height: 1.5;">
-                <div style="color: #a0a5b9; margin-bottom: 4px;">🏟️ <strong>${stadiumInfo.city}</strong> - ${stadiumInfo.weather}</div>
-                <div style="color: #667eea; font-style: italic;">"${stadiumInfo.atmosphere}"</div>
-            </div>
-        ` : '';
-
-        // Get manager advice
-        const managerAdvice = getManagerAdvice(team, result.tacticalMatch);
-
-        // Check formation sync
-        const userFormation = answers.formation || '4-3-3';
-        const formationSync = checkFormationSync(userFormation, team);
-        const formationBadge = formationSync.hasSync ? `
-            <div style="margin-top: 8px; text-align: center;">
-                <span style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">
-                    ${formationSync.label}
-                </span>
-            </div>
-        ` : '';
-
-        // Get team colors for dynamic glow
-        const teamColors = getTeamColors(team.name);
-        const cardStyle = `
-            --team-primary: ${teamColors.primary};
-            --team-glow: ${teamColors.glow};
-            --team-secondary: ${teamColors.secondary};
-        `;
-
-        html += `
-            <div class="result-card ${statusClass} ${eliteClass} cascade-entry" style="animation-delay: ${index * 0.15}s; ${cardStyle}" data-team-color="${teamColors.primary}">
-                <!-- Team glow effect -->
-                <div class="team-glow-effect"></div>
-
-                <div class="result-header">
-                    <span class="result-rank cascade-element" data-delay="0">${medal}</span>
-                    ${teamLogoHtml}
-                    <div class="result-team-info">
-                        <div class="result-team-name cascade-element" data-delay="1">${team.name}</div>
-                        <div class="result-league cascade-element" data-delay="2">${leagueLogoHtml} ${team.league}</div>
-                    </div>
-                    <div class="team-rating-badge ${isElite ? 'elite-rating' : ''} cascade-element" data-delay="3">
-                        ${team.overall_level}
-                    </div>
-                </div>
-
-                <div class="result-score cascade-element" data-delay="4">
-                    <div class="result-score-value" data-animate-score="${result.finalScore.toFixed(0)}">0</div>
-                    <div class="result-score-label">Score de compatibilidad</div>
-                    <!-- Animated Progress Bar -->
-                    <div class="compatibility-progress-bar">
-                        <div class="compatibility-progress-fill" data-progress="${result.finalScore.toFixed(0)}">
-                            <span class="compatibility-progress-text">${result.finalScore.toFixed(0)}%</span>
-                        </div>
-                    </div>
-                </div>
-                ${formationBadge}
-
-                ${difficultyWarning}
-                ${generationalBonusText}
-
-                <!-- TACTICAL RADAR CHART -->
-                <div class="glassmorphism-card cascade-element" data-delay="5">
-                    <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 0.9rem; text-align: center;">📊 Radar Táctico</h4>
                     ${radarChart}
                 </div>
 
@@ -2088,7 +1976,8 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
     });
 
     // Display local analysis
-    displayLocalAnalysis(results);
+    // DEPRECATED: Also disabled along with displayResults above
+    // displayLocalAnalysis(results);
 }
 
 // Display local intelligent analysis
