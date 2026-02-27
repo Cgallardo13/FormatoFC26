@@ -1430,3 +1430,182 @@ input[type="range"]::-moz-range-thumb:hover {
     25% { transform: translateX(-10px); }
     75% { transform: translateX(10px); }
 }
+
+/* ===== GAME MODE OPTIONS ===== */
+.game-mode-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.game-mode-option {
+    background: rgba(30, 35, 55, 0.8);
+    border: 2px solid rgba(212, 175, 55, 0.2);
+    border-radius: 20px;
+    padding: 25px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.game-mode-option:hover {
+    border-color: #d4af37;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+}
+
+.game-mode-option.selected {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(244, 208, 63, 0.1) 100%);
+    border-color: #d4af37;
+    box-shadow:
+        0 0 30px rgba(212, 175, 55, 0.4),
+        inset 0 0 20px rgba(212, 175, 55, 0.1);
+}
+
+.game-mode-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
+}
+
+.game-mode-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ffffff;
+}
+
+.game-mode-desc {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    color: #a0a5b9;
+    line-height: 1.4;
+}
+
+/* ===== ATTRIBUTES CONTAINER (EAFC Style) ===== */
+.attributes-container {
+    background: rgba(30, 35, 55, 0.6);
+    border: 2px solid rgba(212, 175, 55, 0.2);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.attribute-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.attribute-row:last-of-type {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: none;
+}
+
+.attr-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 120px;
+}
+
+.attr-icon {
+    font-size: 1.5rem;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+
+.attr-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #d4af37;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.attr-full {
+    font-size: 0.75rem;
+    color: #a0a5b9;
+    margin-left: 5px;
+}
+
+.attr-slider {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+    max-width: 250px;
+}
+
+.attr-input {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    outline: none;
+    cursor: pointer;
+}
+
+.attr-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #d4af37;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+    transition: all 0.2s;
+}
+
+.attr-input::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
+}
+
+.attr-input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #d4af37;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.attr-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #d4af37;
+    min-width: 40px;
+    text-align: right;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.attr-total {
+    text-align: center;
+    padding-top: 15px;
+    border-top: 2px solid rgba(212, 175, 55, 0.3);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.3rem;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.attr-total span {
+    color: #d4af37;
+    font-size: 2rem;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+}

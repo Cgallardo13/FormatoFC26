@@ -4,9 +4,16 @@
 // CONFIGURATION
 // ============================================
 
-// Elite team threshold
+// Elite team and player thresholds
 const ELITE_TEAM_MIN_RATING = 85;
 const ELITE_PLAYER_MIN_RATING = 86;
+const SUPER_ELITE_PLAYER_RATING = 88; // 88+ gets special elite team treatment
+
+// List of elite teams to prioritize for 88+ players
+const ELITE_TEAMS = [
+    'Real Madrid', 'FC Barcelona', 'Manchester City', 'Liverpool', 'Arsenal',
+    'Bayern Munich', 'PSG', 'Inter', 'AC Milan', 'Juventus'
+];
 
 // ============================================
 // CORE ANALYSIS FUNCTIONS
@@ -172,26 +179,30 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
         is_star: false
     };
 
-    // Calculate competition type
+    // Calculate competition type with specific stat analysis
     const ratingDiff = playerRating - strongestCompetitor.rating;
     let competitionType;
     let competitionText;
 
     if (ratingDiff > 5) {
         competitionType = 'STAR';
-        competitionText = `Serías la ESTRELLA 💫, superando a ${strongestCompetitor.player} (${strongestCompetitor.rating})`;
+        competitionText = `Con tu media de ${playerRating}, superas la efectividad de ${strongestCompetitor.player} (${strongestCompetitor.rating}) por ${ratingDiff} puntos`;
     } else if (ratingDiff >= 2) {
         competitionType = 'STARTER';
-        competitionText = `Serías TITULAR 🟢, superando a ${strongestCompetitor.player} (${strongestCompetitor.rating})`;
+        competitionText = `Tu nivel ${playerRating} supera a ${strongestCompetitor.player} (${strongestCompetitor.rating}) - serías titular indiscutible`;
     } else if (ratingDiff >= -2) {
         competitionType = 'BATTLE';
-        competitionText = `Llegarías a PELEAR el puesto ⚔️ contra ${strongestCompetitor.player} (${strongestCompetitor.rating}), el equipo necesita rotación de élite`;
+        if (playerRating >= 88) {
+            competitionText = `Con tus ${playerRating}, llega a competir por el puesto contra ${strongestCompetitor.player} (${strongestCompetitor.rating}) - equipo élite necesita rotación`;
+        } else {
+            competitionText = `Tu ${playerRating} iguala a ${strongestCompetitor.player} (${strongestCompetitor.rating}) - pelea el puesto directa`;
+        }
     } else if (ratingDiff >= -5) {
         competitionType = 'ROTATION';
-        competitionText = `Serías SUPLENTE de élite 🔄, compitiendo con ${strongestCompetitor.player} (${strongestCompetitor.rating})`;
+        competitionText = `Tu ${playerRating} compite con ${strongestCompetitor.player} (${strongestCompetitor.rating}) - suplente de élite con minutos`;
     } else {
         competitionType = 'BENCH';
-        competitionText = `Serías suplente por ahora 😔, ${strongestCompetitor.player} (${strongestCompetitor.rating}) es muy superior`;
+        competitionText = `${strongestCompetitor.player} (${strongestCompetitor.rating}) supera tu ${playerRating} por ${Math.abs(ratingDiff)} puntos - llega al nivel del equipo primero`;
     }
 
     return {
@@ -204,21 +215,77 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
 }
 
 /**
- * Filter teams by player rating tier
+ * Filter teams by player rating tier AND game mode (RTG vs Star)
  */
-function filterTeamsByPlayerTier(playerRating, teams) {
-    // If player is elite (86+), prioritize elite teams
-    if (playerRating >= ELITE_PLAYER_MIN_RATING) {
-        const eliteTeams = teams.filter(t => t.overall_level >= ELITE_TEAM_MIN_RATING);
-        const otherTeams = teams.filter(t => t.overall_level < ELITE_TEAM_MIN_RATING);
+function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
+    const gameModeType = gameMode || 'star'; // 'rtg' or 'star'
 
-        eliteTeams.sort((a, b) => b.overall_level - a.overall_level);
-        otherTeams.sort((a, b) => b.overall_level - a.overall_level);
+    // RTG MODE: Small teams to grow
+    if (gameModeType === 'rtg') {
+        // Filter teams where player can be STAR (rating > team best player + 3)
+        const growthTeams = teams.filter(team => {
+            const bestPlayer = team.squad_gaps.reduce((best, p) =>
+                p.rating > best.rating ? p : best, { rating: 0 }
+            );
+            return playerRating > bestPlayer.rating + 3;
+        });
 
-        if (eliteTeams.length >= 3) {
-            return eliteTeams.slice(0, Math.min(10, eliteTeams.length));
-        } else {
-            return [...eliteTeams, ...otherTeams.slice(0, 10 - eliteTeams.length)];
+        // Sort by team rating (ascending - smaller teams first)
+        growthTeams.sort((a, b) => a.overall_level - b.overall_level);
+
+        // Fill with other teams if needed
+        if (growthTeams.length < 10) {
+            const otherTeams = teams
+                .filter(t => !growthTeams.includes(t))
+                .sort((a, b) => a.overall_level - b.overall_level);
+            growthTeams.push(...otherTeams.slice(0, 10 - growthTeams.length));
+        }
+
+        return growthTeams.slice(0, 10);
+    }
+
+    // STAR MODE: Elite teams where player is already good
+    if (gameModeType === 'star') {
+        // SUPER ÉLITE (88+): Prioritize REAL elite teams
+        if (playerRating >= SUPER_ELITE_PLAYER_RATING) {
+            const superEliteTeams = teams.filter(t =>
+                ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
+            );
+
+            const otherEliteTeams = teams.filter(t =>
+                t.overall_level >= ELITE_TEAM_MIN_RATING &&
+                !ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
+            );
+
+            const otherTeams = teams.filter(t =>
+                t.overall_level < ELITE_TEAM_MIN_RATING &&
+                !ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
+            );
+
+            superEliteTeams.sort((a, b) => b.overall_level - a.overall_level);
+            otherEliteTeams.sort((a, b) => b.overall_level - a.overall_level);
+            otherTeams.sort((a, b) => b.overall_level - a.overall_level);
+
+            const result = [...superEliteTeams, ...otherEliteTeams];
+            if (result.length < 10) {
+                result.push(...otherTeams.slice(0, 10 - result.length));
+            }
+
+            return result.slice(0, 10);
+        }
+        // ÉLITE (86-87): High-rated teams
+        else if (playerRating >= ELITE_PLAYER_MIN_RATING) {
+            const eliteTeams = teams.filter(t => t.overall_level >= ELITE_TEAM_MIN_RATING);
+            const otherTeams = teams.filter(t => t.overall_level < ELITE_TEAM_MIN_RATING);
+
+            eliteTeams.sort((a, b) => b.overall_level - a.overall_level);
+            otherTeams.sort((a, b) => b.overall_level - a.overall_level);
+
+            if (eliteTeams.length >= 3) {
+                return eliteTeams.slice(0, Math.min(10, eliteTeams.length));
+            } else {
+                return [...eliteTeams, ...otherTeams.slice(0, 10 - eliteTeams.length)];
+            }
         }
     }
 
@@ -227,59 +294,120 @@ function filterTeamsByPlayerTier(playerRating, teams) {
 }
 
 /**
- * Generate dynamic analysis based on team and player stats
+ * Generate dynamic analysis based on team and player stats - Uses attributes vs team average
  */
 function generateDynamicAnalysis(result, playerRating) {
     const team = result.team;
     const competition = result.competition;
 
-    // Get team's key stats
-    const teamSpeed = Math.round((team.style.wing_play + team.style.counter_attack) / 2);
+    // Get player's specific stats from answers.attributes
+    const attrs = answers.attributes || {
+        pac: 75, sho: 70, pas: 68, dri: 72, def: 60, phy: 65
+    };
+
+    const playerPAC = attrs.pac;
+    const playerSHO = attrs.sho;
+    const playerPAS = attrs.pas;
+    const playerDRI = attrs.dri;
+    const playerDEF = attrs.def;
+    const playerPHY = attrs.phy;
+
+    // Calculate team's average stats from squad_gaps
+    const teamStats = calculateTeamAverageStats(team.squad_gaps);
+
+    // Get team's style stats
     const teamPossession = team.style.possession;
     const teamPhysical = team.style.aerial_balls;
 
-    // Get user's preferences
-    const userSpeed = (answers.wing_play + answers.counter_attack) / 2;
-    const userPossession = answers.possession;
-
-    // 5 analysis templates with different focuses
+    // 10 analysis templates with attribute vs team average comparisons
     const templates = [
-        // Template 1: Speed focus
+        // Template 1: PAC vs team average
         {
-            condition: teamSpeed > 70 && userSpeed > 60,
-            template: `⚡ **Explosión en velocidad**: Tu ritmo PAC ${userSpeed.toFixed(0)} encaja con el estilo de ${team.name} (${teamSpeed} de PAC de equipo). ${competition.competitionText}.`
+            condition: playerPAC > teamStats.pac + 5,
+            template: `⚡ Tu velocidad (${playerPAC}) sería un arma letal en ${team.name} - superas el promedio del equipo (${teamStats.pac})`
         },
-        // Template 2: Possession focus
+        // Template 2: SHO vs team average
         {
-            condition: teamPossession > 70 && userPossession > 60,
-            template: `🎯 **Maestros de la posesión**: Con ${teamPossession}% de control, ${team.name} busca tu visión (${userPossession} de POS). ${competition.competitionText}.`
+            condition: playerSHO > teamStats.sho + 5,
+            template: `🎯 Con tu tiro (${playerSHO}), superas la efectividad promedio de ${team.name} (${teamStats.sho})`
         },
-        // Template 3: Physical battle
+        // Template 3: PAS vs team average
         {
-            condition: teamPhysical > 70 && answers.aerial_balls > 60,
-            template: `💪 **Dominio aéreo garantizado**: Tu fuerza (${answers.aerial_balls}) + el estilo físico de ${team.name} (${teamPhysical}) = match perfecto. ${competition.competitionText}.`
+            condition: playerPAS > teamStats.pas + 5 && teamPossession > 70,
+            template: `🎯 Tu pase (${playerPAS}) encaja perfecto en ${team.name} - mejor que el promedio (${teamStats.pas})`
         },
-        // Template 4: Young prospect opportunity
+        // Template 4: DRI vs team average
         {
-            condition: competition.ratingDiff < 0 && answers.age < 23,
-            template: `🌟 **Proyecto del futuro**: Con tus ${answers.age} años, ${team.name} es tu mejor opción. ${competition.competitionText}. Tiempo de formarte.`
+            condition: playerDRI > teamStats.dri + 5,
+            template: `🏃 Tu regate (${playerDRI}) explotaría en ${team.name} - superas su promedio (${teamStats.dri})`
         },
-        // Template 5: Elite team battle
+        // Template 5: DEF vs team average (for defenders)
         {
-            condition: team.overall_level >= 85 && playerRating >= 86,
-            template: `👑 **Batalla de estrellas**: ${team.name} (${team.overall_level} de media) necesita tu nivel (${playerRating}). ${competition.competitionText}. El stage es tuyo.`
+            condition: playerDEF > teamStats.def + 5 && (answers.position?.includes('B') || answers.position === 'CDM'),
+            template: `🛡️ Tu defensa (${playerDEF}) domina en ${team.name} - muy superior al promedio (${teamStats.def})`
+        },
+        // Template 6: PHY vs team average
+        {
+            condition: playerPHY > teamStats.phy + 5 && teamPhysical > 70,
+            template: `💪 Tu físico (${playerPHY}) sería clave en ${team.name} - superas al promedio (${teamStats.phy})`
+        },
+        // Template 7: Elite team with high stats
+        {
+            condition: team.overall_level >= 85 && playerRating >= 88,
+            template: `👑 ${team.name} (${team.overall_level}) necesita tu nivel ${playerRating}. ${competition.competitionText}`
+        },
+        // Template 8: RTG mode - growth opportunity
+        {
+            condition: answers.game_mode === 'rtg' && playerRating > competition.competitor.rating + 3,
+            template: `🌟 Serías la ESTRELLA en ${team.name} - perfecto para desarrollar tu carrera`
+        },
+        // Template 9: Star mode - ready for elite
+        {
+            condition: answers.game_mode === 'star' && playerRating >= teamStats.ovr - 2,
+            template: `⭐ ${team.name} es ideal para ti - ya estás al nivel del equipo (${teamStats.ovr})`
+        },
+        // Template 10: Default competition analysis
+        {
+            condition: true,
+            template: competition.competitionText
         }
     ];
 
-    // Find matching template
+    // Find first matching template
     const matchingTemplate = templates.find(t => t.condition);
+    return matchingTemplate.template;
+}
 
-    if (matchingTemplate) {
-        return matchingTemplate.template;
+/**
+ * Calculate team's average stats from squad_gaps
+ */
+function calculateTeamAverageStats(squadGaps) {
+    if (!squadGaps || squadGaps.length === 0) {
+        return { pac: 70, sho: 70, pas: 70, dri: 70, def: 70, phy: 70, ovr: 75 };
     }
 
-    // Default template
-    return `🎯 **Fit táctico**: ${team.name} busca tu perfil. ${competition.competitionText}`;
+    const sum = squadGaps.reduce((acc, player) => {
+        return {
+            pac: acc.pac + (player.pac || player.rating || 70),
+            sho: acc.sho + (player.sho || player.rating || 70),
+            pas: acc.pas + (player.pas || player.rating || 70),
+            dri: acc.dri + (player.dri || player.rating || 70),
+            def: acc.def + (player.def || player.rating || 70),
+            phy: acc.phy + (player.phy || player.rating || 70),
+            ovr: acc.ovr + player.rating
+        };
+    }, { pac: 0, sho: 0, pas: 0, dri: 0, def: 0, phy: 0, ovr: 0 });
+
+    const count = squadGaps.length;
+    return {
+        pac: Math.round(sum.pac / count),
+        sho: Math.round(sum.sho / count),
+        pas: Math.round(sum.pas / count),
+        dri: Math.round(sum.dri / count),
+        def: Math.round(sum.def / count),
+        phy: Math.round(sum.phy / count),
+        ovr: Math.round(sum.ovr / count)
+    };
 }
 
 // ============================================
@@ -313,8 +441,9 @@ async function analyzeResults() {
         selectedLeagues = ['la_liga', 'premier_league', 'bundesliga', 'serie_a', 'ligue_1'];
     }
 
-    // Filter teams by player tier
-    const teamsByTier = filterTeamsByPlayerTier(playerRating, fc26Database.teams);
+    // Filter teams by player tier AND game mode
+    const gameMode = answers.game_mode || 'star';
+    const teamsByTier = filterTeamsByPlayerTier(playerRating, fc26Database.teams, gameMode);
 
     // Analyze each team
     const teamAnalysis = teamsByTier

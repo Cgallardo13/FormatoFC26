@@ -111,6 +111,40 @@ const questions = [
         max: 40,
         default: 21,
         unit: "años"
+    },
+    {
+        id: "game_mode",
+        title: "🎮 ¿Cuál es tu objetivo?",
+        description: "Define cómo quieres que funcione la recomendación",
+        type: "game_mode_selection",
+        options: [
+            {
+                id: "rtg",
+                name: "🌟 Promesa (RTG)",
+                description: "Equipos pequeños para crecer, desarrollar y ser estrella",
+                icon: "🌟"
+            },
+            {
+                id: "star",
+                name: "⭐ Fichaje Estrella",
+                description: "Equipos de élite donde ya eres mejor que el titular",
+                icon: "⭐"
+            }
+        ]
+    },
+    {
+        id: "attributes",
+        title: "📊 Tus Atributos (Estilo EAFC)",
+        description: "Define tus 6 stats principales para análisis preciso",
+        type: "attributes_selection",
+        default: {
+            pac: 75,
+            sho: 70,
+            pas: 68,
+            dri: 72,
+            def: 60,
+            phy: 65
+        }
     }
 ];
 
@@ -125,7 +159,16 @@ let answers = {
     counter_attack: 50,
     aerial_balls: 50,
     high_press: 50,
-    age: 21
+    age: 21,
+    game_mode: null, // 'rtg' or 'star'
+    attributes: {
+        pac: 75,
+        sho: 70,
+        pas: 68,
+        dri: 72,
+        def: 60,
+        phy: 65
+    }
 };
 
 // Initialize questions
@@ -206,6 +249,107 @@ function loadQuestion(index) {
                        id="slider_${question.id}"
                        oninput="updateSliderValue('${question.id}', this.value, '${unit}')">
                 <div class="slider-value" id="sliderValue_${question.id}">${currentValue}${unit}</div>
+            </div>
+        `;
+    } else if (question.type === 'game_mode_selection') {
+        html += '<div class="game-mode-options">';
+        question.options.forEach(option => {
+            const isSelected = answers.game_mode === option.id;
+            html += `
+                <div class="game-mode-option ${isSelected ? 'selected' : ''}"
+                     onclick="selectGameMode('${option.id}')">
+                    <div class="game-mode-icon">${option.icon}</div>
+                    <div class="game-mode-name">${option.name}</div>
+                    <div class="game-mode-desc">${option.description}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    } else if (question.type === 'attributes_selection') {
+        const attrs = answers.attributes || question.default;
+        html += `
+            <div class="attributes-container">
+                <div class="attribute-row">
+                    <div class="attr-label">
+                        <span class="attr-icon">⚡</span>
+                        <span class="attr-name">PAC</span>
+                        <span class="attr-full">Ritmo</span>
+                    </div>
+                    <div class="attr-slider">
+                        <input type="range" min="50" max="99" value="${attrs.pac}"
+                               class="attr-input" id="attr_pac"
+                               oninput="updateAttribute('pac', this.value)">
+                        <span class="attr-value" id="val_pac">${attrs.pac}</span>
+                    </div>
+                </div>
+                <div class="attribute-row">
+                    <div class="attr-label">
+                        <span class="attr-icon">🎯</span>
+                        <span class="attr-name">SHO</span>
+                        <span class="attr-full">Tiro</span>
+                    </div>
+                    <div class="attr-slider">
+                        <input type="range" min="50" max="99" value="${attrs.sho}"
+                               class="attr-input" id="attr_sho"
+                               oninput="updateAttribute('sho', this.value)">
+                        <span class="attr-value" id="val_sho">${attrs.sho}</span>
+                    </div>
+                </div>
+                <div class="attribute-row">
+                    <div class="attr-label">
+                        <span class="attr-icon">🎯</span>
+                        <span class="attr-name">PAS</span>
+                        <span class="attr-full">Pase</span>
+                    </div>
+                    <div class="attr-slider">
+                        <input type="range" min="50" max="99" value="${attrs.pas}"
+                               class="attr-input" id="attr_pas"
+                               oninput="updateAttribute('pas', this.value)">
+                        <span class="attr-value" id="val_pas">${attrs.pas}</span>
+                    </div>
+                </div>
+                <div class="attribute-row">
+                    <div class="attr-label">
+                        <span class="attr-icon">🏃</span>
+                        <span class="attr-name">DRI</span>
+                        <span class="attr-full">Regate</span>
+                    </div>
+                    <div class="attr-slider">
+                        <input type="range" min="50" max="99" value="${attrs.dri}"
+                               class="attr-input" id="attr_dri"
+                               oninput="updateAttribute('dri', this.value)">
+                        <span class="attr-value" id="val_dri">${attrs.dri}</span>
+                    </div>
+                </div>
+                <div class="attribute-row">
+                    <div class="attr-label">
+                        <span class="attr-icon">🛡️</span>
+                        <span class="attr-name">DEF</span>
+                        <span class="attr-full">Defensa</span>
+                    </div>
+                    <div class="attr-slider">
+                        <input type="range" min="50" max="99" value="${attrs.def}"
+                               class="attr-input" id="attr_def"
+                               oninput="updateAttribute('def', this.value)">
+                        <span class="attr-value" id="val_def">${attrs.def}</span>
+                    </div>
+                </div>
+                <div class="attribute-row">
+                    <div class="attr-label">
+                        <span class="attr-icon">💪</span>
+                        <span class="attr-name">PHY</span>
+                        <span class="attr-full">Físico</span>
+                    </div>
+                    <div class="attr-slider">
+                        <input type="range" min="50" max="99" value="${attrs.phy}"
+                               class="attr-input" id="attr_phy"
+                               oninput="updateAttribute('phy', this.value)">
+                        <span class="attr-value" id="val_phy">${attrs.phy}</span>
+                    </div>
+                </div>
+                <div class="attr-total">
+                    Total: <span id="attr_total">${Math.round((attrs.pac + attrs.sho + attrs.pas + attrs.dri + attrs.def + attrs.phy) / 6)}</span>
+                </div>
             </div>
         `;
     }
@@ -377,6 +521,24 @@ function updateSliderValue(questionId, value, unit = '%') {
     document.getElementById(`sliderValue_${questionId}`).textContent = value + unit;
 }
 
+// Select game mode (RTG or Star)
+function selectGameMode(modeId) {
+    answers.game_mode = modeId;
+    // Re-render to update UI
+    loadQuestion(currentQuestionIndex);
+}
+
+// Update player attribute
+function updateAttribute(attr, value) {
+    answers.attributes[attr] = parseInt(value);
+    document.getElementById(`val_${attr}`).textContent = value;
+
+    // Update total average
+    const attrs = answers.attributes;
+    const total = Math.round((attrs.pac + attrs.sho + attrs.pas + attrs.dri + attrs.def + attrs.phy) / 6);
+    document.getElementById('attr_total').textContent = total;
+}
+
 // Previous question
 function prevQuestion(event) {
     // Prevent double-click and event bubbling
@@ -421,6 +583,11 @@ function nextQuestion(event) {
 
     if (question.type === 'position_selection' && !answers.position) {
         alert('Por favor selecciona tu posición');
+        return;
+    }
+
+    if (question.type === 'game_mode_selection' && !answers.game_mode) {
+        alert('Por favor selecciona tu modo de juego');
         return;
     }
 
