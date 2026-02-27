@@ -159,12 +159,40 @@ document.addEventListener('touchmove', function(e) {
 // Add swipe gesture support for questions (mobile)
 let touchStartX = 0;
 let touchEndX = 0;
+let isTouchingSlider = false;
 
 document.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-}, false);
+    // CRITICAL: Check if touch is on a slider or any interactive control
+    const target = e.target;
+    isTouchingSlider = target.closest('input[type="range"]') ||
+                       target.closest('.slider-options') ||
+                       target.closest('.attr-slider') ||
+                       target.closest('button') ||
+                       target.closest('.btn') ||
+                       target.closest('input') ||
+                       target.closest('select') ||
+                       target.tagName === 'BUTTON';
+
+    // Only record start position if NOT touching a slider/interactive element
+    if (!isTouchingSlider) {
+        touchStartX = e.changedTouches[0].screenX;
+    }
+}, { passive: false });
+
+document.addEventListener('touchmove', e => {
+    // Update tracking if user is moving their finger
+    if (!isTouchingSlider) {
+        // Allow tracking for potential swipe
+    }
+}, { passive: true });
 
 document.addEventListener('touchend', e => {
+    // CRITICAL: Don't handle swipe if user was touching a slider
+    if (isTouchingSlider) {
+        isTouchingSlider = false;
+        return;
+    }
+
     touchEndX = e.changedTouches[0].screenX;
     handleSwipe();
 }, false);

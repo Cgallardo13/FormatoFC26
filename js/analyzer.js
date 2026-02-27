@@ -1025,23 +1025,34 @@ function getTeamLogoPath(teamName, league) {
     }
 
     // Map league to folder path
+    // NOTE: "United Kindom" is the actual folder name in the repo (typo preserved for compatibility)
     let leagueFolder = '';
     if (league === 'La Liga') {
-        leagueFolder = 'Espana/Primera División de España';
+        leagueFolder = 'logos/Espana/Primera División de España';
     } else if (league === 'Premier League') {
-        leagueFolder = 'United Kindom/Premier League';
+        // IMPORTANT: Repo has "United Kindom" (with typo), NOT "United Kingdom"
+        leagueFolder = 'logos/United Kindom/Premier League';
     } else if (league === 'Bundesliga') {
-        leagueFolder = 'Alemania/Bundesliga';
+        leagueFolder = 'logos/Alemania/Bundesliga';
     } else if (league === 'Serie A') {
-        leagueFolder = 'Italia/Serie A';
+        leagueFolder = 'logos/Italia/Serie A';
     } else if (league === 'Ligue 1') {
-        leagueFolder = 'Francia/Ligue 1';
+        leagueFolder = 'logos/Francia/Ligue 1';
+    } else {
+        // Fallback for unknown leagues
+        leagueFolder = `logos/${league}`;
     }
 
-    // Construct full path
-    const logoPath = `../${leagueFolder}/${logoFilename}`;
+    // Encode the filename to handle spaces, accents, and special characters
+    // This ensures URLs work correctly in mobile browsers and Netlify
+    const encodedFilename = encodeURIComponent(logoFilename);
 
-    console.log(`✅ Logo path for ${teamName}: ${logoPath}`);
+    // Construct ABSOLUTE path from root (works on Netlify and all environments)
+    const logoPath = `/${leagueFolder}/${encodedFilename}`;
+
+    console.log(`✅ Logo path for ${teamName} (${league}): ${logoPath}`);
+    console.log(`📁 Original filename: ${logoFilename}`);
+    console.log(`🔐 Encoded filename: ${encodedFilename}`);
     return logoPath;
 }
 
@@ -1577,12 +1588,13 @@ async function analyzeResults() {
 
     // Filter teams by player tier AND game mode
     const gameMode = answers.game_mode || 'star';
-    const teamsByTier = filterTeamsByPlayerTier(playerRating, fc26Database.teams, gameMode);
+    let teamsByTier = filterTeamsByPlayerTier(playerRating, fc26Database.teams, gameMode);
 
     console.log(`🔍 Teams after tier filter: ${teamsByTier.length}`);
 
-    // Analyze each team
-    const teamAnalysis = teamsByTier
+    // CRITICAL: Ensure we ALWAYS have at least 3 teams to analyze
+    // If not enough teams in selected leagues, expand to all major leagues
+    let teamAnalysis = teamsByTier
         .filter(team => {
             const teamLeagueId = getLeagueId(team.league);
             return selectedLeagues.includes(teamLeagueId);
@@ -1653,6 +1665,82 @@ async function analyzeResults() {
             };
         })
         .sort((a, b) => b.finalScore - a.finalScore);
+
+    // EXPANSION LOGIC: If we have less than 3 teams, expand to other leagues
+    if (teamAnalysis.length < 3) {
+        console.log(`⚠️ Only ${teamAnalysis.length} teams found. Expanding to all major leagues...`);
+
+        const allLeagues = ['la_liga', 'premier_league', 'bundesliga', 'serie_a', 'ligue_1'];
+        const additionalLeagues = allLeagues.filter(league => !selectedLeagues.includes(league));
+
+        console.log(`🌍 Expanding to: ${additionalLeagues.join(', ')}`);
+
+        // Analyze teams from additional leagues
+        const additionalTeams = teamsByTier
+            .filter(team => {
+                const teamLeagueId = getLeagueId(team.league);
+                return additionalLeagues.includes(teamLeagueId);
+            })
+            .map(team => {
+                const userFormationId = answers.formation || '4_3_3';
+                const styleMatch = calculateStyleCompatibility(userStyle, team.style);
+                const formationMatch = calculateFormationCompatibility(userFormationId, team);
+                const tacticalMatch = calculateTacticalCompatibility(team);
+                const userPosition = answers.position || findBestPosition(playerRating, team.squad_gaps).position;
+                const competition = analyzeRealCompetition(playerRating, userPosition, team);
+                const wouldStart = competition.wouldStart;
+                const tooDifficult = competition.ratingDiff < -7;
+                const growthPotential = calculateGrowthPotential(playerRating, team.overall_level, wouldStart);
+                const bestPosition = {
+                    currentAge: competition.competitor.age,
+                    is_young: answers.age < 23,
+                    is_star: competition.competitor.is_star
+                };
+                const generationalBonus = calculateGenerationalBonus(bestPosition, playerRating, playerAge);
+                const difficultyPenalty = tooDifficult ? -25 : 0;
+
+                let startingBonus;
+                if (tooDifficult) {
+                    startingBonus = 5;
+                } else if (wouldStart) {
+                    startingBonus = 35;
+                } else if (competition.ratingDiff >= -2) {
+                    startingBonus = 20;
+                } else {
+                    startingBonus = 10;
+                }
+
+                const finalScore = (styleMatch * 0.20) + (formationMatch * 0.15) + (tacticalMatch * 0.25) + startingBonus + (growthPotential * 0.15) + (generationalBonus * 0.10) + (difficultyPenalty * 0.25);
+
+                return {
+                    team: team,
+                    styleMatch: styleMatch,
+                    tacticalMatch: tacticalMatch,
+                    formationMatch: formationMatch,
+                    bestPosition: {
+                        position: userPosition,
+                        currentPlayer: competition.competitor.player,
+                        currentRating: competition.competitor.rating,
+                        currentAge: competition.competitor.age,
+                        is_star: competition.competitor.is_star
+                    },
+                    competition: competition,
+                    wouldStart: wouldStart,
+                    ratingDiff: competition.ratingDiff,
+                    growthPotential: growthPotential,
+                    generationalBonus: generationalBonus,
+                    tooDifficult: tooDifficult,
+                    finalScore: Math.max(0, finalScore)
+                };
+            })
+            .sort((a, b) => b.finalScore - a.finalScore);
+
+        // Merge results
+        teamAnalysis = [...teamAnalysis, ...additionalTeams]
+            .sort((a, b) => b.finalScore - a.finalScore);
+
+        console.log(`✅ After expansion: ${teamAnalysis.length} teams available`);
+    }
 
     console.log(`📊 Team Analysis Complete: ${teamAnalysis.length} teams analyzed`);
 

@@ -20,6 +20,12 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
             <p class="poster-subtitle">${hasLowCompatibility ? 'Estos son los clubes donde mejor podrías adaptarte' : 'Top 3 equipos compatibles con tu estilo de juego'}</p>
         </div>
 
+        <!-- Mobile Navigation Arrows -->
+        <div class="poster-nav-arrows" id="posterNavArrows">
+            <div class="poster-nav-arrow" id="navArrowLeft">←</div>
+            <div class="poster-nav-arrow" id="navArrowRight">→</div>
+        </div>
+
         <div class="poster-cards-container" id="posterCardsContainer">
             <!-- Poster cards will be injected here -->
         </div>
@@ -44,6 +50,15 @@ function displayResults(results, playerRating, hasLowCompatibility = false) {
         dot.dataset.index = index;
         dot.style.setProperty('--dot-color', getTeamColorFromTactics(result.team.name));
         if (index === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => {
+            // Navigate to this card
+            const targetIndex = parseInt(dot.dataset.index);
+            const cardWidth = posterContainer.firstElementChild.offsetWidth;
+            posterContainer.scrollTo({
+                left: targetIndex * cardWidth,
+                behavior: 'smooth'
+            });
+        });
         paginationContainer.appendChild(dot);
     });
 
@@ -114,17 +129,26 @@ function createPosterCard(result, playerRating, medal, index) {
     const card = document.createElement('div');
     card.className = 'poster-card camera-flash';
     card.dataset.index = index;
+
+    // Set CSS variables for team colors - NEW ATMOSPHERIC SYSTEM
     card.style.setProperty('--team-primary', teamColor);
     card.style.setProperty('--team-glow', teamColors.glow);
     card.style.setProperty('--team-secondary', teamColors.secondary);
     card.style.setProperty('--team-color', teamColor);
+
+    // NEW: Team accent color system for atmospheric backgrounds
+    card.style.setProperty('--team-accent-color', teamColor);
+    card.style.setProperty('--team-accent-color-bright', teamColors.secondary || teamColor);
+    card.style.setProperty('--team-accent-color-glow', teamColors.glow || `${teamColor}66`);
+    card.style.setProperty('--team-accent-color-dark', darkenColor(teamColor, 0.3));
+    card.style.setProperty('--team-accent-color-faded', `${teamColor}1A`); // 10% opacity
 
     card.innerHTML = `
         <!-- Camera Flash Effect -->
         <div class="camera-flash-overlay"></div>
 
         <!-- Background Layers -->
-        <div class="poster-background" style="background-image: url('${stadiumBackground}');"></div>
+        <div class="poster-background"></div>
         <div class="poster-background-blur"></div>
         <div class="poster-crest-watermark">
             ${teamLogoPath ? `<img src="${teamLogoPath}" alt="${team.name}" class="crest-watermark">` : `<div class="crest-watermark-text">${teamInitials}</div>`}
@@ -250,6 +274,7 @@ function initializeSwipeDetection(container, paginationContainer) {
     let startX = 0;
     let currentScroll = 0;
 
+    // Touch events for mobile swipe
     container.addEventListener('touchstart', (e) => {
         startX = e.touches[0].clientX;
         currentScroll = container.scrollLeft;
@@ -268,6 +293,36 @@ function initializeSwipeDetection(container, paginationContainer) {
     container.addEventListener('scroll', () => {
         updatePagination(container, paginationContainer);
     });
+
+    // Navigation arrows (mobile only)
+    const leftArrow = document.getElementById('navArrowLeft');
+    const rightArrow = document.getElementById('navArrowRight');
+
+    if (leftArrow && rightArrow) {
+        leftArrow.addEventListener('click', () => {
+            navigateCard(container, paginationContainer, -1);
+        });
+
+        rightArrow.addEventListener('click', () => {
+            navigateCard(container, paginationContainer, 1);
+        });
+    }
+}
+
+/**
+ * Navigate to previous/next card
+ */
+function navigateCard(container, paginationContainer, direction) {
+    const cardWidth = container.firstElementChild.offsetWidth;
+    const currentIndex = Math.round(container.scrollLeft / cardWidth);
+    const targetIndex = Math.max(0, Math.min(2, currentIndex + direction));
+
+    container.scrollTo({
+        left: targetIndex * cardWidth,
+        behavior: 'smooth'
+    });
+
+    updatePagination(container, paginationContainer);
 }
 
 /**
@@ -312,3 +367,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 100);
 });
+
+/**
+ * Helper: Darken a hex color by a percentage
+ * Used for creating atmospheric gradient backgrounds
+ */
+function darkenColor(hexColor, percent) {
+    // Remove # if present
+    let color = hexColor.replace('#', '');
+
+    // Parse RGB
+    let r = parseInt(color.substring(0, 2), 16);
+    let g = parseInt(color.substring(2, 4), 16);
+    let b = parseInt(color.substring(4, 6), 16);
+
+    // Darken by percentage
+    r = Math.floor(r * (1 - percent));
+    g = Math.floor(g * (1 - percent));
+    b = Math.floor(b * (1 - percent));
+
+    // Convert back to hex
+    const toHex = (c) => {
+        const hex = c.toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}

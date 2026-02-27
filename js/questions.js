@@ -386,6 +386,37 @@ function loadQuestion(index) {
 
     container.innerHTML = html;
 
+    // CRITICAL: Protect sliders from triggering swipe navigation on mobile
+    // Add event listeners to all range inputs to prevent touch propagation
+    const sliders = container.querySelectorAll('input[type="range"]');
+    sliders.forEach(slider => {
+        // Prevent touch events from propagating to document-level swipe handlers
+        slider.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+
+        slider.addEventListener('touchmove', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+
+        slider.addEventListener('touchend', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+
+        // Also prevent pointer events for better compatibility
+        slider.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+
+        slider.addEventListener('pointermove', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+
+        slider.addEventListener('pointerup', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+    });
+
     // Update buttons
     document.getElementById('prevBtn').disabled = index === 0;
     document.getElementById('nextBtn').textContent = index === questions.length - 1 ? 'Finalizar' : 'Siguiente →';
