@@ -45,11 +45,16 @@ async function startInterview(event) {
     // Load database in background if not loaded
     if (!fc26Database && !isDatabaseLoading) {
         isDatabaseLoading = true;
+
+        // Show "Synchronizing..." message immediately
+        updateDataSourceStatus();
+
         console.log('🔄 Loading database in background...');
 
         // Load async without blocking
         initApp().finally(() => {
             isDatabaseLoading = false;
+            updateDataSourceStatus(); // Update badge with final status
             console.log('✅ Background load complete');
         });
     }

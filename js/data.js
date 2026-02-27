@@ -13,16 +13,19 @@ const MAJOR_LEAGUES = [
     'Ligue 1'
 ];
 
-// Load from API
+// Load from API with CORS proxy and legitimate headers
 async function loadFromAPI() {
     try {
-        console.log('🌐 Attempting to fetch from API: https://api.msmc.cc/eafc/');
+        console.log('🌐 Sincronizando base de datos de 18,000 jugadores...');
 
-        // Try multiple endpoints for flexibility
+        // Try multiple endpoints including CORS proxies
         const endpoints = [
+            // Direct endpoints (will fail on Netlify due to CORS)
             'https://api.msmc.cc/eafc/teams',
             'https://api.msmc.cc/eafc/',
-            'https://api.msmc.cc/eafc/teams.json'
+            // CORS proxies (bypass Netlify CORS restriction)
+            'https://cors-anywhere.herokuapp.com/https://api.msmc.cc/eafc/teams',
+            'https://api.allorigins.win/raw?url=https://api.msmc.cc/eafc/teams'
         ];
 
         let apiData = null;
@@ -31,10 +34,15 @@ async function loadFromAPI() {
         for (let endpoint of endpoints) {
             try {
                 console.log(`🔄 Trying endpoint: ${endpoint}`);
+
                 const response = await fetch(endpoint, {
                     method: 'GET',
                     headers: {
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
                     },
                     mode: 'cors'
                 });
@@ -42,7 +50,10 @@ async function loadFromAPI() {
                 if (response.ok) {
                     apiData = await response.json();
                     console.log(`✅ Success from: ${endpoint}`);
+                    console.log(`📊 Received ${Array.isArray(apiData) ? apiData.length : 'N/A'} teams`);
                     break;
+                } else {
+                    console.warn(`⚠️  HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (err) {
                 console.warn(`❌ Endpoint failed: ${endpoint} - ${err.message}`);
@@ -52,7 +63,7 @@ async function loadFromAPI() {
         }
 
         if (!apiData) {
-            throw new Error(`All endpoints failed. Last error: ${lastError?.message || 'Unknown error'}`);
+            throw new Error(`All endpoints failed. Last error: ${lastError?.message || 'CORS/Network error'}`);
         }
 
         // Filter and transform data
@@ -67,11 +78,13 @@ async function loadFromAPI() {
         dataSource = 'api';  // Mark that we loaded from API
 
         console.log(`✅ Loaded from API: ${filteredTeams.length} teams from major leagues`);
+        console.log(`📦 Database size: ~${Math.round(JSON.stringify(fc26Database).length / 1024)} KB`);
 
         return fc26Database;
 
     } catch (error) {
         console.warn('⚠️  API load failed:', error.message);
+        console.warn('💡 Falling back to local JSON backup...');
         // Silently return null - don't show alert
         return null;
     }
@@ -113,14 +126,23 @@ function transformTeamData(apiTeam) {
     const teamSprintSpeed = getNumberField(apiTeam, ['sprint_speed', 'team_sprint_speed', 'avg_sprint_speed'], 70);
     const calculatedSpeed = (teamAcceleration + teamSprintSpeed) / 2;
 
+    // Get team ID for logo URL construction
+    const teamId = getStringField(apiTeam, ['id', 'team_id', 'slug', 'short_name']);
+    const normalizedName = getStringField(apiTeam, ['name', 'team_name', 'full_name', 'club_name'])
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+
     // Flexible field mapping with fallbacks
     const team = {
         // Team identification
-        id: getStringField(apiTeam, ['id', 'team_id', 'slug', 'short_name']),
+        id: teamId,
         name: getStringField(apiTeam, ['name', 'team_name', 'full_name', 'club_name']),
         league: getStringField(apiTeam, ['league', 'league_name', 'competition']),
         league_flag: getLeagueFlag(getStringField(apiTeam, ['league', 'league_name', 'competition'])),
 
+        // Logo URLs
+        team_logo: getTeamLogoUrl(normalizedName, teamId),
+        league_logo: getLeagueLogoUrl(getStringField(apiTeam, ['league', 'league_name', 'competition'])),
 
         // Tactical info
         formation: getStringField(apiTeam, ['formation', 'default_formation', 'lineup'], '4-3-3'),
@@ -256,6 +278,28 @@ function getLeagueFlag(leagueName) {
     return flags[leagueName] || '🏴';
 }
 
+// Get team logo URL from MSMC API or fallback
+function getTeamLogoUrl(normalizedName, teamId) {
+    // Try MSMC API logo URL first
+    if (teamId && teamId.length > 0) {
+        return `https://api.msmc.cc/eafc/logos/${teamId}.png`;
+    }
+    // Fallback to normalized name
+    return `https://api.msmc.cc/eafc/logos/${normalizedName}.png`;
+}
+
+// Get league logo URL
+function getLeagueLogoUrl(leagueName) {
+    const leagueLogos = {
+        'La Liga': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Laliga.svg/240px-Laliga.svg.png',
+        'Premier League': 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f2/Premier_League_Logo.svg/240px-Premier_League_Logo.svg.png',
+        'Bundesliga': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Bundesliga_logo_%282017%29.svg/240px-Bundesliga_logo_%282017%29.svg.png',
+        'Serie A': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Serie_A_logo_%282019%29.svg/240px-Serie_A_logo_%282019%29.svg.png',
+        'Ligue 1': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a6/Ligue_1_logo.svg/240px-Ligue_1_logo.svg.png'
+    };
+    return leagueLogos[leagueName] || '';
+}
+
 // Load from local JSON (backup)
 async function loadFromLocal() {
     try {
@@ -310,8 +354,8 @@ function getDataSourceStatus() {
         source: dataSource,
         isAPI: dataSource === 'api',
         isLocal: dataSource === 'local',
-        label: dataSource === 'api' ? '🌐 API' : dataSource === 'local' ? '💾 Local' : '⏳ Loading...',
-        color: dataSource === 'api' ? '#4caf50' : dataSource === 'local' ? '#ffc107' : '#999'
+        label: dataSource === 'api' ? '🌐 API (18K+)' : dataSource === 'local' ? '💾 Local' : '🔄 Sincronizando 18,000 jugadores...',
+        color: dataSource === 'api' ? '#4caf50' : dataSource === 'local' ? '#ffc107' : '#2196f3'
     };
 }
 

@@ -444,17 +444,32 @@ function displayResults(results, playerRating, playerAge, userStyle) {
             ? `<div class="generational-bonus">✨ +${result.generationalBonus} bono por relevo generacional</div>`
             : '';
 
-        // For gold card (#1), use data-flag attribute for larger emoji
-        const leagueBadge = index === 0
-            ? `<span class="result-league" data-flag="${team.league_flag}">${team.league}</span>`
-            : `<span class="result-league">${team.league_flag} ${team.league}</span>`;
+        // Determine if elite team (rating > 82)
+        const isElite = team.overall_level > 82;
+        const eliteClass = isElite ? 'elite-team' : '';
+
+        // League logo with fallback emoji
+        const leagueLogoHtml = team.league_logo
+            ? `<img src="${team.league_logo}" alt="${team.league}" class="league-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display:none">${team.league_flag}</span>`
+            : `<span>${team.league_flag}</span>`;
+
+        // Team logo with fallback
+        const teamLogoHtml = team.team_logo
+            ? `<img src="${team.team_logo}" alt="${team.name}" class="team-logo-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDQ5ZjM3IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgMnwxMCAxMC0xMCAxME0yIDEybDEwIDEwIDEwLTEwIi8+PC9zdmc+'">`
+            : '';
 
         html += `
-            <div class="result-card ${statusClass}" style="animation-delay: ${index * 0.2}s">
+            <div class="result-card ${statusClass} ${eliteClass}" style="animation-delay: ${index * 0.2}s">
                 <div class="result-header">
                     <span class="result-rank">${medal}</span>
-                    <div class="result-team-name">${team.name}</div>
-                    ${leagueBadge}
+                    ${teamLogoHtml}
+                    <div class="result-team-info">
+                        <div class="result-team-name">${team.name}</div>
+                        <div class="result-league">${leagueLogoHtml} ${team.league}</div>
+                    </div>
+                    <div class="team-rating-badge ${isElite ? 'elite-rating' : ''}">
+                        ${team.overall_level}
+                    </div>
                 </div>
 
                 <div class="result-score">
