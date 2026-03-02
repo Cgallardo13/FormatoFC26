@@ -5,11 +5,9 @@
  */
 
 // Override the displayResults function with poster card design
-const DEBUG = (typeof window !== 'undefined' && window.FC26_DEBUG === true);
-const dbg = (...args) => { if (DEBUG) console.log(...args); };
 
 function displayResults(results, playerRating, hasLowCompatibility = false) {
-    dbg(`🎯 Displaying ${results.length} HORIZONTAL POSTER CARDS for player rating ${playerRating}`);
+    window.FC26?.dbg?.(`🎯 Displaying ${results.length} HORIZONTAL POSTER CARDS for player rating ${playerRating}`);
 
     hideAllScreens();
     document.getElementById('resultPlayerRating').textContent = playerRating;

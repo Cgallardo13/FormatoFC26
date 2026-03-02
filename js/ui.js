@@ -1,9 +1,9 @@
 // UI Module - Handles all interface interactions
 
-// Global debug switch (enable from DevTools with: window.FC26_DEBUG = true)
-window.FC26_DEBUG = (window.FC26_DEBUG ?? false);
-const DEBUG = (typeof window !== 'undefined' && window.FC26_DEBUG === true);
-const dbg = (...args) => { if (DEBUG) console.log(...args); };
+// Global debug + logger (safe across all scripts; avoids const collisions)
+window.FC26 = window.FC26 || {};
+window.FC26.DEBUG = window.FC26.DEBUG ?? false; // enable in DevTools: window.FC26.DEBUG = true
+window.FC26.dbg = window.FC26.dbg || ((...args) => { if (window.FC26.DEBUG) console.log(...args); });
 
 // Track database loading state
 let isDatabaseLoading = false;
@@ -17,7 +17,7 @@ async function initApp() {
         console.warn('⚠️ Database load failed, will try fallback');
         return false;
     }
-    dbg('✅ Database loaded:', db.teams.length, 'teams');
+    window.FC26.dbg('✅ Database loaded:', db.teams.length, 'teams');
 
     // Update data source status badge
     updateDataSourceStatus();
@@ -54,13 +54,13 @@ async function startInterview(event) {
         // Show "Synchronizing..." message immediately
         updateDataSourceStatus();
 
-        dbg('🔄 Loading database in background...');
+        window.FC26.dbg('🔄 Loading database in background...');
 
         // Load async without blocking
         initApp().finally(() => {
             isDatabaseLoading = false;
             updateDataSourceStatus(); // Update badge with final status
-            dbg('✅ Background load complete');
+            window.FC26.dbg('✅ Background load complete');
         });
     }
 }
@@ -237,9 +237,9 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Console welcome message (debug only)
-dbg('%c⚽ FC26 Team Finder', 'font-size: 20px; font-weight: bold; color: #667eea;');
-dbg('%cEncuentra tu equipo perfecto en FC26', 'font-size: 12px; color: #764ba2;');
-dbg('%cHecho con ❤️ para los gamers', 'font-size: 10px; color: #999;');
+window.FC26.dbg('%c⚽ FC26 Team Finder', 'font-size: 20px; font-weight: bold; color: #667eea;');
+window.FC26.dbg('%cEncuentra tu equipo perfecto en FC26', 'font-size: 12px; color: #764ba2;');
+window.FC26.dbg('%cHecho con ❤️ para los gamers', 'font-size: 10px; color: #999;');
 
 // Update data source status badge
 function updateDataSourceStatus() {
@@ -278,10 +278,10 @@ async function testSystem() {
         btn.textContent = '🔄 Testing...';
         btn.disabled = true;
 
-        dbg('🧪 Starting CSV & Logos test...');
+        window.FC26.dbg('🧪 Starting CSV & Logos test...');
 
         // Test 1: EAFC26-Men.csv (PRIMARY DATA SOURCE)
-        dbg('Test 1: EAFC26-Men.csv (18,000+ players)...');
+        window.FC26.dbg('Test 1: EAFC26-Men.csv (18,000+ players)...');
         let csvStatus = '❌ Failed';
         let csvError = '';
         let playerCount = 0;
@@ -294,7 +294,7 @@ async function testSystem() {
                 const lines = csvText.split('\n').length;
                 playerCount = lines - 1; // Subtract header
                 csvStatus = `✅ OK (${playerCount.toLocaleString()} players)`;
-                dbg(`✅ EAFC26-Men.csv found! ${playerCount} players`);
+                window.FC26.dbg(`✅ EAFC26-Men.csv found! ${playerCount} players`);
             } else {
                 csvError = `HTTP ${csvResponse.status}`;
                 console.warn(`⚠️  CSV not found: ${csvResponse.status}`);
@@ -305,7 +305,7 @@ async function testSystem() {
         }
 
         // Test 2: Team Logos
-        dbg('Test 2: Team Logos...');
+        window.FC26.dbg('Test 2: Team Logos...');
         let logoStatus = '❌ Failed';
         let logoError = '';
         let testedLogos = 0;
@@ -322,7 +322,7 @@ async function testSystem() {
                     const logoResponse = await fetch(logoUrl, { method: 'HEAD' });
                     if (logoResponse.ok) {
                         workingLogos++;
-                        dbg(`✅ ${team.name}: ${logoUrl}`);
+                        window.FC26.dbg(`✅ ${team.name}: ${logoUrl}`);
                     } else {
                         console.warn(`⚠️  ${team.name}: HTTP ${logoResponse.status}`);
                     }
@@ -342,7 +342,7 @@ async function testSystem() {
         }
 
         // Test 3: League Logos
-        dbg('Test 3: League Logos...');
+        window.FC26.dbg('Test 3: League Logos...');
         let leagueStatus = '❌ Failed';
         let leagueError = '';
         const testedLeagues = [
@@ -358,7 +358,7 @@ async function testSystem() {
                 const response = await fetch(league.url, { method: 'HEAD' });
                 if (response.ok) {
                     workingLeagues++;
-                    dbg(`✅ ${league.name}: Working`);
+                    window.FC26.dbg(`✅ ${league.name}: Working`);
                 } else {
                     console.warn(`⚠️  ${league.name}: HTTP ${response.status}`);
                 }
@@ -423,7 +423,7 @@ ${csvStatus.includes('✅')
         `.trim();
 
         alert(report);
-        dbg('✅ CSV & Logos test complete');
+        window.FC26.dbg('✅ CSV & Logos test complete');
 
     } catch (error) {
         console.error('Test error:', error);

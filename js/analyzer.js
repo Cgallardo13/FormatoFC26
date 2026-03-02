@@ -4,9 +4,7 @@
 // CONFIGURATION
 // ============================================
 
-// Keep logs clean in production. Set `window.FC26_DEBUG = true` in DevTools if you need to debug.
-const DEBUG = (typeof window !== 'undefined' && window.FC26_DEBUG === true);
-const dbg = (...args) => { if (DEBUG) console.log(...args); };
+// Note: debug logger is defined once in ui.js as window.FC26.dbg()
 
 // Elite team and player thresholds
 const ELITE_TEAM_MIN_RATING = 85;
@@ -1096,7 +1094,7 @@ function getTeamLogoPath(teamName, league) {
     }
 
     if (!logoFilename) {
-    dbg(`⚠️ No logo found for: ${searchName} (${league})`);
+    window.FC26?.dbg?.(`⚠️ No logo found for: ${searchName} (${league})`);
         return null;
     }
 
@@ -1130,9 +1128,9 @@ function getTeamLogoPath(teamName, league) {
     // Relative paths (folder/) work everywhere
     const logoPath = `${encodedFolder}/${encodedFilename}`;
 
-    dbg(`✅ Logo path for ${teamName} (${league}): ${logoPath}`);
-    dbg(`📁 Original filename: ${logoFilename}`);
-    dbg(`🔐 Encoded filename: ${encodedFilename}`);
+    window.FC26?.dbg?.(`✅ Logo path for ${teamName} (${league}): ${logoPath}`);
+    window.FC26?.dbg?.(`📁 Original filename: ${logoFilename}`);
+    window.FC26?.dbg?.(`🔐 Encoded filename: ${encodedFilename}`);
     return logoPath;
 }
 
@@ -1471,7 +1469,7 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
         };
     }
 
-    dbg(`🔍 Analyzing ${team.name} for position ${userPosition} (squad: ${team.squad_gaps.length} players)`);
+    window.FC26?.dbg?.(`🔍 Analyzing ${team.name} for position ${userPosition} (squad: ${team.squad_gaps.length} players)`);
 
     // Find all players in user's EXACT position only (no similar positions)
     const positionPlayers = team.squad_gaps.filter(p => p.position === userPosition);
@@ -1529,7 +1527,7 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
     // Mark as STAR if rating is elite (85+ for position starters)
     strongestCompetitor.is_star = strongestCompetitor.rating >= 85;
 
-    dbg(`✅ Found ${strongestCompetitor.is_star ? '⭐ STAR PLAYER' : 'competitor'}: ${strongestCompetitor.player} (${strongestCompetitor.rating} OVR, ${strongestCompetitor.age} anos)`);
+    window.FC26?.dbg?.(`✅ Found ${strongestCompetitor.is_star ? '⭐ STAR PLAYER' : 'competitor'}: ${strongestCompetitor.player} (${strongestCompetitor.rating} OVR, ${strongestCompetitor.age} anos)`);
 
     // Get manager info for professional analysis
     const teamName = team.name.toLowerCase().trim();
@@ -1577,13 +1575,13 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
 function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
     const gameModeType = gameMode || 'star'; // 'rtg' or 'star'
 
-    dbg(`🔍 Filter: Rating=${playerRating}, Mode=${gameModeType}, Total Teams=${teams.length}`);
+    window.FC26?.dbg?.(`🔍 Filter: Rating=${playerRating}, Mode=${gameModeType}, Total Teams=${teams.length}`);
 
     // RTG MODE: Small teams to grow (SUPER RELAXED - ALWAYS returns teams)
     if (gameModeType === 'rtg') {
         // NO FILTERS AT ALL - just sort by rating ascending (worst teams first for RTG)
         const sortedTeams = [...teams].sort((a, b) => a.overall_level - b.overall_level);
-        dbg(`🌟 RTG Mode: Returning ALL ${Math.min(10, sortedTeams.length)} teams (worst to best)`);
+        window.FC26?.dbg?.(`🌟 RTG Mode: Returning ALL ${Math.min(10, sortedTeams.length)} teams (worst to best)`);
         return sortedTeams.slice(0, 10);
     }
 
@@ -1618,7 +1616,7 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
                 result.push(...allOtherTeams.slice(0, 3 - result.length));
             }
 
-            dbg(`👑 Super Elite Mode: ${result.length} teams (Elite: ${superEliteTeams.length})`);
+            window.FC26?.dbg?.(`👑 Super Elite Mode: ${result.length} teams (Elite: ${superEliteTeams.length})`);
             return result.slice(0, 10);
         }
         // ÉLITE (86-87): High-rated teams
@@ -1635,7 +1633,7 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
                 result.push(...allOtherTeams.slice(0, 3 - result.length));
             }
 
-            dbg(`⭐ Elite Mode: ${result.length} teams (Elite: ${eliteTeams.length})`);
+            window.FC26?.dbg?.(`⭐ Elite Mode: ${result.length} teams (Elite: ${eliteTeams.length})`);
             return result.slice(0, 10);
         }
     }
@@ -1645,7 +1643,7 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
     const sortedTeams = [...teams].sort((a, b) => b.overall_level - a.overall_level);
     const result = sortedTeams.slice(0, Math.max(3, Math.min(10, sortedTeams.length)));
 
-    dbg(`✅ Regular Mode: Returning ${result.length} teams (GUARANTEED minimum 3)`);
+    window.FC26?.dbg?.(`✅ Regular Mode: Returning ${result.length} teams (GUARANTEED minimum 3)`);
     return result;
 }
 
@@ -1742,7 +1740,7 @@ function calculateTeamAverageStats(squadGaps) {
         return { pac: 70, sho: 70, pas: 70, dri: 70, def: 70, phy: 70, ovr: 75 };
     }
 
-    dbg(`📊 Calculating team average for ${squadGaps.length} players`);
+    window.FC26?.dbg?.(`📊 Calculating team average for ${squadGaps.length} players`);
 
     const sum = squadGaps.reduce((acc, player) => {
         // Try to get individual stats, fallback to rating
@@ -1775,7 +1773,7 @@ function calculateTeamAverageStats(squadGaps) {
         ovr: Math.round(sum.ovr / count)
     };
 
-    dbg(`✅ Team average: PAC=${avg.pac}, SHO=${avg.sho}, PAS=${avg.pas}, DRI=${avg.dri}, DEF=${avg.def}, PHY=${avg.phy}, OVR=${avg.ovr}`);
+    window.FC26?.dbg?.(`✅ Team average: PAC=${avg.pac}, SHO=${avg.sho}, PAS=${avg.pas}, DRI=${avg.dri}, DEF=${avg.def}, PHY=${avg.phy}, OVR=${avg.ovr}`);
 
     return avg;
 }
@@ -1789,7 +1787,7 @@ async function analyzeResults() {
 
     // Ensure database is loaded
     if (!fc26Database) {
-        dbg('⏳ Waiting for database...');
+        window.FC26?.dbg?.('⏳ Waiting for database...');
         await loadDatabase();
     }
 
@@ -1803,12 +1801,12 @@ async function analyzeResults() {
     }
 
     // Reduce noisy logs for performance
-    dbg(`✅ Database loaded: ${fc26Database.teams.length} teams available`);
+    window.FC26?.dbg?.(`✅ Database loaded: ${fc26Database.teams.length} teams available`);
 
     const playerRating = parseInt(document.getElementById('playerRating').value) || 80;
     const playerAge = answers.age || 21;
 
-    dbg(`👤 Player: Rating=${playerRating}, Age=${playerAge}, League=${answers.league?.[0] || ''}, Mode=${answers.game_mode}`);
+    window.FC26?.dbg?.(`👤 Player: Rating=${playerRating}, Age=${playerAge}, League=${answers.league?.[0] || ''}, Mode=${answers.game_mode}`);
 
     const userStyle = {
         possession: answers.possession,
@@ -1827,15 +1825,15 @@ async function analyzeResults() {
     }
     const selectedLeagueId = selectedLeagues[0];
 
-    dbg(`🏆 Selected League: ${selectedLeagueId}`);
+    window.FC26?.dbg?.(`🏆 Selected League: ${selectedLeagueId}`);
 
     // Liga + SOLO equipos con logo SVG local (sin placeholders) => no mezcla de ligas
     const leagueTeamsAll = fc26Database.teams
         .filter(team => getLeagueId(team.league) === selectedLeagueId);
     const leagueTeamsWithLogos = leagueTeamsAll.filter(teamHasLocalLogo);
 
-    dbg(`🏟️ Teams in selected league: ${leagueTeamsAll.length}`);
-    dbg(`🖼️ Teams with LOCAL SVG logos in selected league: ${leagueTeamsWithLogos.length}`);
+    window.FC26?.dbg?.(`🏟️ Teams in selected league: ${leagueTeamsAll.length}`);
+    window.FC26?.dbg?.(`🖼️ Teams with LOCAL SVG logos in selected league: ${leagueTeamsWithLogos.length}`);
 
     if (leagueTeamsWithLogos.length === 0) {
         alert('No se encontraron equipos con logo local (SVG) en la liga seleccionada. Revisa el mapeo de nombres o los logos en el repo.');
@@ -1890,7 +1888,7 @@ async function analyzeResults() {
         return [...leagueTeamsWithLogos].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0)).slice(0, 14);
     })();
 
-    dbg(`🔍 Team pool after prestige filter: ${teamPool.length}`);
+    window.FC26?.dbg?.(`🔍 Team pool after prestige filter: ${teamPool.length}`);
 
     // Analyze directly (pool already league-scoped + prestige-filtered)
     let teamAnalysis = teamPool
@@ -2013,8 +2011,8 @@ async function analyzeResults() {
     // IRON RULE: NO EXPANSION - STRICT LEAGUE FILTER
     // User's league selection is sacred. Only show teams from selected leagues.
     // If less than 3 teams found, show what we have (1 or 2 teams) rather than violating user preference.
-    dbg(`✅ STRICT LEAGUE FILTER: Only teams from selected leagues (${selectedLeagues.join(', ')})`);
-    dbg(`📊 Final team count: ${teamAnalysis.length} (user's selected leagues only)`);
+    window.FC26?.dbg?.(`✅ STRICT LEAGUE FILTER: Only teams from selected leagues (${selectedLeagues.join(', ')})`);
+    window.FC26?.dbg?.(`📊 Final team count: ${teamAnalysis.length} (user's selected leagues only)`);
 
     // IMPORTANT: Do NOT expand to other leagues even if < 3 teams
     // User's choice is more important than having exactly 3 results
@@ -2026,8 +2024,8 @@ async function analyzeResults() {
         console.warn(`⚠️ Only ${teamAnalysis.length} teams found in selected leagues: ${selectedLeagues.join(', ')}`);
         console.warn(`⚠️ IRON RULE: Showing ${teamAnalysis.length} team(s) instead of violating user's league preference`);
     } else {
-        dbg(`✅ STRICT FILTER: ${teamAnalysis.length} teams from user's selected leagues ONLY`);
-        dbg(`✅ Selected leagues: ${selectedLeagues.join(', ')}`);
+        window.FC26?.dbg?.(`✅ STRICT FILTER: ${teamAnalysis.length} teams from user's selected leagues ONLY`);
+        window.FC26?.dbg?.(`✅ Selected leagues: ${selectedLeagues.join(', ')}`);
     }
 
     // CRITICAL: ALWAYS show up to 3 results, NO MATTER THE SCORE
@@ -2092,11 +2090,11 @@ async function analyzeResults() {
     }
 
     const top3 = pickDiverseTop3(teamAnalysis);
-    dbg(`✅ Top ${top3.length} results selected (diversified)`);
+    window.FC26?.dbg?.(`✅ Top ${top3.length} results selected (diversified)`);
 
     // Check if results have low compatibility for fallback messaging
     const hasLowCompatibility = top3.length > 0 && top3[0].finalScore < 50;
-    dbg(hasLowCompatibility ? '⚠️ Low compatibility scores - using fallback messaging' : '✅ Good compatibility scores');
+    window.FC26?.dbg?.(hasLowCompatibility ? '⚠️ Low compatibility scores - using fallback messaging' : '✅ Good compatibility scores');
 
     // Display results with compatibility warning if needed
     displayResults(top3, playerRating, hasLowCompatibility);
@@ -2131,7 +2129,7 @@ function getLeagueId(leagueName) {
         else result = '';
     }
 
-    dbg(`🏆 getLeagueId: "${name}" -> "${result}"`);
+    window.FC26?.dbg?.(`🏆 getLeagueId: "${name}" -> "${result}"`);
     return result;
 }
 
