@@ -1,5 +1,10 @@
 // UI Module - Handles all interface interactions
 
+// Global debug switch (enable from DevTools with: window.FC26_DEBUG = true)
+window.FC26_DEBUG = (window.FC26_DEBUG ?? false);
+const DEBUG = (typeof window !== 'undefined' && window.FC26_DEBUG === true);
+const dbg = (...args) => { if (DEBUG) console.log(...args); };
+
 // Track database loading state
 let isDatabaseLoading = false;
 
@@ -12,7 +17,7 @@ async function initApp() {
         console.warn('⚠️ Database load failed, will try fallback');
         return false;
     }
-    console.log('✅ Database loaded:', db.teams.length, 'teams');
+    dbg('✅ Database loaded:', db.teams.length, 'teams');
 
     // Update data source status badge
     updateDataSourceStatus();
@@ -49,13 +54,13 @@ async function startInterview(event) {
         // Show "Synchronizing..." message immediately
         updateDataSourceStatus();
 
-        console.log('🔄 Loading database in background...');
+        dbg('🔄 Loading database in background...');
 
         // Load async without blocking
         initApp().finally(() => {
             isDatabaseLoading = false;
             updateDataSourceStatus(); // Update badge with final status
-            console.log('✅ Background load complete');
+            dbg('✅ Background load complete');
         });
     }
 }
@@ -231,10 +236,10 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Console welcome message
-console.log('%c⚽ FC26 Team Finder', 'font-size: 20px; font-weight: bold; color: #667eea;');
-console.log('%cEncuentra tu equipo perfecto en FC26', 'font-size: 12px; color: #764ba2;');
-console.log('%cHecho con ❤️ para los gamers', 'font-size: 10px; color: #999;');
+// Console welcome message (debug only)
+dbg('%c⚽ FC26 Team Finder', 'font-size: 20px; font-weight: bold; color: #667eea;');
+dbg('%cEncuentra tu equipo perfecto en FC26', 'font-size: 12px; color: #764ba2;');
+dbg('%cHecho con ❤️ para los gamers', 'font-size: 10px; color: #999;');
 
 // Update data source status badge
 function updateDataSourceStatus() {
@@ -273,10 +278,10 @@ async function testSystem() {
         btn.textContent = '🔄 Testing...';
         btn.disabled = true;
 
-        console.log('🧪 Starting CSV & Logos test...');
+        dbg('🧪 Starting CSV & Logos test...');
 
         // Test 1: EAFC26-Men.csv (PRIMARY DATA SOURCE)
-        console.log('Test 1: EAFC26-Men.csv (18,000+ players)...');
+        dbg('Test 1: EAFC26-Men.csv (18,000+ players)...');
         let csvStatus = '❌ Failed';
         let csvError = '';
         let playerCount = 0;
@@ -289,7 +294,7 @@ async function testSystem() {
                 const lines = csvText.split('\n').length;
                 playerCount = lines - 1; // Subtract header
                 csvStatus = `✅ OK (${playerCount.toLocaleString()} players)`;
-                console.log(`✅ EAFC26-Men.csv found! ${playerCount} players`);
+                dbg(`✅ EAFC26-Men.csv found! ${playerCount} players`);
             } else {
                 csvError = `HTTP ${csvResponse.status}`;
                 console.warn(`⚠️  CSV not found: ${csvResponse.status}`);
@@ -300,7 +305,7 @@ async function testSystem() {
         }
 
         // Test 2: Team Logos
-        console.log('Test 2: Team Logos...');
+        dbg('Test 2: Team Logos...');
         let logoStatus = '❌ Failed';
         let logoError = '';
         let testedLogos = 0;
@@ -317,7 +322,7 @@ async function testSystem() {
                     const logoResponse = await fetch(logoUrl, { method: 'HEAD' });
                     if (logoResponse.ok) {
                         workingLogos++;
-                        console.log(`✅ ${team.name}: ${logoUrl}`);
+                        dbg(`✅ ${team.name}: ${logoUrl}`);
                     } else {
                         console.warn(`⚠️  ${team.name}: HTTP ${logoResponse.status}`);
                     }
@@ -337,7 +342,7 @@ async function testSystem() {
         }
 
         // Test 3: League Logos
-        console.log('Test 3: League Logos...');
+        dbg('Test 3: League Logos...');
         let leagueStatus = '❌ Failed';
         let leagueError = '';
         const testedLeagues = [
@@ -353,7 +358,7 @@ async function testSystem() {
                 const response = await fetch(league.url, { method: 'HEAD' });
                 if (response.ok) {
                     workingLeagues++;
-                    console.log(`✅ ${league.name}: Working`);
+                    dbg(`✅ ${league.name}: Working`);
                 } else {
                     console.warn(`⚠️  ${league.name}: HTTP ${response.status}`);
                 }
@@ -418,7 +423,7 @@ ${csvStatus.includes('✅')
         `.trim();
 
         alert(report);
-        console.log('✅ CSV & Logos test complete');
+        dbg('✅ CSV & Logos test complete');
 
     } catch (error) {
         console.error('Test error:', error);

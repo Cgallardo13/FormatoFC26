@@ -16,10 +16,12 @@
     --panel-bg: rgba(20, 25, 45, 0.78);
     --panel-border: rgba(255, 255, 255, 0.10);
     --panel-border-strong: rgba(255, 255, 255, 0.16);
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Space Grotesk', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
-    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-sans);
     background:
         linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(20, 25, 45, 0.95) 100%),
         repeating-linear-gradient(
@@ -32,6 +34,91 @@ body {
     min-height: 100vh;
     color: var(--text-primary);
     overflow-x: hidden;
+}
+
+/* ============================================
+   TYPOGRAPHY OVERRIDES (Modern / Youthful)
+   ============================================ */
+.header h1,
+.welcome-left h2,
+.question-title,
+.poster-title,
+.poster-team-name,
+.poster-score-number,
+.poster-rank-bar .rank-left,
+.poster-rank-bar .rank-right,
+.btn,
+.league-label {
+    font-family: var(--font-display) !important;
+}
+
+.header p,
+.question-description,
+.poster-subtitle,
+.poster-score-label,
+.poster-stat-label,
+.poster-stat-value,
+.market-pill,
+.fit-pill,
+.attr-presets-title,
+.preset-btn {
+    font-family: var(--font-sans) !important;
+}
+
+.poster-team-name {
+    letter-spacing: 2px !important;
+}
+
+.poster-score-number {
+    letter-spacing: 1px !important;
+}
+
+/* ============================================
+   CARD POLISH (Fantasy 2026 feel)
+   ============================================ */
+.poster-card {
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-top-color: rgba(255, 255, 255, 0.26) !important;
+    border-left-color: rgba(255, 255, 255, 0.22) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.poster-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    /* Subtle noise/texture */
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 38%),
+        radial-gradient(circle at 90% 20%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 42%),
+        radial-gradient(circle at 30% 95%, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 40%);
+    opacity: 0.9;
+}
+
+.poster-neon-border {
+    opacity: 0.65;
+}
+
+.poster-team-logo {
+    filter: drop-shadow(0 14px 30px rgba(0,0,0,0.55)) !important;
+}
+
+.wax-seal {
+    font-family: var(--font-display) !important;
+}
+
+/* Mobile: reduce heavy effects a bit */
+@media (max-width: 768px) {
+    .poster-card {
+        background: rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(22px) saturate(150%) !important;
+        -webkit-backdrop-filter: blur(22px) saturate(150%) !important;
+    }
+    .poster-neon-border {
+        opacity: 0.55;
+    }
 }
 
 /* Performance / accessibility */
@@ -278,6 +365,13 @@ body {
 
     .results-container {
         margin-bottom: 20px;
+    }
+
+    /* Results header spacing on mobile */
+    .poster-header {
+        padding: 12px 14px;
+        margin: 10px 14px 14px 14px;
+        border-radius: 16px;
     }
 }
 
@@ -2758,15 +2852,17 @@ body::before {
     /* MOBILE FIRST: Horizontal carousel */
     display: flex !important;
     flex-direction: row !important;
-    gap: 15px !important; /* Elegant spacing between cards */
-    width: 100vw !important;
+    gap: 12px !important; /* Slightly tighter on phones */
+    width: 100% !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     scroll-snap-type: x mandatory !important; /* Magnetic snap to center */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    padding: 0 5vw !important; /* Side padding for first/last card visibility */
+    padding: 0 16px !important; /* Consistent safe padding */
+    scroll-padding: 16px;
     margin: 0 !important;
+    overscroll-behavior-x: contain;
     /* Hide scrollbar */
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -2781,12 +2877,13 @@ body::before {
    ============================================ */
 .poster-card {
     position: relative;
-    /* Mobile: 90vw width for carousel */
-    flex: 0 0 90vw !important;
-    width: 90vw !important;
-    max-width: 90vw !important;
-    height: 85vh !important;
-    min-height: 650px !important;
+    /* Mobile: one clean card per view */
+    flex: 0 0 calc(100% - 32px) !important;
+    width: calc(100% - 32px) !important;
+    max-width: 520px !important;
+    height: 78dvh !important;
+    min-height: 560px !important;
+    max-height: 780px !important;
     border-radius: 24px !important;
     overflow: hidden;
     scroll-snap-align: center;
@@ -2816,6 +2913,23 @@ body::before {
     margin: 0 !important;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
     animation: clubGlowPulse 3.6s ease-in-out infinite;
+}
+
+/* Extra-small phones: reduce height so it doesn't feel like a giant box */
+@media (max-width: 420px) {
+    .poster-card {
+        height: 74dvh !important;
+        min-height: 520px !important;
+        border-radius: 22px !important;
+    }
+    .poster-title {
+        font-size: 1.75rem;
+        letter-spacing: 3px;
+    }
+    .poster-content {
+        padding: 84px 18px 22px 18px;
+        gap: 16px;
+    }
 }
 
 @keyframes clubGlowPulse {
@@ -2853,6 +2967,55 @@ body::before {
     flex-wrap: wrap;
     justify-content: center;
     margin: 8px 0 4px 0;
+}
+
+.poster-breakdown {
+    width: 100%;
+    max-width: 360px;
+    margin: 10px auto 4px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.break-row {
+    display: grid;
+    grid-template-columns: 86px 1fr 48px;
+    align-items: center;
+    gap: 10px;
+}
+
+.break-label {
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.80);
+    font-weight: 800;
+}
+
+.break-val {
+    font-size: 0.78rem;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.88);
+    text-align: right;
+    font-weight: 900;
+}
+
+.break-bar {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.10);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.25);
+}
+
+.break-bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--team-accent-color, #667eea), var(--team-accent-color-bright, #8b9df5));
+    box-shadow: 0 0 14px var(--team-accent-color-glow, rgba(102,126,234,0.25));
 }
 
 .fit-pill {
@@ -4215,7 +4378,8 @@ body::before {
         z-index: 200;
         font-size: 1rem;
         padding: 12px 28px;
-        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        border-radius: 999px;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.45), 0 0 30px rgba(212,175,55,0.22);
     }
 }
 

@@ -5,8 +5,11 @@
  */
 
 // Override the displayResults function with poster card design
+const DEBUG = (typeof window !== 'undefined' && window.FC26_DEBUG === true);
+const dbg = (...args) => { if (DEBUG) console.log(...args); };
+
 function displayResults(results, playerRating, hasLowCompatibility = false) {
-    console.log(`🎯 Displaying ${results.length} HORIZONTAL POSTER CARDS for player rating ${playerRating}`);
+    dbg(`🎯 Displaying ${results.length} HORIZONTAL POSTER CARDS for player rating ${playerRating}`);
 
     hideAllScreens();
     document.getElementById('resultPlayerRating').textContent = playerRating;
@@ -487,6 +490,38 @@ function createPosterCard(result, playerRating, medal, index) {
                 <div class="poster-fit-row">
                     <span class="fit-pill">FIT ATRIBUTOS: <strong>${Math.round(result.attributeFit ?? 0)}%</strong></span>
                     ${Array.isArray(result.attributeWorst) && result.attributeWorst.length ? `<span class="fit-pill subtle">A mejorar: ${result.attributeWorst.slice(0,2).join(' / ')}</span>` : ''}
+                </div>
+
+                <div class="poster-breakdown">
+                    ${(() => {
+                        const b = result.scoreBreakdown || {};
+                        const tactical = Math.round(b.tactical ?? result.tacticalMatch ?? 0);
+                        const attributes = Math.round(b.attributes ?? result.attributeFit ?? 0);
+                        const formation = Math.round(b.formation ?? result.formationMatch ?? 0);
+                        const opportunity = Math.round(b.opportunity ?? result.opportunityScore ?? 0);
+                        return `
+                            <div class="break-row">
+                                <span class="break-label">Táctico</span>
+                                <div class="break-bar"><i style="width:${tactical}%;"></i></div>
+                                <span class="break-val">${tactical}%</span>
+                            </div>
+                            <div class="break-row">
+                                <span class="break-label">Atributos</span>
+                                <div class="break-bar"><i style="width:${attributes}%;"></i></div>
+                                <span class="break-val">${attributes}%</span>
+                            </div>
+                            <div class="break-row">
+                                <span class="break-label">Formación</span>
+                                <div class="break-bar"><i style="width:${formation}%;"></i></div>
+                                <span class="break-val">${formation}%</span>
+                            </div>
+                            <div class="break-row">
+                                <span class="break-label">Oportunidad</span>
+                                <div class="break-bar"><i style="width:${opportunity}%;"></i></div>
+                                <span class="break-val">${opportunity}%</span>
+                            </div>
+                        `;
+                    })()}
                 </div>
 
                 <div class="poster-compatibility-score">

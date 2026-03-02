@@ -454,7 +454,9 @@ function selectLeague(leagueId) {
     // CRITICAL: Single league selection - replace entire array
     answers.league = [leagueId];
 
-    console.log(`✅ League selected: ${leagueId}`);
+    if (typeof window !== 'undefined' && window.FC26_DEBUG === true) {
+        console.log(`✅ League selected: ${leagueId}`);
+    }
 
     // Re-render to update UI
     loadQuestion(currentQuestionIndex);

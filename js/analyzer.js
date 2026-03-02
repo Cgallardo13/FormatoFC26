@@ -4,6 +4,10 @@
 // CONFIGURATION
 // ============================================
 
+// Keep logs clean in production. Set `window.FC26_DEBUG = true` in DevTools if you need to debug.
+const DEBUG = (typeof window !== 'undefined' && window.FC26_DEBUG === true);
+const dbg = (...args) => { if (DEBUG) console.log(...args); };
+
 // Elite team and player thresholds
 const ELITE_TEAM_MIN_RATING = 85;
 const ELITE_PLAYER_MIN_RATING = 86;
@@ -472,126 +476,8 @@ const STADIUM_ATMOSPHERE = {
     }
 };
 
-// ============================================
-// STADIUM/CITY BACKGROUND IMAGES - DYNAMIC UNSPLASH
-// Keywords for generating unique atmospheric background images
-// ============================================
-const STADIUM_BACKGROUNDS = {
-    // La Liga
-    'fc barcelona': 'sagrada,familia,barcelona,catalonia',
-    'real madrid': 'madrid,skyline,santiago,bernabeu,spain',
-    'atletico madrid': 'madrid,wanda,metropolitano,spain',
-    'athletic club': 'bilbao,san,mames,guggenheim,basque',
-    'athletic bilbao': 'bilbao,guggenheim,basque,country',
-    'sevilla': 'seville,ramon,sanchez,pizjuan,spain',
-    'valencia': 'valencia,arts,science,mestalla,spain',
-    'villarreal': 'villarreal,ceramica,spain,mediterranean',
-    'real betis': 'seville,betis,villamarin,andalusia',
-    'real sociedad': 'san,sebastian,real,arena,basque',
-    'celta vigo': 'vigo,balaidos,galicia,spain',
-    'real valladolid': 'valladolid,jose,zorrilla,spain',
-
-    // Premier League
-    'manchester city': 'manchester,etihad,skyline,england',
-    'manchester united': 'manchester,old,trafford,england',
-    'liverpool': 'liverpool,anfield,mersey,england',
-    'arsenal': 'london,emirates,ben,parliament',
-    'chelsea': 'london,stamford,bridge,england',
-    'tottenham': 'london,hotspur,white,hart_lane',
-    'aston villa': 'birmingham,villa,park,england',
-    'newcastle': 'newcastle,st,james,park,england',
-    'everton': 'liverpool,goodison,park,england',
-    'west ham': 'london,london,stadium,olympic',
-    'brighton': 'brighton,amex,england,seaside',
-    'leicester': 'leicester,king,power,england',
-
-    // Bundesliga
-    'bayern munich': 'munich,allianz,arena,germany,bavaria',
-    'bayern': 'munich,germany,skyline,night',
-    'borussia dortmund': 'dortmund,signal,iduna,germany',
-    'dortmund': 'dortmund,westfalen,germany,industrial',
-    'bayer leverkusen': 'leverkusen,bay,arena,germany',
-    'leverkusen': 'germany,stadium,modern,rhein',
-    'rb leipzig': 'leipzig,red,bull,arena,germany',
-    'union berlin': 'berlin,olympiastadion,germany',
-    'eintracht frankfurt': 'frankfurt,deutsch,bank,park',
-    'vfl wolfsburg': 'wolfsburg,volkswagen,arena',
-    'freiburg': 'freiburg,black,forest,germany',
-    'hoffenheim': 'sinsheim,rhein,neckar,arena',
-    'stuttgart': 'stuttgart,mercedes,benz,arena',
-    'borussia monchengladbach': 'monchengladbach,germany,stadium',
-
-    // Serie A
-    'juventus': 'turin,juventus,stadium,italy',
-    'inter milan': 'milan,san,siro,italy,cathedral',
-    'inter': 'milan,duomo,italy,night,city',
-    'ac milan': 'milan,san,siro,italy,fashion',
-    'milan': 'milan,italy,galleria,duomo',
-    'napoli': 'naples,diego,maradona,italy,vesuvius',
-    'roma': 'rome,colosseum,olympic,stadium,italy',
-    'atalanta': 'bergamo,italy,gewiss,stadium',
-    'lazio': 'rome,olympic,italy,stadium',
-    'fiorentina': 'florence,italy,arte,michele,cupola',
-    'torino': 'turin,italy,alps,mountains',
-
-    // Ligue 1
-    'psg': 'paris,eiffel,tower,parc,des,princes,france',
-    'paris saint-germain': 'paris,prince,park,france',
-    'olympique marseille': 'marseille,velodrome,old,port,france',
-    'marseille': 'marseille,france,mediterranean,calanque',
-    'olympique lyon': 'lyon,groupama,stadium,france,rhone',
-    'lyon': 'lyon,france,city,historic,night',
-    'as monaco': 'monaco,louis,stadium,principality',
-    'monaco': 'monaco,mediterranean,principality,luxury',
-    'lille': 'lille,pierre,mauroy,france',
-    'nice': 'nice,france,azur,coast,promenade,angel',
-    'rennes': 'rennes,france,brittany,roazhon,park',
-    'montpellier': 'montpellier,france,sun,mediterranean',
-    'strasbourg': 'strasbourg,france,cathedral,europe,parliament'
-};
-
-/**
- * Get DYNAMIC stadium/city background image from Unsplash
- * Returns a different atmospheric image each time using random seed
- * @param {string} teamName - The team name
- * @returns {string} - Dynamic Unsplash image URL
- */
-function getStadiumBackground(teamName, hintKeywords = '') {
-    const normalizedName = teamName.toLowerCase().trim();
-    const keywords = STADIUM_BACKGROUNDS[normalizedName];
-
-    // Deterministic seed -> browser can cache, improves performance a lot
-    const seedFromName = (name) => {
-        const s = (name || '').toString();
-        let h = 0;
-        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-        return h % 10000;
-    };
-
-    const hinted = (hintKeywords || '').toString().trim();
-    if (!keywords) {
-        // Fallback to generic stadium/city keywords
-        const fallbackKeywords = hinted ? `${hinted},stadium,football,city,night` : 'stadium,football,soccer,city,night';
-        const randomSeed = seedFromName(normalizedName);
-        // Smaller image for performance (still looks great as background)
-        return `https://source.unsplash.com/1200x675/?${encodeURIComponent(fallbackKeywords)}&sig=${randomSeed}`;
-    }
-
-    // Deterministic seed per team for caching
-    const randomSeed = seedFromName(normalizedName);
-
-    // Build Unsplash Source URL with parameters
-    // - Size: 1600x900 for HD quality
-    // - Random seed: ensures different image each time
-    // Keywords: city-specific (e.g., "paris,eiffel,tower" for PSG)
-    // Smaller image for performance (still looks great as background)
-    const query = hinted ? `${hinted},${keywords}` : keywords;
-    const unsplashUrl = `https://source.unsplash.com/1200x675/?${encodeURIComponent(query)}&sig=${randomSeed}`;
-
-    console.log(`🖼️ Dynamic background for ${teamName}: ${unsplashUrl}`);
-
-    return unsplashUrl;
-}
+// (Removed) Unsplash stadium background logic:
+// We now use 100% local/reliable club gradients + crest watermark.
 
 // ============================================
 // TACTICAL RADAR CHART GENERATOR
@@ -1210,7 +1096,7 @@ function getTeamLogoPath(teamName, league) {
     }
 
     if (!logoFilename) {
-        console.log(`⚠️ No logo found for: ${searchName} (${league})`);
+    dbg(`⚠️ No logo found for: ${searchName} (${league})`);
         return null;
     }
 
@@ -1244,9 +1130,9 @@ function getTeamLogoPath(teamName, league) {
     // Relative paths (folder/) work everywhere
     const logoPath = `${encodedFolder}/${encodedFilename}`;
 
-    console.log(`✅ Logo path for ${teamName} (${league}): ${logoPath}`);
-    console.log(`📁 Original filename: ${logoFilename}`);
-    console.log(`🔐 Encoded filename: ${encodedFilename}`);
+    dbg(`✅ Logo path for ${teamName} (${league}): ${logoPath}`);
+    dbg(`📁 Original filename: ${logoFilename}`);
+    dbg(`🔐 Encoded filename: ${encodedFilename}`);
     return logoPath;
 }
 
@@ -1585,7 +1471,7 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
         };
     }
 
-    console.log(`🔍 Analyzing ${team.name} for position ${userPosition} (squad: ${team.squad_gaps.length} players)`);
+    dbg(`🔍 Analyzing ${team.name} for position ${userPosition} (squad: ${team.squad_gaps.length} players)`);
 
     // Find all players in user's EXACT position only (no similar positions)
     const positionPlayers = team.squad_gaps.filter(p => p.position === userPosition);
@@ -1643,7 +1529,7 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
     // Mark as STAR if rating is elite (85+ for position starters)
     strongestCompetitor.is_star = strongestCompetitor.rating >= 85;
 
-    console.log(`✅ Found ${strongestCompetitor.is_star ? '⭐ STAR PLAYER' : 'competitor'}: ${strongestCompetitor.player} (${strongestCompetitor.rating} OVR, ${strongestCompetitor.age} anos)`);
+    dbg(`✅ Found ${strongestCompetitor.is_star ? '⭐ STAR PLAYER' : 'competitor'}: ${strongestCompetitor.player} (${strongestCompetitor.rating} OVR, ${strongestCompetitor.age} anos)`);
 
     // Get manager info for professional analysis
     const teamName = team.name.toLowerCase().trim();
@@ -1691,13 +1577,13 @@ function analyzeRealCompetition(playerRating, userPosition, team) {
 function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
     const gameModeType = gameMode || 'star'; // 'rtg' or 'star'
 
-    console.log(`🔍 Filter: Rating=${playerRating}, Mode=${gameModeType}, Total Teams=${teams.length}`);
+    dbg(`🔍 Filter: Rating=${playerRating}, Mode=${gameModeType}, Total Teams=${teams.length}`);
 
     // RTG MODE: Small teams to grow (SUPER RELAXED - ALWAYS returns teams)
     if (gameModeType === 'rtg') {
         // NO FILTERS AT ALL - just sort by rating ascending (worst teams first for RTG)
         const sortedTeams = [...teams].sort((a, b) => a.overall_level - b.overall_level);
-        console.log(`🌟 RTG Mode: Returning ALL ${Math.min(10, sortedTeams.length)} teams (worst to best)`);
+        dbg(`🌟 RTG Mode: Returning ALL ${Math.min(10, sortedTeams.length)} teams (worst to best)`);
         return sortedTeams.slice(0, 10);
     }
 
@@ -1732,7 +1618,7 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
                 result.push(...allOtherTeams.slice(0, 3 - result.length));
             }
 
-            console.log(`👑 Super Elite Mode: ${result.length} teams (Elite: ${superEliteTeams.length})`);
+            dbg(`👑 Super Elite Mode: ${result.length} teams (Elite: ${superEliteTeams.length})`);
             return result.slice(0, 10);
         }
         // ÉLITE (86-87): High-rated teams
@@ -1749,7 +1635,7 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
                 result.push(...allOtherTeams.slice(0, 3 - result.length));
             }
 
-            console.log(`⭐ Elite Mode: ${result.length} teams (Elite: ${eliteTeams.length})`);
+            dbg(`⭐ Elite Mode: ${result.length} teams (Elite: ${eliteTeams.length})`);
             return result.slice(0, 10);
         }
     }
@@ -1759,7 +1645,7 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
     const sortedTeams = [...teams].sort((a, b) => b.overall_level - a.overall_level);
     const result = sortedTeams.slice(0, Math.max(3, Math.min(10, sortedTeams.length)));
 
-    console.log(`✅ Regular Mode: Returning ${result.length} teams (GUARANTEED minimum 3)`);
+    dbg(`✅ Regular Mode: Returning ${result.length} teams (GUARANTEED minimum 3)`);
     return result;
 }
 
@@ -1856,7 +1742,7 @@ function calculateTeamAverageStats(squadGaps) {
         return { pac: 70, sho: 70, pas: 70, dri: 70, def: 70, phy: 70, ovr: 75 };
     }
 
-    console.log(`📊 Calculating team average for ${squadGaps.length} players`);
+    dbg(`📊 Calculating team average for ${squadGaps.length} players`);
 
     const sum = squadGaps.reduce((acc, player) => {
         // Try to get individual stats, fallback to rating
@@ -1889,7 +1775,7 @@ function calculateTeamAverageStats(squadGaps) {
         ovr: Math.round(sum.ovr / count)
     };
 
-    console.log(`✅ Team average: PAC=${avg.pac}, SHO=${avg.sho}, PAS=${avg.pas}, DRI=${avg.dri}, DEF=${avg.def}, PHY=${avg.phy}, OVR=${avg.ovr}`);
+    dbg(`✅ Team average: PAC=${avg.pac}, SHO=${avg.sho}, PAS=${avg.pas}, DRI=${avg.dri}, DEF=${avg.def}, PHY=${avg.phy}, OVR=${avg.ovr}`);
 
     return avg;
 }
@@ -1903,7 +1789,7 @@ async function analyzeResults() {
 
     // Ensure database is loaded
     if (!fc26Database) {
-        console.log('⏳ Waiting for database...');
+        dbg('⏳ Waiting for database...');
         await loadDatabase();
     }
 
@@ -1917,12 +1803,12 @@ async function analyzeResults() {
     }
 
     // Reduce noisy logs for performance
-    console.log(`✅ Database loaded: ${fc26Database.teams.length} teams available`);
+    dbg(`✅ Database loaded: ${fc26Database.teams.length} teams available`);
 
     const playerRating = parseInt(document.getElementById('playerRating').value) || 80;
     const playerAge = answers.age || 21;
 
-    console.log(`👤 Player: Rating=${playerRating}, Age=${playerAge}, League=${answers.league?.[0] || ''}, Mode=${answers.game_mode}`);
+    dbg(`👤 Player: Rating=${playerRating}, Age=${playerAge}, League=${answers.league?.[0] || ''}, Mode=${answers.game_mode}`);
 
     const userStyle = {
         possession: answers.possession,
@@ -1941,15 +1827,15 @@ async function analyzeResults() {
     }
     const selectedLeagueId = selectedLeagues[0];
 
-    console.log(`🏆 Selected League: ${selectedLeagueId}`);
+    dbg(`🏆 Selected League: ${selectedLeagueId}`);
 
     // Liga + SOLO equipos con logo SVG local (sin placeholders) => no mezcla de ligas
     const leagueTeamsAll = fc26Database.teams
         .filter(team => getLeagueId(team.league) === selectedLeagueId);
     const leagueTeamsWithLogos = leagueTeamsAll.filter(teamHasLocalLogo);
 
-    console.log(`🏟️ Teams in selected league: ${leagueTeamsAll.length}`);
-    console.log(`🖼️ Teams with LOCAL SVG logos in selected league: ${leagueTeamsWithLogos.length}`);
+    dbg(`🏟️ Teams in selected league: ${leagueTeamsAll.length}`);
+    dbg(`🖼️ Teams with LOCAL SVG logos in selected league: ${leagueTeamsWithLogos.length}`);
 
     if (leagueTeamsWithLogos.length === 0) {
         alert('No se encontraron equipos con logo local (SVG) en la liga seleccionada. Revisa el mapeo de nombres o los logos en el repo.');
@@ -2004,7 +1890,7 @@ async function analyzeResults() {
         return [...leagueTeamsWithLogos].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0)).slice(0, 14);
     })();
 
-    console.log(`🔍 Team pool after prestige filter: ${teamPool.length}`);
+    dbg(`🔍 Team pool after prestige filter: ${teamPool.length}`);
 
     // Analyze directly (pool already league-scoped + prestige-filtered)
     let teamAnalysis = teamPool
@@ -2094,6 +1980,13 @@ async function analyzeResults() {
                 compatibilityPercent: compatibilityCore,
                 attributeFit: a,
                 attributeWorst: attr.worst,
+                scoreBreakdown: {
+                    tactical: t,
+                    attributes: a,
+                    formation: f,
+                    opportunity: opportunityScore,
+                    formationBonus: formationBonus
+                },
                 opportunityScore: opportunityScore,
                 hasEliteCompetition: hasEliteCompetition,
                 role: role,
@@ -2120,8 +2013,8 @@ async function analyzeResults() {
     // IRON RULE: NO EXPANSION - STRICT LEAGUE FILTER
     // User's league selection is sacred. Only show teams from selected leagues.
     // If less than 3 teams found, show what we have (1 or 2 teams) rather than violating user preference.
-    console.log(`✅ STRICT LEAGUE FILTER: Only teams from selected leagues (${selectedLeagues.join(', ')})`);
-    console.log(`📊 Final team count: ${teamAnalysis.length} (user's selected leagues only)`);
+    dbg(`✅ STRICT LEAGUE FILTER: Only teams from selected leagues (${selectedLeagues.join(', ')})`);
+    dbg(`📊 Final team count: ${teamAnalysis.length} (user's selected leagues only)`);
 
     // IMPORTANT: Do NOT expand to other leagues even if < 3 teams
     // User's choice is more important than having exactly 3 results
@@ -2133,18 +2026,77 @@ async function analyzeResults() {
         console.warn(`⚠️ Only ${teamAnalysis.length} teams found in selected leagues: ${selectedLeagues.join(', ')}`);
         console.warn(`⚠️ IRON RULE: Showing ${teamAnalysis.length} team(s) instead of violating user's league preference`);
     } else {
-        console.log(`✅ STRICT FILTER: ${teamAnalysis.length} teams from user's selected leagues ONLY`);
-        console.log(`✅ Selected leagues: ${selectedLeagues.join(', ')}`);
+        dbg(`✅ STRICT FILTER: ${teamAnalysis.length} teams from user's selected leagues ONLY`);
+        dbg(`✅ Selected leagues: ${selectedLeagues.join(', ')}`);
     }
 
-    // CRITICAL: ALWAYS show top 3 results, NO MATTER THE SCORE
-    // This ensures users always get recommendations
-    const top3 = teamAnalysis.slice(0, Math.min(3, teamAnalysis.length));
-    console.log(`✅ Top ${top3.length} results selected`);
+    // CRITICAL: ALWAYS show up to 3 results, NO MATTER THE SCORE
+    // BUT: diversify when scores are close so small attribute changes can change the Top 3.
+    function teamSignature(team) {
+        const tactics = TEAM_TACTICS_DB[(team?.name || '').toLowerCase().trim()] || team?.style || {};
+        const v = [
+            (tactics.wing_play ?? 50),
+            (tactics.possession ?? 50),
+            (tactics.counter_attack ?? 50),
+            (tactics.aerial_balls ?? 50),
+            (tactics.high_press ?? 50)
+        ].map(n => Math.max(0, Math.min(100, Number(n) || 50)) / 100);
+        return v;
+    }
+
+    function cosineSim(a, b) {
+        let dot = 0, na = 0, nb = 0;
+        for (let i = 0; i < a.length; i++) {
+            dot += a[i] * b[i];
+            na += a[i] * a[i];
+            nb += b[i] * b[i];
+        }
+        const denom = Math.sqrt(na) * Math.sqrt(nb);
+        return denom ? dot / denom : 0;
+    }
+
+    function pickDiverseTop3(sorted) {
+        const pool = sorted.slice(0, Math.min(14, sorted.length)); // enough candidates
+        const picked = [];
+        const sigCache = new Map();
+        const sigOf = (r) => {
+            const k = r.team?.name || '';
+            if (!sigCache.has(k)) sigCache.set(k, teamSignature(r.team));
+            return sigCache.get(k);
+        };
+
+        // Diversity weight: only matters when scores are close
+        const diversityWeight = 10; // max penalty points
+
+        while (picked.length < 3 && pool.length) {
+            let bestIdx = 0;
+            let bestScore = -Infinity;
+            for (let i = 0; i < pool.length; i++) {
+                const r = pool[i];
+                let penalty = 0;
+                if (picked.length > 0) {
+                    const s1 = sigOf(r);
+                    const maxSim = Math.max(...picked.map(p => cosineSim(s1, sigOf(p))));
+                    // If it looks almost identical tactically, penalize
+                    penalty = maxSim * diversityWeight;
+                }
+                const adjusted = r.finalScore - penalty;
+                if (adjusted > bestScore) {
+                    bestScore = adjusted;
+                    bestIdx = i;
+                }
+            }
+            picked.push(pool.splice(bestIdx, 1)[0]);
+        }
+        return picked;
+    }
+
+    const top3 = pickDiverseTop3(teamAnalysis);
+    dbg(`✅ Top ${top3.length} results selected (diversified)`);
 
     // Check if results have low compatibility for fallback messaging
     const hasLowCompatibility = top3.length > 0 && top3[0].finalScore < 50;
-    console.log(hasLowCompatibility ? '⚠️ Low compatibility scores - using fallback messaging' : '✅ Good compatibility scores');
+    dbg(hasLowCompatibility ? '⚠️ Low compatibility scores - using fallback messaging' : '✅ Good compatibility scores');
 
     // Display results with compatibility warning if needed
     displayResults(top3, playerRating, hasLowCompatibility);
@@ -2179,7 +2131,7 @@ function getLeagueId(leagueName) {
         else result = '';
     }
 
-    console.log(`🏆 getLeagueId: "${name}" -> "${result}"`);
+    dbg(`🏆 getLeagueId: "${name}" -> "${result}"`);
     return result;
 }
 
