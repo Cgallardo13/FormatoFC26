@@ -13,6 +13,9 @@
     --border-glow: rgba(212, 175, 55, 0.4);
     --text-primary: #ffffff;
     --text-secondary: #a0a5b9;
+    --panel-bg: rgba(20, 25, 45, 0.78);
+    --panel-border: rgba(255, 255, 255, 0.10);
+    --panel-border-strong: rgba(255, 255, 255, 0.16);
 }
 
 body {
@@ -31,9 +34,19 @@ body {
     overflow-x: hidden;
 }
 
+/* Performance / accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
 /* ===== APP CONTAINER ===== */
 .app-container {
-    max-width: 480px;
+    width: 100%;
+    max-width: 1800px;
     margin: 0 auto;
     min-height: 100vh;
     background: linear-gradient(180deg, rgba(10, 14, 39, 0.98) 0%, rgba(15, 20, 40, 0.98) 100%);
@@ -222,6 +235,12 @@ body {
     z-index: 1;
 }
 
+/* Desktop: keep forms nicely centered, but allow results to go full-width */
+.screen.active:not(#resultsScreen):not(#loadingScreen) {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
 /* ===== SCREENS ===== */
 .screen {
     display: none;
@@ -230,6 +249,12 @@ body {
 
 .screen.active {
     display: block;
+}
+
+/* Results screen needs flex layout for proper centering */
+#resultsScreen.active {
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes fadeIn {
@@ -262,6 +287,152 @@ body {
     padding: 10px;
 }
 
+.welcome-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-top: 8px;
+}
+
+.welcome-left {
+    text-align: center;
+}
+
+.welcome-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 18px 0 22px 0;
+}
+
+.stat-chip {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 12px 10px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.stat-number {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    color: var(--primary-gold);
+    text-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
+}
+
+.stat-label {
+    margin-top: 2px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.welcome-right {
+    display: none; /* enabled on desktop */
+}
+
+.welcome-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 18px;
+    padding: 18px;
+    text-align: left;
+    backdrop-filter: blur(14px);
+    box-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.10) 0%, transparent 55%),
+                radial-gradient(circle at 80% 60%, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.panel-title {
+    position: relative;
+    z-index: 1;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 1.05rem;
+    margin-bottom: 12px;
+    color: #fff;
+}
+
+.panel-steps {
+    position: relative;
+    z-index: 1;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.panel-steps li {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.step-icon {
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+
+.panel-divider {
+    position: relative;
+    z-index: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 14px 0;
+}
+
+.panel-badges {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.badge-pill {
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--panel-border-strong);
+    color: #e9eeff;
+}
+
+.welcome-footnote {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.65);
+    letter-spacing: 0.3px;
+}
+
 .welcome-content h2 {
     font-family: 'Rajdhani', sans-serif;
     font-size: 2.2rem;
@@ -277,6 +448,36 @@ body {
     line-height: 1.7;
     margin-bottom: 30px;
     font-size: 0.95rem;
+}
+
+@media (min-width: 900px) {
+    .screen.active:not(#resultsScreen):not(#loadingScreen) {
+        max-width: 1100px;
+    }
+
+    .welcome-hero {
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 28px;
+        align-items: center;
+    }
+
+    .welcome-left {
+        text-align: left;
+    }
+
+    .welcome-content p {
+        margin-bottom: 22px;
+        font-size: 1rem;
+    }
+
+    .welcome-right {
+        display: block;
+    }
+
+    .btn {
+        width: auto;
+        min-width: 320px;
+    }
 }
 
 /* ===== INPUT GROUP ===== */
@@ -612,8 +813,10 @@ input[type="range"]::-moz-range-thumb:hover {
 .league-flag-full {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    filter: brightness(1.1);
+    /* Flags should never be cropped */
+    object-fit: contain;
+    padding: 10px;
+    filter: brightness(1.05) contrast(1.05);
 }
 
 .league-label {
@@ -953,6 +1156,78 @@ input[type="range"]::-moz-range-thumb:hover {
 /* ===== RESULT CARDS ===== */
 .results-container {
     margin-bottom: 30px;
+    width: 100%;
+    max-width: 100vw;
+}
+
+/* GLOBAL ATMOSPHERIC BACKGROUND - LIGHTER */
+body {
+    background:
+        radial-gradient(
+            ellipse 130% 120% at 50% 45%,
+            rgba(50, 55, 75, 0.85) 0%,
+            rgba(30, 35, 55, 0.9) 40%,
+            rgba(15, 18, 40, 1) 100%
+        ) !important;
+    position: relative !important;
+    min-height: 100vh !important;
+}
+
+body::before {
+    content: '';
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    /* Lighter vignette */
+    background: radial-gradient(
+        ellipse 150% 150% at 50% 50%,
+        transparent 0%,
+        rgba(0, 0, 0, 0.2) 70%,
+        rgba(0, 0, 0, 0.4) 100%
+    ) !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+}
+
+/* DESKTOP: Master Centering and Symmetry */
+@media (min-width: 769px) {
+    #resultsScreen.active {
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        padding: 30px 40px !important;
+        min-height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .results-header {
+        text-align: center !important;
+        width: 100% !important;
+        max-width: 1600px !important;
+        margin: 0 auto 30px auto !important;
+    }
+
+    .poster-header {
+        text-align: center !important;
+        margin-bottom: 30px !important;
+    }
+
+    /* CRITICAL: results container must be block/column.
+       Flex here breaks poster-cards layout (header becomes a side panel). */
+    .results-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+
+    .poster-header {
+        max-width: 1200px;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
 }
 
 .result-card {
@@ -2450,40 +2725,48 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .poster-title {
-    font-family: 'Impact', 'Arial Black', sans-serif;
-    font-size: 1.8rem;
-    color: #ffc107;
+    font-family: 'Rajdhani', 'Impact', 'Arial Black', sans-serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: #ffe44d; /* Bright gold */
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin: 0 0 8px 0;
-    text-shadow: 0 4px 10px rgba(255, 193, 7, 0.5);
+    letter-spacing: 4px;
+    margin: 0 0 10px 0;
+    /* INTENSE golden glow */
+    text-shadow:
+        0 0 40px rgba(255, 228, 77, 1),
+        0 0 80px rgba(255, 228, 77, 0.6),
+        0 4px 12px rgba(0, 0, 0, 0.9);
     line-height: 1.2;
 }
 
 .poster-subtitle {
-    font-family: 'Georgia', serif;
-    font-size: 0.95rem;
-    color: #a0a5b9;
+    font-family: 'Montserrat', 'Georgia', serif;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #f0f5ff; /* Much brighter */
     font-style: italic;
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.5;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 /* ============================================
-   POSTER CARDS CONTAINER - MOBILE FIRST CAROUSEL
+   POSTER CARDS CONTAINER - MOBILE CAROUSEL WITH SNAP
    ============================================ */
 .poster-cards-container {
-    /* MOBILE FIRST: Horizontal carousel with FLEX (not grid) */
-    display: flex;
-    flex-direction: row;
-    gap: 0;
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
+    /* MOBILE FIRST: Horizontal carousel */
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 15px !important; /* Elegant spacing between cards */
+    width: 100vw !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important; /* Magnetic snap to center */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    padding: 10px;
+    padding: 0 5vw !important; /* Side padding for first/last card visibility */
+    margin: 0 !important;
     /* Hide scrollbar */
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -2494,24 +2777,202 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ============================================
-   INDIVIDUAL POSTER CARD
+   INDIVIDUAL POSTER CARD - PREMIUM GLASSMORPHISM
    ============================================ */
 .poster-card {
     position: relative;
-    /* Mobile: 90vw width, centered, doesn't shrink */
-    flex: 0 0 90vw;
-    width: 90vw;
-    max-width: 90vw;
-    height: 80vh;
-    min-height: 650px;
-    max-height: 85vh;
-    border-radius: 20px;
+    /* Mobile: 90vw width for carousel */
+    flex: 0 0 90vw !important;
+    width: 90vw !important;
+    max-width: 90vw !important;
+    height: 85vh !important;
+    min-height: 650px !important;
+    border-radius: 24px !important;
     overflow: hidden;
     scroll-snap-align: center;
+
+    /* DRAMATIC GLASSMORPHISM - Much lighter and visible */
+    background: rgba(50, 55, 75, 0.5) !important;
+    backdrop-filter: blur(25px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
+
+    /* VISIBLE BORDERS */
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    border-top: 2px solid rgba(255, 255, 255, 0.6) !important;
+    border-left: 2px solid rgba(255, 255, 255, 0.5) !important;
+
+    /* STRONG DYNAMIC TEAM GLOW - WAY MORE VISIBLE */
     box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.7),
-        inset 0 0 0 2px var(--team-accent-color, #667eea);
-    margin: 0 auto; /* Center the card */
+        /* Primary glow (slightly reduced for perf) */
+        0 0 24px var(--team-accent-color, rgba(102, 126, 234, 0.8)),
+        0 0 48px var(--team-accent-color-glow, rgba(102, 126, 234, 0.5)),
+        0 0 90px var(--team-accent-color-glow, rgba(102, 126, 234, 0.28)),
+        /* Shadow for depth */
+        0 18px 36px rgba(0, 0, 0, 0.5),
+        /* Inner highlight */
+        inset 0 2px 4px rgba(255, 255, 255, 0.25),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.08) !important;
+
+    margin: 0 !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    animation: clubGlowPulse 3.6s ease-in-out infinite;
+}
+
+@keyframes clubGlowPulse {
+    0%, 100% {
+        box-shadow:
+            0 0 22px var(--team-accent-color, rgba(102, 126, 234, 0.75)),
+            0 0 46px var(--team-accent-color-glow, rgba(102, 126, 234, 0.45)),
+            0 0 86px var(--team-accent-color-glow, rgba(102, 126, 234, 0.25)),
+            0 18px 36px rgba(0, 0, 0, 0.5),
+            inset 0 2px 4px rgba(255, 255, 255, 0.25),
+            inset 0 -2px 4px rgba(0, 0, 0, 0.08) !important;
+    }
+    50% {
+        box-shadow:
+            0 0 28px var(--team-accent-color, rgba(102, 126, 234, 0.90)),
+            0 0 60px var(--team-accent-color-glow, rgba(102, 126, 234, 0.55)),
+            0 0 110px var(--team-accent-color-glow, rgba(102, 126, 234, 0.30)),
+            0 18px 36px rgba(0, 0, 0, 0.55),
+            inset 0 2px 4px rgba(255, 255, 255, 0.28),
+            inset 0 -2px 4px rgba(0, 0, 0, 0.08) !important;
+    }
+}
+
+.poster-market-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 10px 0 4px 0;
+}
+
+.poster-fit-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 8px 0 4px 0;
+}
+
+.fit-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.22);
+    color: rgba(255,255,255,0.92);
+}
+
+.fit-pill strong {
+    color: #fff;
+    margin-left: 6px;
+}
+
+.fit-pill.subtle {
+    font-weight: 800;
+    opacity: 0.86;
+}
+
+/* Attribute presets (pro UX) */
+.attr-presets {
+    margin-bottom: 18px;
+    padding: 14px 14px;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.attr-presets-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.90);
+    margin-bottom: 10px;
+}
+
+.attr-presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.preset-btn {
+    appearance: none;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(0, 0, 0, 0.22);
+    color: rgba(255,255,255,0.92);
+    padding: 10px 12px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.preset-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(212, 175, 55, 0.55);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35), 0 0 26px rgba(212,175,55,0.20);
+}
+
+.attr-presets-note {
+    margin-top: 10px;
+    color: rgba(255,255,255,0.70);
+    font-size: 0.85rem;
+}
+
+.market-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+}
+
+.market-pill.role {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.market-pill.value::before {
+    content: "💰 ";
+}
+
+/* Mobile perf: blur is expensive */
+@media (max-width: 768px) {
+    .poster-card {
+        backdrop-filter: blur(16px) saturate(140%) !important;
+        -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+        animation: none !important;
+    }
+}
+/* Hover effect - card lifts and glows BRIGHTER */
+.poster-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow:
+        0 0 50px var(--team-accent-color, rgba(102, 126, 234, 1)),
+        0 0 100px var(--team-accent-color-glow, rgba(102, 126, 234, 0.7)),
+        0 0 180px var(--team-accent-color-glow, rgba(102, 126, 234, 0.4)),
+        0 30px 60px rgba(0, 0, 0, 0.6),
+        inset 0 2px 6px rgba(255, 255, 255, 0.4) !important;
 }
 
 /* ============================================
@@ -2519,29 +2980,230 @@ input[type="range"]::-moz-range-thumb:hover {
    Premium Gradient + Crest Texture
    ============================================ */
 
-/* Primary Background - Atmospheric Gradient */
+/* Primary Background - MUCH LIGHTER and VIBRANT */
 .poster-background {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(0, 0, 0, 0.85) 0%,
-            rgba(0, 0, 0, 0.75) 50%,
-            var(--team-accent-color-dark, rgba(30, 30, 40, 0.8)) 100%
+    /* Club-colored gradients (100% local / reliable) */
+    background-image:
+        radial-gradient(
+            ellipse 140% 120% at 12% 18%,
+            var(--club-grad-a, rgba(102, 126, 234, 0.58)) 0%,
+            rgba(0, 0, 0, 0.00) 62%
         ),
         radial-gradient(
-            ellipse at top,
-            var(--team-accent-color-faded, rgba(102, 126, 234, 0.15)) 0%,
-            transparent 60%
+            ellipse 140% 120% at 85% 40%,
+            var(--club-grad-b, rgba(118, 75, 162, 0.48)) 0%,
+            rgba(0, 0, 0, 0.00) 64%
+        ),
+        linear-gradient(
+            165deg,
+            rgba(255, 255, 255, 0.04) 0%,
+            var(--club-deep, rgba(10, 12, 24, 0.80)) 100%
         );
+    background-size: cover, cover, cover;
+    background-position: center, center, center;
+    background-repeat: no-repeat, no-repeat, no-repeat;
     z-index: 1;
 }
 
-/* Giant Crest Watermark - Textured Background */
+.poster-background::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /* Giant centered crest watermark (dashboard style) */
+    background-image: var(--crest-bg, none);
+    background-repeat: no-repeat;
+    background-position: 50% 42%;
+    background-size: auto 70%;
+    opacity: var(--watermark-opacity, 0.08); /* 5%–10% */
+    filter: var(--watermark-filter, grayscale(100%) contrast(1.25) brightness(1.55) blur(1.2px));
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+}
+
+/* If masks are supported, render a truly "modern" tinted crest using the crest as a mask */
+@supports (-webkit-mask-image: url("")) {
+    .poster-background::before {
+        background:
+            radial-gradient(
+                circle at 50% 42%,
+                rgba(255,255,255,0.10) 0%,
+                var(--club-grad-a, rgba(102, 126, 234, 0.58)) 35%,
+                var(--club-grad-b, rgba(118, 75, 162, 0.48)) 72%,
+                rgba(255,255,255,0.08) 100%
+            );
+        -webkit-mask-image: var(--crest-bg, none);
+        mask-image: var(--crest-bg, none);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: 50% 42%;
+        mask-position: 50% 42%;
+        -webkit-mask-size: auto 70%;
+        mask-size: auto 70%;
+        mix-blend-mode: screen;
+        filter: blur(1.2px) contrast(1.05) brightness(1.08);
+    }
+}
+
+/* Rank bar (full-width, premium) */
+.poster-rank-bar {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    right: 18px;
+    height: 52px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    z-index: 6;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.55),
+        0 0 36px var(--team-accent-color-glow, rgba(102, 126, 234, 0.35));
+}
+
+.poster-rank-bar .rank-left {
+    font-family: 'Rajdhani', 'Impact', 'Arial Black', sans-serif;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.poster-rank-bar .rank-right {
+    font-family: 'Rajdhani', 'Impact', 'Arial Black', sans-serif;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 1rem;
+    padding: 8px 14px;
+    border-radius: 999px;
+    color: #0d1022;
+}
+
+.poster-rank-bar.rank-1 .rank-right {
+    background: linear-gradient(135deg, #ffd666, #fff2b8, #ffd666);
+    box-shadow: 0 0 24px rgba(255, 214, 102, 0.35);
+}
+.poster-rank-bar.rank-2 .rank-right {
+    background: linear-gradient(135deg, #dfe6ef, #ffffff, #dfe6ef);
+    box-shadow: 0 0 20px rgba(223, 230, 239, 0.25);
+}
+.poster-rank-bar.rank-3 .rank-right {
+    background: linear-gradient(135deg, #d8a15a, #f3d2a5, #d8a15a);
+    box-shadow: 0 0 20px rgba(216, 161, 90, 0.25);
+}
+
+.poster-background::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /* Overlays for legibility + club glow */
+    background-image:
+        /* radial glow behind crest */
+        radial-gradient(
+            circle at 50% 42%,
+            var(--team-accent-color-faded, rgba(102, 126, 234, 0.20)) 0%,
+            rgba(0,0,0,0) 62%
+        ),
+        /* subtle texture lines for a modern premium feel */
+        repeating-linear-gradient(
+            115deg,
+            rgba(255, 255, 255, 0.040) 0px,
+            rgba(255, 255, 255, 0.040) 1px,
+            rgba(255, 255, 255, 0.00) 14px,
+            rgba(255, 255, 255, 0.00) 22px
+        ),
+        /* vignette for legibility */
+        radial-gradient(
+            ellipse 120% 110% at 50% 8%,
+            rgba(0, 0, 0, 0.10) 0%,
+            rgba(0, 0, 0, 0.34) 78%,
+            rgba(0, 0, 0, 0.44) 100%
+        );
+    background-size: cover, cover, cover;
+    background-position: center, center, center;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    pointer-events: none;
+}
+
+/* Make the top bar feel less "black block" and more club-themed */
+.poster-rank-bar {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.18) 0%,
+            rgba(0, 0, 0, 0.10) 40%,
+            rgba(0, 0, 0, 0.18) 100%
+        ),
+        radial-gradient(
+            ellipse 120% 120% at 10% 50%,
+            var(--club-grad-a, rgba(102, 126, 234, 0.34)) 0%,
+            rgba(0,0,0,0) 58%
+        ),
+        radial-gradient(
+            ellipse 120% 120% at 90% 50%,
+            var(--club-grad-b, rgba(118, 75, 162, 0.28)) 0%,
+            rgba(0,0,0,0) 58%
+        );
+}
+
+/* Venue meta */
+.poster-stadium-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.poster-stadium {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.poster-stadium::before {
+    content: "🏟️ ";
+}
+
+/* World-class golden border */
+.poster-card.world-class {
+    border: 2px solid rgba(255, 214, 102, 0.9) !important;
+    box-shadow:
+        0 0 28px rgba(255, 214, 102, 0.55),
+        0 0 70px rgba(255, 214, 102, 0.30),
+        0 18px 36px rgba(0, 0, 0, 0.55),
+        inset 0 2px 6px rgba(255, 255, 255, 0.22) !important;
+}
+
+.poster-card.world-class .poster-neon-border {
+    border-color: rgba(255, 214, 102, 0.95) !important;
+    box-shadow:
+        inset 0 0 36px rgba(255, 214, 102, 0.30),
+        0 0 34px rgba(255, 214, 102, 0.35) !important;
+}
+
+.poster-card.world-class .poster-team-name,
+.poster-card.world-class .poster-score-number {
+    text-shadow:
+        0 0 26px rgba(255, 214, 102, 0.55),
+        0 0 50px rgba(255, 214, 102, 0.22),
+        0 4px 10px rgba(0, 0, 0, 0.95) !important;
+}
+
+/* Giant Crest Watermark - Brand Texture */
 .poster-crest-watermark {
     position: absolute;
     top: 50%;
@@ -2549,12 +3211,19 @@ input[type="range"]::-moz-range-thumb:hover {
     transform: translate(-50%, -50%);
     width: 200%;
     height: 200%;
-    opacity: 0.08; /* Increased from 0.05 for better visibility without interfering text */
+    opacity: 0.035; /* 3.5% - Elegant brand texture */
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2;
+    filter: grayscale(100%) brightness(0.15) blur(1px); /* Extra dim and slight blur */
+}
+
+.crest-watermark {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .crest-watermark {
@@ -2579,9 +3248,13 @@ input[type="range"]::-moz-range-thumb:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    background: rgba(0, 0, 0, 0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        inset 0 -22px 44px rgba(0,0,0,0.35),
+        inset 0 22px 44px rgba(0,0,0,0.16);
     z-index: 3;
 }
 
@@ -2620,7 +3293,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ============================================
-   POSTER CONTENT - HIGH LEGIBILITY
+   POSTER CONTENT - TACTICAL PADDING
    ============================================ */
 .poster-content {
     position: relative;
@@ -2628,8 +3301,9 @@ input[type="range"]::-moz-range-thumb:hover {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 20px 18px;
-    gap: 15px;
+    /* Make space for the rank bar so nothing feels cramped */
+    padding: 92px 24px 28px 24px;
+    gap: 20px;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -2660,18 +3334,23 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ============================================
-   SECTION TITLES
+   SECTION TITLES - BRIGHT and Visible
    ============================================ */
 .poster-section-title {
-    font-family: 'Impact', 'Arial Black', sans-serif;
-    font-size: 1rem;
-    color: var(--team-accent-color, #ffc107);
+    font-family: 'Rajdhani', 'Impact', 'Arial Black', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--team-accent-color, #ffe44d);
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     border-bottom: 2px solid var(--team-accent-color, #667eea);
-    padding-bottom: 8px;
-    margin-bottom: 5px;
-    text-shadow: 0 2px 8px var(--team-accent-color-glow, rgba(102, 126, 234, 0.5));
+    padding-bottom: 10px;
+    margin-bottom: 8px;
+    /* STRONG Glowing text effect */
+    text-shadow:
+        0 0 20px var(--team-accent-color, rgba(255, 228, 77, 1)),
+        0 0 40px var(--team-accent-color-glow, rgba(255, 228, 77, 0.6)),
+        0 2px 6px rgba(0, 0, 0, 0.9);
 }
 
 /* ============================================
@@ -2684,16 +3363,51 @@ input[type="range"]::-moz-range-thumb:hover {
     padding: 10px 0;
 }
 
-.poster-medal {
-    font-size: 3rem;
-    margin-bottom: 10px;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
-    animation: medalFloat 3s ease-in-out infinite;
+.poster-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+        0 10px 26px rgba(0, 0, 0, 0.45),
+        0 0 26px var(--team-accent-color-glow, rgba(102, 126, 234, 0.35));
+    animation: rankFloat 3.8s ease-in-out infinite;
 }
 
-@keyframes medalFloat {
+.poster-rank-badge .rank-kicker {
+    font-family: 'Rajdhani', 'Impact', 'Arial Black', sans-serif;
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.poster-rank-badge .rank-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    font-family: 'Rajdhani', 'Impact', 'Arial Black', sans-serif;
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: #0d1022;
+    background: linear-gradient(135deg, #ffd666, #fff2b8, #ffd666);
+    box-shadow:
+        0 0 18px rgba(255, 214, 102, 0.35),
+        inset 0 2px 3px rgba(255, 255, 255, 0.35);
+}
+
+@keyframes rankFloat {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    50% { transform: translateY(-4px); }
 }
 
 .poster-team-logo {
@@ -2711,13 +3425,18 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .poster-team-name {
-    font-family: 'Impact', 'Arial Black', sans-serif;
-    font-size: 1.8rem;
-    color: #fff;
+    font-family: 'Rajdhani', 'Impact', 'Arial Black', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin: 0 0 12px 0;
-    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.9);
+    letter-spacing: 3px;
+    margin: 0 0 15px 0;
+    /* BRIGHT text shadow with STRONG team color */
+    text-shadow:
+        0 0 30px var(--team-accent-color, rgba(102, 126, 234, 1)),
+        0 0 60px var(--team-accent-color-glow, rgba(102, 126, 234, 0.6)),
+        0 4px 10px rgba(0, 0, 0, 0.95);
     line-height: 1.2;
 }
 
@@ -2747,12 +3466,16 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .poster-score-number {
-    font-family: 'Impact', 'Arial Black', sans-serif;
-    font-size: 3.5rem;
-    color: var(--team-accent-color, #ffc107);
+    font-family: 'Rajdhani', 'Impact', 'Arial Black', sans-serif;
+    font-size: 3.8rem;
+    font-weight: 900;
+    color: var(--team-accent-color, #ffe44d);
+    /* INTENSE Glowing text effect */
     text-shadow:
-        0 0 30px var(--team-accent-color-glow, rgba(255, 193, 7, 0.6)),
-        0 4px 10px rgba(0, 0, 0, 0.8);
+        0 0 50px var(--team-accent-color, rgba(255, 228, 77, 1)),
+        0 0 100px var(--team-accent-color-glow, rgba(255, 228, 77, 0.6)),
+        0 0 150px var(--team-accent-color-glow, rgba(255, 228, 77, 0.3)),
+        0 6px 15px rgba(0, 0, 0, 0.95);
     line-height: 1;
 }
 
@@ -3161,42 +3884,72 @@ input[type="range"]::-moz-range-thumb:hover {
 /* ============================================
    DESKTOP LAYOUT (>768px - Laptops/Desktops)
    ============================================ */
-@media (min-width: 768px) {
+@media (min-width: 769px) {
     /* Desktop Header */
     .poster-title {
-        font-size: 2.8rem;
-        letter-spacing: 3px;
+        font-size: 3.2rem;
+        letter-spacing: 5px;
+        color: #ffe44d; /* Brighter */
+        text-shadow:
+            0 0 50px rgba(255, 228, 77, 1),
+            0 0 100px rgba(255, 228, 77, 0.6),
+            0 6px 16px rgba(0, 0, 0, 0.9);
     }
 
     .poster-subtitle {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
+        color: #f0f5ff; /* Brighter */
     }
 
-    /* Desktop Container - 3 Column Grid - FULL WIDTH */
+    /* Desktop Container - 3 Column Grid - CENTERED MASTERPIECE */
     .poster-cards-container {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        width: 100vw;
-        max-width: 100vw;
-        margin-left: calc(-50vw + 50%);
-        margin-right: calc(-50vw + 50%);
-        padding: 20px calc(50vw - 50% + 20px);
-        overflow: visible;
-        scroll-snap-type: none;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        width: 100% !important;
+        max-width: 1800px !important;
+        margin: 0 auto !important;
+        gap: 30px !important; /* Elegant spacing between cards */
+        padding: 10px !important;
+        overflow: visible !important;
     }
 
-    /* Desktop Card - Full height */
+    /* Desktop Card - BRIGHT EFFECTS */
     .poster-card {
-        flex: none; /* Override mobile flex */
-        width: 100%;
-        max-width: 100%;
-        height: 80vh;
-        min-height: 650px;
-        max-height: none;
-        border-radius: 20px;
-        scroll-snap-align: none;
-        margin: 0;
+        flex: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 78vh !important;
+        min-height: 680px !important;
+        border-radius: 24px !important;
+        scroll-snap-align: none !important;
+        margin: 0 !important;
+        /* BRIGHT Glassmorphism */
+        background: rgba(50, 55, 75, 0.5) !important;
+        backdrop-filter: blur(20px) saturate(150%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+        border: 2px solid rgba(255, 255, 255, 0.4) !important;
+        border-top: 2px solid rgba(255, 255, 255, 0.6) !important;
+        border-left: 2px solid rgba(255, 255, 255, 0.5) !important;
+        /* STRONG Dynamic team glow */
+        box-shadow:
+            0 0 30px var(--team-accent-color, rgba(102, 126, 234, 0.8)) !important,
+            0 0 60px var(--team-accent-color-glow, rgba(102, 126, 234, 0.5)) !important,
+            0 0 120px var(--team-accent-color-glow, rgba(102, 126, 234, 0.3)) !important,
+            0 20px 40px rgba(0, 0, 0, 0.5) !important,
+            inset 0 2px 4px rgba(255, 255, 255, 0.3) !important,
+            inset 0 -2px 4px rgba(0, 0, 0, 0.1) !important;
+        transition: all 0.3s ease-out !important;
+    }
+
+    /* Desktop hover effect - DRAMATIC */
+    .poster-card:hover {
+        transform: translateY(-8px) scale(1.02) !important;
+        box-shadow:
+            0 0 50px var(--team-accent-color, rgba(102, 126, 234, 1)) !important,
+            0 0 100px var(--team-accent-color-glow, rgba(102, 126, 234, 0.7)) !important,
+            0 0 180px var(--team-accent-color-glow, rgba(102, 126, 234, 0.4)) !important,
+            0 30px 60px rgba(0, 0, 0, 0.6) !important,
+            inset 0 2px 6px rgba(255, 255, 255, 0.4) !important;
     }
 
     /* Hide navigation elements on desktop */
@@ -3205,55 +3958,56 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 
     .poster-pagination {
-        position: static;
-        transform: none;
-        margin-top: 25px;
+        /* Desktop is a grid (tríptico), so pagination dots are confusing */
+        display: none;
     }
 
-    /* Desktop Content - 3 Columns Layout */
+    /* Desktop Content (TRIPTICO): Cards are narrow, so stack content vertically for readability */
     .poster-content {
-        flex-direction: row;
-        padding: 35px;
-        gap: 25px;
-        overflow-y: visible;
+        flex-direction: column !important;
+        padding: 26px 22px !important;
+        gap: 16px !important;
+        overflow-y: auto !important;
     }
 
     .poster-column {
-        flex: 1;
+        flex: none;
+        width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 12px;
     }
 
     .poster-center {
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
+        padding: 6px 0;
     }
 
     .poster-medal {
-        font-size: 4.5rem;
-        margin-bottom: 20px;
+        font-size: 3.2rem;
+        margin-bottom: 10px;
     }
 
     .poster-team-logo {
-        width: 140px;
-        height: 140px;
-        margin-bottom: 20px;
+        width: 96px;
+        height: 96px;
+        margin-bottom: 10px;
     }
 
     .poster-team-name {
-        font-size: 2.2rem;
-        letter-spacing: 3px;
-        margin-bottom: 15px;
+        font-size: 1.55rem;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
     }
 
     .poster-score-number {
-        font-size: 4.5rem;
+        font-size: 3.2rem;
     }
 
     .poster-score-label {
-        font-size: 1rem;
-        letter-spacing: 3px;
+        font-size: 0.85rem;
+        letter-spacing: 2px;
     }
 
     .wax-seal {
@@ -3262,7 +4016,7 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 
     .poster-section-title {
-        font-size: 1.2rem;
+        font-size: 1.05rem;
         letter-spacing: 2px;
     }
 
@@ -3275,16 +4029,16 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 
     .poster-stat-label {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
 
     .poster-stat-value {
-        font-size: 1.3rem;
+        font-size: 1.15rem;
     }
 
     .poster-radar-container svg {
-        width: 200px !important;
-        height: 200px !important;
+        width: 170px !important;
+        height: 170px !important;
     }
 
     .poster-stadium-info {

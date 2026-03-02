@@ -3,6 +3,7 @@
 
 let fc26Database = null;
 let dataSource = 'unknown'; // 'csv', 'local', or 'unknown'
+let venuesDatabase = null; // loaded from venues.json (stadium/city/coords)
 
 // League filters - Only the 5 major leagues
 const MAJOR_LEAGUES = [
@@ -20,9 +21,78 @@ function normalizeLeagueName(leagueName) {
         'Premier League': 'Premier League',
         'Bundesliga': 'Bundesliga',
         'Serie A': 'Serie A',
+        'Serie A Enilive': 'Serie A',
         'Ligue 1 McDonald\'s': 'Ligue 1'
     };
     return leagueMap[leagueName] || leagueName;
+}
+
+function getLeagueIdLocal(leagueName) {
+    const name = (leagueName || '').toString().trim();
+    const leagueMap = {
+        'La Liga': 'la_liga',
+        'Premier League': 'premier_league',
+        'Bundesliga': 'bundesliga',
+        'Serie A': 'serie_a',
+        'Ligue 1': 'ligue_1'
+    };
+    let result = leagueMap[name];
+    if (!result) {
+        const n = name.toLowerCase();
+        if (n.includes('laliga') || n.includes('la liga')) result = 'la_liga';
+        else if (n.includes('premier')) result = 'premier_league';
+        else if (n.includes('bundesliga')) result = 'bundesliga';
+        else if (n.includes('serie a') || n === 'seriea') result = 'serie_a';
+        else if (n.includes('ligue 1') || n.includes('ligue1')) result = 'ligue_1';
+        else result = '';
+    }
+    return result;
+}
+
+function normalizeVenueKey(str) {
+    if (!str) return '';
+    return str
+        .toString()
+        .toLowerCase()
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+}
+
+async function loadVenuesDatabase() {
+    if (venuesDatabase) return venuesDatabase;
+    try {
+        const res = await fetch('venues.json');
+        if (!res.ok) throw new Error(`venues.json not found: ${res.status}`);
+        const data = await res.json();
+        venuesDatabase = data?.venues || {};
+        console.log(`🏟️ venues.json loaded: ${Object.keys(venuesDatabase).length} entries`);
+        return venuesDatabase;
+    } catch (e) {
+        console.warn('⚠️ Could not load venues.json:', e.message);
+        venuesDatabase = {};
+        return venuesDatabase;
+    }
+}
+
+function attachVenuesToTeams(teams) {
+    if (!teams || !Array.isArray(teams) || !venuesDatabase) return;
+    teams.forEach(team => {
+        const lid = getLeagueIdLocal(team.league);
+        const key = `${lid}:${normalizeVenueKey(team.name)}`;
+        const venue = venuesDatabase[key];
+        if (venue) {
+            team.venue = {
+                stadium: venue.stadium || '',
+                city: venue.city || '',
+                lat: venue.lat ?? null,
+                lon: venue.lon ?? null
+            };
+        }
+    });
 }
 
 // Load from CSV file (18,000 players)
@@ -60,6 +130,10 @@ async function loadFromCSV() {
 
         fc26Database = { teams: filteredTeams };
         dataSource = 'csv';  // Mark that we loaded from CSV
+
+        // Attach stadium/city metadata (local file, no runtime API needed)
+        await loadVenuesDatabase();
+        attachVenuesToTeams(fc26Database.teams);
 
         console.log(`✅ Loaded from CSV: ${filteredTeams.length} teams`);
         return fc26Database;
@@ -207,7 +281,7 @@ function groupPlayersByTeam(players) {
                 league_flag: getLeagueFlag(player.league),
                 formation: '4-3-3', // Default formation
                 overall_level: 0,
-                team_logo: getTeamLogoUrl(),
+                team_logo: getTeamLogoUrl(player.team),
                 team_initials: getTeamInitials(player.team), // For CSS circular crest
                 league_logo: getLeagueLogoUrl(),
                 style: {
@@ -257,6 +331,9 @@ function groupPlayersByTeam(players) {
 
         // Create squad gaps (top 11 players by position)
         team.squad_gaps = createSquadGaps(teamPlayers);
+
+        // Current stars per position (sobrepoblación)
+        team.current_stars = buildCurrentStars(teamPlayers);
     }
 
     return Array.from(teamMap.values());
@@ -272,6 +349,7 @@ function calculateTeamStats(players) {
         dri: acc.dri + p.dri,
         def: acc.def + p.def,
         phy: acc.phy + p.phy,
+        jumping: acc.jumping + (p.jumping || 0),
         acceleration: acc.acceleration + p.acceleration,
         sprint_speed: acc.sprint_speed + p.sprint_speed,
         positioning: acc.positioning + p.positioning,
@@ -281,6 +359,7 @@ function calculateTeamStats(players) {
         aggression: acc.aggression + p.aggression
     }), {
         ovr: 0, pac: 0, sho: 0, pas: 0, dri: 0, def: 0, phy: 0,
+        jumping: 0,
         acceleration: 0, sprint_speed: 0, positioning: 0, crossing: 0,
         long_passing: 0, interceptions: 0, aggression: 0
     });
@@ -377,6 +456,27 @@ function createSquadGaps(players) {
     return gaps.slice(0, Math.max(11, gaps.length));
 }
 
+// Build current stars per position (top player by OVR per mapped position)
+function buildCurrentStars(players) {
+    const positionMap = {
+        'ST': 'ST', 'CF': 'ST', 'CAM': 'CAM', 'CM': 'CM', 'CDM': 'CDM',
+        'LW': 'LW', 'LM': 'LW', 'RW': 'RW', 'RM': 'RW',
+        'LB': 'LB', 'LWB': 'LWB', 'RB': 'RB', 'RWB': 'RWB',
+        'CB': 'CB', 'GK': 'GK'
+    };
+
+    const stars = {};
+    for (const p of players) {
+        const pos = positionMap[p.position] || p.position;
+        if (!pos) continue;
+        const rating = p.ovr || 0;
+        if (!stars[pos] || rating > (stars[pos].rating || 0)) {
+            stars[pos] = { player: p.name || 'Jugador', rating, age: p.age || 25 };
+        }
+    }
+    return stars;
+}
+
 // Load from local JSON (backup)
 async function loadFromLocal() {
     try {
@@ -390,6 +490,27 @@ async function loadFromLocal() {
 
         fc26Database = await response.json();
         dataSource = 'local';  // Mark that we loaded from local
+
+        // Attach stadium/city metadata (local file, no runtime API needed)
+        await loadVenuesDatabase();
+        attachVenuesToTeams(fc26Database.teams);
+
+        // Ensure current_stars exists for local backup as well
+        if (fc26Database?.teams?.length) {
+            fc26Database.teams.forEach(team => {
+                if (!team.current_stars) {
+                    const gaps = Array.isArray(team.squad_gaps) ? team.squad_gaps : [];
+                    const stars = {};
+                    for (const p of gaps) {
+                        if (!p?.position) continue;
+                        if (!stars[p.position] || (p.rating || 0) > (stars[p.position].rating || 0)) {
+                            stars[p.position] = { player: p.player || 'Jugador', rating: p.rating || 0, age: p.age || 25 };
+                        }
+                    }
+                    team.current_stars = stars;
+                }
+            });
+        }
 
         console.log(`✅ Loaded from local: ${fc26Database.teams.length} teams`);
 

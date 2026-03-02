@@ -3,7 +3,7 @@ const questions = [
     {
         id: "league",
         title: "¿En qué liga quieres jugar?",
-        description: "Selecciona tu liga preferida o elige todas las opciones",
+        description: "Selecciona tu liga preferida (solo una)",
         type: "league_selection",
         options: [
             { id: "la_liga", name: "La Liga", flag: "🇪🇸" },
@@ -150,26 +150,37 @@ const questions = [
 
 // Question State
 let currentQuestionIndex = 0;
-let answers = {
-    league: [],
-    formation: null,
-    position: null,
-    wing_play: 50,
-    possession: 50,
-    counter_attack: 50,
-    aerial_balls: 50,
-    high_press: 50,
-    age: 21,
-    game_mode: null, // 'rtg' or 'star'
-    attributes: {
-        pac: 75,
-        sho: 70,
-        pas: 68,
-        dri: 72,
-        def: 60,
-        phy: 65
-    }
-};
+
+function getDefaultAnswers() {
+    return {
+        league: [],  // exactly ONE league ID when selected
+        formation: null,
+        position: null,
+        wing_play: 50,
+        possession: 50,
+        counter_attack: 50,
+        aerial_balls: 50,
+        high_press: 50,
+        age: 21,
+        game_mode: null, // 'rtg' or 'star'
+        attributes: {
+            pac: 75,
+            sho: 70,
+            pas: 68,
+            dri: 72,
+            def: 60,
+            phy: 65
+        }
+    };
+}
+
+let answers = getDefaultAnswers();
+
+// Reset helper (used by ui.js restart button)
+function resetInterviewState() {
+    answers = getDefaultAnswers();
+    currentQuestionIndex = 0;
+}
 
 // Initialize questions
 function initQuestions() {
@@ -211,7 +222,7 @@ function loadQuestion(index) {
 
             html += `
                 <div class="league-option ${isSelected ? 'selected' : ''}"
-                     onclick="toggleLeague('${option.id}')">
+                     onclick="selectLeague('${option.id}')">
                     <div class="league-card">
                         <div class="league-flag-container">
                             <img src="${flagUrl}" class="league-flag-full" alt="${option.name}">
@@ -299,6 +310,20 @@ function loadQuestion(index) {
         const attrs = answers.attributes || question.default;
         html += `
             <div class="attributes-container">
+                <div class="attr-presets">
+                    <div class="attr-presets-title">Perfiles Pro (1 click)</div>
+                    <div class="attr-presets-grid">
+                        <button class="preset-btn" onclick="applyAttributePreset('winger')">🏃 Extremo Veloz</button>
+                        <button class="preset-btn" onclick="applyAttributePreset('striker')">🎯 9 de Área</button>
+                        <button class="preset-btn" onclick="applyAttributePreset('playmaker')">🧠 Playmaker</button>
+                        <button class="preset-btn" onclick="applyAttributePreset('box2box')">🔁 Box-to-box</button>
+                        <button class="preset-btn" onclick="applyAttributePreset('destroyer')">🛡️ Destroyer</button>
+                        <button class="preset-btn" onclick="applyAttributePreset('fullback')">⚡ Lateral Moderno</button>
+                        <button class="preset-btn" onclick="applyAttributePreset('cb')">🧱 Central Fuerte</button>
+                    </div>
+                    <div class="attr-presets-note">Tip: Puedes ajustar cada stat después.</div>
+                </div>
+
                 <div class="attribute-row">
                     <div class="attr-label">
                         <span class="attr-icon">⚡</span>
@@ -424,14 +449,12 @@ function loadQuestion(index) {
     currentQuestionIndex = index;
 }
 
-// Toggle league selection
-function toggleLeague(leagueId) {
-    const index = answers.league.indexOf(leagueId);
-    if (index > -1) {
-        answers.league.splice(index, 1);
-    } else {
-        answers.league.push(leagueId);
-    }
+// Select league (SINGLE selection - radio button behavior)
+function selectLeague(leagueId) {
+    // CRITICAL: Single league selection - replace entire array
+    answers.league = [leagueId];
+
+    console.log(`✅ League selected: ${leagueId}`);
 
     // Re-render to update UI
     loadQuestion(currentQuestionIndex);
@@ -600,6 +623,49 @@ function updateAttribute(attr, value) {
     document.getElementById('attr_total').textContent = total;
 }
 
+function applyAttributePreset(presetId) {
+    const presets = {
+        winger: { pac: 92, sho: 78, pas: 78, dri: 90, def: 55, phy: 68, style: { wing_play: 90, counter_attack: 70, possession: 55, aerial_balls: 25, high_press: 55 } },
+        striker: { pac: 86, sho: 92, pas: 70, dri: 80, def: 52, phy: 86, style: { wing_play: 55, counter_attack: 72, possession: 45, aerial_balls: 78, high_press: 50 } },
+        playmaker: { pac: 78, sho: 76, pas: 92, dri: 88, def: 60, phy: 70, style: { wing_play: 55, counter_attack: 40, possession: 88, aerial_balls: 30, high_press: 55 } },
+        box2box: { pac: 82, sho: 78, pas: 84, dri: 82, def: 78, phy: 82, style: { wing_play: 55, counter_attack: 55, possession: 65, aerial_balls: 45, high_press: 72 } },
+        destroyer: { pac: 72, sho: 62, pas: 76, dri: 70, def: 90, phy: 88, style: { wing_play: 40, counter_attack: 50, possession: 55, aerial_balls: 55, high_press: 82 } },
+        fullback: { pac: 88, sho: 68, pas: 78, dri: 80, def: 86, phy: 80, style: { wing_play: 78, counter_attack: 55, possession: 60, aerial_balls: 35, high_press: 75 } },
+        cb: { pac: 70, sho: 55, pas: 68, dri: 62, def: 92, phy: 92, style: { wing_play: 35, counter_attack: 50, possession: 52, aerial_balls: 70, high_press: 70 } }
+    };
+    const p = presets[presetId];
+    if (!p) return;
+
+    // Set attributes
+    answers.attributes = { pac: p.pac, sho: p.sho, pas: p.pas, dri: p.dri, def: p.def, phy: p.phy };
+
+    // Optionally tune style sliders (keeps it "pro" and more accurate)
+    if (p.style) {
+        answers.wing_play = p.style.wing_play;
+        answers.counter_attack = p.style.counter_attack;
+        answers.possession = p.style.possession;
+        answers.aerial_balls = p.style.aerial_balls;
+        answers.high_press = p.style.high_press;
+    }
+
+    // Reflect in UI sliders if present
+    const setUI = (key, val) => {
+        const el = document.getElementById(`attr_${key}`);
+        const v = document.getElementById(`val_${key}`);
+        if (el) el.value = val;
+        if (v) v.textContent = val;
+    };
+    setUI('pac', p.pac);
+    setUI('sho', p.sho);
+    setUI('pas', p.pas);
+    setUI('dri', p.dri);
+    setUI('def', p.def);
+    setUI('phy', p.phy);
+
+    const total = document.getElementById('attr_total');
+    if (total) total.textContent = Math.round((p.pac + p.sho + p.pas + p.dri + p.def + p.phy) / 6);
+}
+
 // Previous question
 function prevQuestion(event) {
     // Prevent double-click and event bubbling
@@ -632,8 +698,8 @@ function nextQuestion(event) {
     // Validate current answer
     const question = questions[currentQuestionIndex];
 
-    if (question.type === 'league_selection' && answers.league.length === 0) {
-        alert('Por favor selecciona al menos una liga');
+    if (question.type === 'league_selection' && answers.league.length !== 1) {
+        alert('Por favor selecciona exactamente una liga');
         return;
     }
 

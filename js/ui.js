@@ -68,20 +68,26 @@ function restart(event) {
         event.stopPropagation();
     }
 
-    // Reset all answers
-    answers = {
-        league: [],
-        formation: null,
-        position: null,
-        wing_play: 50,
-        possession: 50,
-        counter_attack: 50,
-        aerial_balls: 50,
-        high_press: 50,
-        age: 21
-    };
-
-    currentQuestionIndex = 0;
+    // Reset full interview state (includes attributes + game_mode)
+    if (typeof resetInterviewState === 'function') {
+        resetInterviewState();
+    } else {
+        // Fallback (shouldn't happen)
+        answers = {
+            league: [],
+            formation: null,
+            position: null,
+            wing_play: 50,
+            possession: 50,
+            counter_attack: 50,
+            aerial_balls: 50,
+            high_press: 50,
+            age: 21,
+            game_mode: null,
+            attributes: { pac: 75, sho: 70, pas: 68, dri: 72, def: 60, phy: 65 }
+        };
+        currentQuestionIndex = 0;
+    }
 
     // Show welcome screen
     hideAllScreens();

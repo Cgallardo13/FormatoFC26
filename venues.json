@@ -1,0 +1,965 @@
+{
+  "generatedAt": "2026-02-27T23:21:35.514666Z",
+  "venues": {
+    "la_liga:fc barcelona": {
+      "teamName": "FC Barcelona",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Spotify Camp Nou",
+      "city": "Barcelona",
+      "lat": 41.37583333,
+      "lon": 2.05222222,
+      "clubQ": "Q13562063"
+    },
+    "la_liga:real madrid": {
+      "teamName": "Real Madrid",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio Santiago Bernabéu",
+      "city": "Madrid",
+      "lat": 40.41694444444445,
+      "lon": -3.703333333333333,
+      "clubQ": "Q8682"
+    },
+    "la_liga:real sociedad": {
+      "teamName": "Real Sociedad",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio Municipal de Anoeta",
+      "city": "San Sebastián",
+      "lat": 43.32,
+      "lon": -1.98,
+      "clubQ": "Q10315"
+    },
+    "la_liga:athletic club": {
+      "teamName": "Athletic Club",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "San MamÃ©s",
+      "city": "Bilbao",
+      "lat": 43.26305555555555,
+      "lon": -2.935,
+      "clubQ": "Q780121"
+    },
+    "la_liga:atletico madrid": {
+      "teamName": "Atletico Madrid",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio Metropolitano de Madrid",
+      "city": "Madrid",
+      "lat": 40.41694444444445,
+      "lon": -3.703333333333333,
+      "clubQ": "Q8701"
+    },
+    "la_liga:villarreal": {
+      "teamName": "Villarreal",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio de la CerÃ¡mica",
+      "city": "Vila-real",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q3138544"
+    },
+    "la_liga:getafe cf": {
+      "teamName": "Getafe CF",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Coliseum (Getafe)",
+      "city": "Getafe",
+      "lat": 40.3,
+      "lon": -3.7166666666667,
+      "clubQ": "Q8806"
+    },
+    "la_liga:sevilla fc": {
+      "teamName": "Sevilla FC",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio RamÃ³n SÃ¡nchez-PizjuÃ¡n",
+      "city": "Sevilla",
+      "lat": 37.38861111111111,
+      "lon": -5.995555555555556,
+      "clubQ": "Q5647276"
+    },
+    "la_liga:real betis": {
+      "teamName": "Real Betis",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio Benito VillamarÃ­n",
+      "city": "Sevilla",
+      "lat": 37.38861111111111,
+      "lon": -5.995555555555556,
+      "clubQ": "Q6101745"
+    },
+    "la_liga:valencia cf": {
+      "teamName": "Valencia CF",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Campo de Mestalla",
+      "city": "Valencia",
+      "lat": 39.47,
+      "lon": -0.3763888888888889,
+      "clubQ": "Q10333"
+    },
+    "la_liga:celta vigo": {
+      "teamName": "Celta Vigo",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio Abanca Balaídos",
+      "city": "Vigo",
+      "lat": 42.235833333333,
+      "lon": -8.7266666666667,
+      "clubQ": "Q8749"
+    },
+    "la_liga:rcd mallorca": {
+      "teamName": "RCD Mallorca",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadi Son Bibiloni",
+      "city": "Palma de Mallorca",
+      "lat": 39.566666666667,
+      "lon": 2.6497222222222,
+      "clubQ": "Q914169"
+    },
+    "la_liga:girona fc": {
+      "teamName": "Girona FC",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadi Montilivi",
+      "city": "Girona",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q20978009"
+    },
+    "la_liga:ca osasuna": {
+      "teamName": "CA Osasuna",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio El Sadar",
+      "city": "Pamplona",
+      "lat": 42.816666666667,
+      "lon": -1.65,
+      "clubQ": "Q25477209"
+    },
+    "la_liga:rayo vallecano": {
+      "teamName": "Rayo Vallecano",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio de Vallecas",
+      "city": "Madrid",
+      "lat": 40.41694444444445,
+      "lon": -3.703333333333333,
+      "clubQ": "Q1908962"
+    },
+    "la_liga:cadiz cf": {
+      "teamName": "Cadiz CF",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio Nuevo Mirandilla",
+      "city": "CÃ¡diz",
+      "lat": 36.4918,
+      "lon": -6.13139,
+      "clubQ": "Q5202316"
+    },
+    "la_liga:ud almeria": {
+      "teamName": "UD Almeria",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio Municipal Juan Rojas",
+      "city": "",
+      "lat": 36.862,
+      "lon": -2.44529,
+      "clubQ": "Q2569964"
+    },
+    "la_liga:las palmas": {
+      "teamName": "Las Palmas",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio de Gran Canaria",
+      "city": "Las Palmas de Gran Canaria",
+      "lat": 28.127222222222,
+      "lon": -15.431388888889,
+      "clubQ": "Q11979"
+    },
+    "la_liga:deportivo alaves": {
+      "teamName": "Deportivo Alaves",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio de Mendizorroza",
+      "city": "Vitoria",
+      "lat": 42.846666666667,
+      "lon": -2.6730555555556,
+      "clubQ": "Q223620"
+    },
+    "la_liga:levante ud": {
+      "teamName": "Levante UD",
+      "league": "La Liga",
+      "leagueId": "la_liga",
+      "stadium": "Estadio Ciutat de ValÃ¨ncia",
+      "city": "Valencia",
+      "lat": 39.47,
+      "lon": -0.3763888888888889,
+      "clubQ": "Q3558590"
+    },
+    "premier_league:manchester united": {
+      "teamName": "Manchester United",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Old Trafford",
+      "city": "Manchester",
+      "lat": 53.466666666667,
+      "lon": -2.2333333333333,
+      "clubQ": "Q18656"
+    },
+    "premier_league:liverpool": {
+      "teamName": "Liverpool",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Anfield",
+      "city": "Liverpool",
+      "lat": 53.407222222222224,
+      "lon": -2.9916666666666667,
+      "clubQ": "Q1130849"
+    },
+    "premier_league:manchester city": {
+      "teamName": "Manchester City",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Etihad Stadium",
+      "city": "Manchester",
+      "lat": 53.466666666667,
+      "lon": -2.2333333333333,
+      "clubQ": "Q50602"
+    },
+    "premier_league:arsenal": {
+      "teamName": "Arsenal",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Emirates Stadium",
+      "city": "Londres",
+      "lat": 51.507222222222,
+      "lon": -0.1275,
+      "clubQ": "Q9617"
+    },
+    "premier_league:tottenham": {
+      "teamName": "Tottenham",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Nuevo Estadio de Tottenham Hotspur",
+      "city": "Haringey",
+      "lat": 51.6,
+      "lon": -0.11194444444444,
+      "clubQ": "Q18741"
+    },
+    "premier_league:chelsea": {
+      "teamName": "Chelsea",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Stamford Bridge",
+      "city": "Londres",
+      "lat": 51.507222222222,
+      "lon": -0.1275,
+      "clubQ": "Q9616"
+    },
+    "premier_league:newcastle": {
+      "teamName": "Newcastle",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "St James’ Park",
+      "city": "Newcastle upon Tyne",
+      "lat": 54.977777777778,
+      "lon": -1.6133333333333,
+      "clubQ": "Q18716"
+    },
+    "premier_league:west ham": {
+      "teamName": "West Ham",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Estadio Olímpico de Londres",
+      "city": "Newham",
+      "lat": 51.516666666666666,
+      "lon": 0.03333333333333333,
+      "clubQ": "Q18747"
+    },
+    "premier_league:aston villa": {
+      "teamName": "Aston Villa",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Villa Park",
+      "city": "Aston",
+      "lat": 52.5,
+      "lon": -1.88,
+      "clubQ": "Q18711"
+    },
+    "premier_league:brentford": {
+      "teamName": "Brentford",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Griffin Park",
+      "city": "Londres",
+      "lat": 51.507222222222,
+      "lon": -0.1275,
+      "clubQ": "Q19571"
+    },
+    "premier_league:brighton": {
+      "teamName": "Brighton",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Brighton stadium",
+      "city": "",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q4967640"
+    },
+    "premier_league:crystal palace": {
+      "teamName": "Crystal Palace",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Selhurst Park",
+      "city": "Londres",
+      "lat": 51.507222222222,
+      "lon": -0.1275,
+      "clubQ": "Q19467"
+    },
+    "premier_league:fulham": {
+      "teamName": "Fulham",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Craven Cottage",
+      "city": "Londres",
+      "lat": 51.507222222222,
+      "lon": -0.1275,
+      "clubQ": "Q18708"
+    },
+    "premier_league:everton": {
+      "teamName": "Everton",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Everton Stadium",
+      "city": "Liverpool",
+      "lat": 53.407222222222224,
+      "lon": -2.9916666666666667,
+      "clubQ": "Q5794"
+    },
+    "premier_league:nottingham forest": {
+      "teamName": "Nottingham Forest",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "City Ground",
+      "city": "West Bridgford",
+      "lat": 52.92,
+      "lon": -1.13,
+      "clubQ": "Q19490"
+    },
+    "premier_league:burnley": {
+      "teamName": "Burnley",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Turf Moor",
+      "city": "Burnley",
+      "lat": 53.788888888889,
+      "lon": -2.2480555555556,
+      "clubQ": "Q19458"
+    },
+    "premier_league:bournemouth": {
+      "teamName": "Bournemouth",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Dean Court",
+      "city": "Bournemouth",
+      "lat": 50.72,
+      "lon": -1.88,
+      "clubQ": "Q19568"
+    },
+    "premier_league:luton town": {
+      "teamName": "Luton Town",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Kenilworth Road",
+      "city": "Luton",
+      "lat": 51.87833333333333,
+      "lon": -0.4147222222222222,
+      "clubQ": "Q18520"
+    },
+    "premier_league:wolves": {
+      "teamName": "Wolves",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Molineux Stadium",
+      "city": "Wolverhampton",
+      "lat": 52.58416666666667,
+      "lon": -2.125277777777778,
+      "clubQ": "Q19500"
+    },
+    "premier_league:sheffield united": {
+      "teamName": "Sheffield United",
+      "league": "Premier League",
+      "leagueId": "premier_league",
+      "stadium": "Bramall Lane",
+      "city": "Sheffield",
+      "lat": 53.380833333333335,
+      "lon": -1.4702777777777778,
+      "clubQ": "Q19607"
+    },
+    "bundesliga:rb leipzig": {
+      "teamName": "RB Leipzig",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Zentralstadion",
+      "city": "Leipzig",
+      "lat": 51.3406321,
+      "lon": 12.3747329,
+      "clubQ": "Q702455"
+    },
+    "bundesliga:borussia dortmund": {
+      "teamName": "Borussia Dortmund",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Signal Iduna Park",
+      "city": "Dortmund",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q133465682"
+    },
+    "bundesliga:bayer leverkusen": {
+      "teamName": "Bayer Leverkusen",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "BayArena",
+      "city": "Leverkusen",
+      "lat": 51.033333333333,
+      "lon": 6.9833333333333,
+      "clubQ": "Q104761"
+    },
+    "bundesliga:freiburg": {
+      "teamName": "Freiburg",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Europa-Park Stadion",
+      "city": "Freiburg im Breisgau",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q2833"
+    },
+    "bundesliga:eintracht frankfurt": {
+      "teamName": "Eintracht Frankfurt",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Deutsche Bank Park",
+      "city": "Frankfurt",
+      "lat": 50.11055555555556,
+      "lon": 8.682222222222222,
+      "clubQ": "Q1309485"
+    },
+    "bundesliga:union berlin": {
+      "teamName": "Union Berlin",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Stadion An der Alten Försterei",
+      "city": "Berlín",
+      "lat": 52.516666666667,
+      "lon": 13.383333333333,
+      "clubQ": "Q141971"
+    },
+    "bundesliga:wolfsburg": {
+      "teamName": "Wolfsburg",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Volkswagen-Arena",
+      "city": "Wolfsburgo",
+      "lat": 52.423055555556,
+      "lon": 10.787222222222,
+      "clubQ": "Q101859"
+    },
+    "bundesliga:bayern munich": {
+      "teamName": "Bayern Munich",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Allianz Arena",
+      "city": "MÃºnich",
+      "lat": 48.1375,
+      "lon": 11.575,
+      "clubQ": "Q15789"
+    },
+    "bundesliga:borussia monchengladbach": {
+      "teamName": "Borussia Monchengladbach",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Borussia Park",
+      "city": "Mönchengladbach",
+      "lat": 51.2,
+      "lon": 6.4333333333333,
+      "clubQ": "Q101959"
+    },
+    "bundesliga:fc koln": {
+      "teamName": "FC Koln",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Estadio Rhein Energie",
+      "city": "Colonia",
+      "lat": 50.942222222222,
+      "lon": 6.9577777777778,
+      "clubQ": "Q104770"
+    },
+    "bundesliga:hoffenheim": {
+      "teamName": "Hoffenheim",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "PreZero-Arena",
+      "city": "Sinsheim",
+      "lat": 49.25,
+      "lon": 8.8833333333333,
+      "clubQ": "Q22707"
+    },
+    "bundesliga:mainz": {
+      "teamName": "Mainz",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Mewa Arena",
+      "city": "Maguncia",
+      "lat": 49.99944444444444,
+      "lon": 8.27361111111111,
+      "clubQ": "Q105254"
+    },
+    "bundesliga:augsburg": {
+      "teamName": "Augsburg",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "WWK Arena",
+      "city": "Augsburgo",
+      "lat": 48.36888888888889,
+      "lon": 10.897777777777778,
+      "clubQ": "Q15755"
+    },
+    "bundesliga:stuttgart": {
+      "teamName": "Stuttgart",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Mercedes-Benz Arena (Stuttgart)",
+      "city": "Stuttgart",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q1022"
+    },
+    "bundesliga:bochum": {
+      "teamName": "Bochum",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Vonovia Ruhrstadion",
+      "city": "Bochum",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q2103"
+    },
+    "bundesliga:darmstadt": {
+      "teamName": "Darmstadt",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Merck-Stadion am BÃ¶llenfalltor",
+      "city": "Darmstadt",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q2973"
+    },
+    "bundesliga:heidenheim": {
+      "teamName": "Heidenheim",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Voith-Arena",
+      "city": "Heidenheim an der Brenz",
+      "lat": 48.676111111111,
+      "lon": 10.154444444444,
+      "clubQ": "Q162251"
+    },
+    "bundesliga:werder bremen": {
+      "teamName": "Werder Bremen",
+      "league": "Bundesliga",
+      "leagueId": "bundesliga",
+      "stadium": "Weserstadion",
+      "city": "Bremen",
+      "lat": 53.075833333333335,
+      "lon": 8.807222222222222,
+      "clubQ": "Q51976"
+    },
+    "serie_a:inter milan": {
+      "teamName": "Inter Milan",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "San Siro",
+      "city": "MilÃ¡n",
+      "lat": 45.466944444444,
+      "lon": 9.19,
+      "clubQ": "Q631"
+    },
+    "serie_a:juventus": {
+      "teamName": "Juventus",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Juventus Stadium",
+      "city": "Turín",
+      "lat": 45.079166666666666,
+      "lon": 7.676111111111111,
+      "clubQ": "Q1422"
+    },
+    "serie_a:ac milan": {
+      "teamName": "AC Milan",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "San Siro",
+      "city": "MilÃ¡n",
+      "lat": 45.466944444444,
+      "lon": 9.19,
+      "clubQ": "Q55602896"
+    },
+    "serie_a:roma": {
+      "teamName": "Roma",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Stadio Olimpico",
+      "city": "Roma",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q220"
+    },
+    "serie_a:napoli": {
+      "teamName": "Napoli",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Diego Armando Maradona",
+      "city": "Nápoles",
+      "lat": 40.83583333333333,
+      "lon": 14.248611111111112,
+      "clubQ": "Q2641"
+    },
+    "serie_a:lazio": {
+      "teamName": "Lazio",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Stadio Olimpico",
+      "city": "Roma",
+      "lat": 41.893055555556,
+      "lon": 12.482777777778,
+      "clubQ": "Q3963707"
+    },
+    "serie_a:atalanta": {
+      "teamName": "Atalanta",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Stadio Atleti Azzurri d'Italia",
+      "city": "Bérgamo",
+      "lat": 45.695,
+      "lon": 9.67,
+      "clubQ": "Q1886"
+    },
+    "serie_a:fiorentina": {
+      "teamName": "Fiorentina",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Artemio Franchi",
+      "city": "Florencia",
+      "lat": 43.771388888889,
+      "lon": 11.254166666667,
+      "clubQ": "Q2052"
+    },
+    "serie_a:bologna": {
+      "teamName": "Bologna",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Renato Dall'Ara",
+      "city": "Bolonia",
+      "lat": 44.493888888889,
+      "lon": 11.342777777778,
+      "clubQ": "Q1893"
+    },
+    "serie_a:sassuolo": {
+      "teamName": "Sassuolo",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "MAPEI Stadium - Città del Tricolore",
+      "city": "Sassuolo",
+      "lat": 44.551666666667,
+      "lon": 10.785555555556,
+      "clubQ": "Q8603"
+    },
+    "serie_a:sampdoria": {
+      "teamName": "Sampdoria",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Luigi Ferraris",
+      "city": "Génova",
+      "lat": 44.407186111111,
+      "lon": 8.9339833333333,
+      "clubQ": "Q1457"
+    },
+    "serie_a:udinese": {
+      "teamName": "Udinese",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Friuli",
+      "city": "Údine",
+      "lat": 46.066666666667,
+      "lon": 13.233333333333,
+      "clubQ": "Q2798"
+    },
+    "serie_a:genoa": {
+      "teamName": "Genoa",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Luigi Ferraris",
+      "city": "Génova",
+      "lat": 44.407186111111,
+      "lon": 8.9339833333333,
+      "clubQ": "Q2074"
+    },
+    "serie_a:verona": {
+      "teamName": "Verona",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Stadio Marcantonio Bentegodi",
+      "city": "Verona",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q4010168"
+    },
+    "serie_a:cagliari": {
+      "teamName": "Cagliari",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Stadio Is Arenas",
+      "city": "CRAI Sport Center",
+      "lat": 39.30775,
+      "lon": 8.997638888888888,
+      "clubQ": "Q1900"
+    },
+    "serie_a:lecce": {
+      "teamName": "Lecce",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Stadio Via del Mare",
+      "city": "Lecce",
+      "lat": 40.352011111111,
+      "lon": 18.169138888889,
+      "clubQ": "Q13391"
+    },
+    "serie_a:torino": {
+      "teamName": "Torino",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Olímpico de Turín",
+      "city": "Turín",
+      "lat": 45.079166666666666,
+      "lon": 7.676111111111111,
+      "clubQ": "Q2768"
+    },
+    "serie_a:cremonese": {
+      "teamName": "Cremonese",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Giovanni Zini",
+      "city": "Cremona",
+      "lat": 45.13333333333333,
+      "lon": 10.024722222222222,
+      "clubQ": "Q759482"
+    },
+    "ligue_1:monaco": {
+      "teamName": "Monaco",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade Louis II",
+      "city": "MÃ³naco",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q3138464"
+    },
+    "serie_a:empoli": {
+      "teamName": "Empoli",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Estadio Carlo Castellani",
+      "city": "Empoli",
+      "lat": 43.716666666667,
+      "lon": 10.95,
+      "clubQ": "Q6703"
+    },
+    "ligue_1:psg": {
+      "teamName": "PSG",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Parc des Princes",
+      "city": "ParÃ­s",
+      "lat": 48.85666666666667,
+      "lon": 2.352222222222222,
+      "clubQ": "Q483020"
+    },
+    "serie_a:spezia": {
+      "teamName": "Spezia",
+      "league": "Serie A",
+      "leagueId": "serie_a",
+      "stadium": "Stadio Alberto Picco",
+      "city": "La Spezia",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q16158221"
+    },
+    "ligue_1:marseille": {
+      "teamName": "Marseille",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade Vélodrome",
+      "city": "Centre d'entraînement Robert Louis-Dreyfus",
+      "lat": 43.304302,
+      "lon": 5.460755,
+      "clubQ": "Q132885"
+    },
+    "ligue_1:lille": {
+      "teamName": "Lille",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Estadio Pierre Mauroy",
+      "city": "Camphin-en-Pévèle",
+      "lat": 50.595277777778,
+      "lon": 3.26,
+      "clubQ": "Q19516"
+    },
+    "ligue_1:lens": {
+      "teamName": "Lens",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade Félix Bollaert",
+      "city": "Lens",
+      "lat": 50.431388888889,
+      "lon": 2.8325,
+      "clubQ": "Q191843"
+    },
+    "ligue_1:nice": {
+      "teamName": "Nice",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Allianz Riviera",
+      "city": "Niza",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q33959"
+    },
+    "ligue_1:lyon": {
+      "teamName": "Lyon",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Estadio Gerland",
+      "city": "Lyon",
+      "lat": 45.7675,
+      "lon": 4.835,
+      "clubQ": "Q704"
+    },
+    "ligue_1:rennes": {
+      "teamName": "Rennes",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade de la Route de Lorient",
+      "city": "Rennes",
+      "lat": 48.114166666667,
+      "lon": -1.6808333333333,
+      "clubQ": "Q19509"
+    },
+    "ligue_1:strasbourg": {
+      "teamName": "Strasbourg",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade de la Meinau",
+      "city": "Estrasburgo",
+      "lat": 48.573333333333,
+      "lon": 7.7522222222222,
+      "clubQ": "Q126334"
+    },
+    "ligue_1:reims": {
+      "teamName": "Reims",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade Auguste-Delaune",
+      "city": "Reims",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q41876"
+    },
+    "ligue_1:nantes": {
+      "teamName": "Nantes",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade de la Beaujoire",
+      "city": "Nantes",
+      "lat": 47.216212,
+      "lon": -1.532676,
+      "clubQ": "Q12191"
+    },
+    "ligue_1:brest": {
+      "teamName": "Brest",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade Francis-Le BlÃ©",
+      "city": "Brest",
+      "lat": 52.084722222222,
+      "lon": 23.656944444444,
+      "clubQ": "Q68035387"
+    },
+    "ligue_1:toulouse": {
+      "teamName": "Toulouse",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade de Toulouse",
+      "city": "Toulouse",
+      "lat": 43.60444444444445,
+      "lon": 1.4433333333333334,
+      "clubQ": "Q19518"
+    },
+    "ligue_1:le havre": {
+      "teamName": "Le Havre",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade Océane",
+      "city": "El Havre",
+      "lat": 49.494166666667,
+      "lon": 0.10805555555556,
+      "clubQ": "Q328658"
+    },
+    "ligue_1:lorient": {
+      "teamName": "Lorient",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade du Moustoir",
+      "city": "Lorient",
+      "lat": null,
+      "lon": null,
+      "clubQ": "Q71724"
+    },
+    "ligue_1:montpellier": {
+      "teamName": "Montpellier",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade de la Mosson",
+      "city": "Montpellier",
+      "lat": 43.610919444444,
+      "lon": 3.8772305555556,
+      "clubQ": "Q19513"
+    },
+    "ligue_1:clermont": {
+      "teamName": "Clermont",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade Gabriel Montpied",
+      "city": "Clermont-Ferrand",
+      "lat": 45.779722222222,
+      "lon": 3.0869444444444,
+      "clubQ": "Q870182"
+    },
+    "ligue_1:metz": {
+      "teamName": "Metz",
+      "league": "Ligue 1",
+      "leagueId": "ligue_1",
+      "stadium": "Stade Saint-Symphorien",
+      "city": "Metz",
+      "lat": 49.119722222222,
+      "lon": 6.1769444444444,
+      "clubQ": "Q221525"
+    }
+  }
+}

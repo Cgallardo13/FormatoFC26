@@ -11,9 +11,97 @@ const SUPER_ELITE_PLAYER_RATING = 88; // 88+ gets special elite team treatment
 
 // List of elite teams to prioritize for 88+ players
 const ELITE_TEAMS = [
-    'Real Madrid', 'FC Barcelona', 'Manchester City', 'Liverpool', 'Arsenal',
-    'Bayern Munich', 'PSG', 'Inter', 'AC Milan', 'Juventus'
+    // Use keywords (CSV names vary: e.g., "FC Bayern München")
+    'real madrid', 'fc barcelona', 'manchester city', 'liverpool', 'arsenal',
+    'bayern', 'psg', 'inter', 'ac milan', 'juventus'
 ];
+
+// Top 4 por liga (para "mercado real" en modo elite)
+const LEAGUE_TOP4 = {
+    la_liga: ['real madrid', 'fc barcelona', 'atletico madrid', 'sevilla'],
+    premier_league: ['manchester city', 'arsenal', 'liverpool', 'manchester united'],
+    bundesliga: ['bayern', 'borussia dortmund', 'leverkusen', 'rb leipzig'],
+    serie_a: ['inter', 'ac milan', 'juventus', 'napoli'],
+    ligue_1: ['psg', 'monaco', 'marseille', 'lyon']
+};
+
+function isTop4Team(team, leagueId) {
+    const list = LEAGUE_TOP4[leagueId] || [];
+    const key = normalizeForLogoKey(team?.name || '');
+    return list.some(t => key.includes(t));
+}
+
+function ensureCurrentStars(team) {
+    if (team.current_stars && typeof team.current_stars === 'object') return team.current_stars;
+    const stars = {};
+    const gaps = Array.isArray(team.squad_gaps) ? team.squad_gaps : [];
+    for (const p of gaps) {
+        if (!p?.position) continue;
+        const pos = p.position;
+        if (!stars[pos] || (p.rating || 0) > (stars[pos].rating || 0)) {
+            stars[pos] = { player: p.player || 'Jugador', rating: p.rating || 0, age: p.age || 25 };
+        }
+    }
+    team.current_stars = stars;
+    return stars;
+}
+
+function estimateMarketValueRange(playerRating, playerAge, team, role) {
+    // Valor de mercado "realista" condicionado por:
+    // - tu media + edad (potencial)
+    // - prestigio del club (techo de mercado mientras estés ahí)
+    const r = Math.max(50, Math.min(99, playerRating || 80));
+    const a = Math.max(16, Math.min(40, playerAge || 21));
+    const teamOvr = Math.max(55, Math.min(95, team?.overall_level || 75));
+
+    // Base (millones): más suave que antes para evitar €230M en clubes medianos
+    let base = Math.pow(Math.max(0, r - 55), 2) * 0.085; // 80->~54M, 90->~97M, 95->~129M
+
+    // Edad
+    if (a <= 19) base *= 1.35;
+    else if (a <= 22) base *= 1.22;
+    else if (a >= 30) base *= 0.88;
+    else if (a >= 34) base *= 0.70;
+
+    // Rol
+    const roleKey = (role || '').toLowerCase();
+    if (roleKey.includes('estrella')) base *= 1.10;
+    else if (roleKey.includes('titular')) base *= 1.04;
+    else if (roleKey.includes('juvenil')) base *= 1.08;
+    else base *= 0.98;
+
+    // Techo del club (mientras juegas ahí): clubes top permiten valores más altos
+    // Low clubs cap bajo, elite cap alto.
+    let clubCap;
+    if (teamOvr >= 88) clubCap = 260;
+    else if (teamOvr >= 84) clubCap = 190;
+    else if (teamOvr >= 80) clubCap = 140;
+    else if (teamOvr >= 76) clubCap = 105;
+    else clubCap = 75;
+
+    // Si es Top4 real de su liga, sube un poco el techo
+    try {
+        const lid = getLeagueId(team?.league);
+        if (lid && isTop4Team(team, lid)) clubCap *= 1.10;
+    } catch (_) {}
+
+    base = Math.max(1, Math.min(clubCap, base));
+
+    // Rango (±20%) pero respetando techo
+    const min = Math.max(1, Math.min(clubCap, base * 0.85));
+    const max = Math.max(min, Math.min(clubCap, base * 1.20));
+
+    const fmt = (m) => (m >= 100 ? `€${Math.round(m)}M` : m >= 10 ? `€${m.toFixed(0)}M` : `€${m.toFixed(1)}M`);
+    return `${fmt(min)}–${fmt(max)}`;
+}
+
+function classifyTeamBand(team) {
+    const ovr = team?.overall_level || 0;
+    if (ovr >= 86) return 'elite';
+    if (ovr >= 80) return 'europa';
+    if (ovr >= 75) return 'mid';
+    return 'low';
+}
 
 // ============================================
 // MANAGER DATABASE - Professional Styles 2025/26
@@ -468,26 +556,37 @@ const STADIUM_BACKGROUNDS = {
  * @param {string} teamName - The team name
  * @returns {string} - Dynamic Unsplash image URL
  */
-function getStadiumBackground(teamName) {
+function getStadiumBackground(teamName, hintKeywords = '') {
     const normalizedName = teamName.toLowerCase().trim();
     const keywords = STADIUM_BACKGROUNDS[normalizedName];
 
+    // Deterministic seed -> browser can cache, improves performance a lot
+    const seedFromName = (name) => {
+        const s = (name || '').toString();
+        let h = 0;
+        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        return h % 10000;
+    };
+
+    const hinted = (hintKeywords || '').toString().trim();
     if (!keywords) {
         // Fallback to generic stadium/city keywords
-        const fallbackKeywords = 'stadium,football,soccer,city,night';
-        const randomSeed = Math.floor(Math.random() * 1000);
-        return `https://source.unsplash.com/1600x900/?${encodeURIComponent(fallbackKeywords)}&sig=${randomSeed}`;
+        const fallbackKeywords = hinted ? `${hinted},stadium,football,city,night` : 'stadium,football,soccer,city,night';
+        const randomSeed = seedFromName(normalizedName);
+        // Smaller image for performance (still looks great as background)
+        return `https://source.unsplash.com/1200x675/?${encodeURIComponent(fallbackKeywords)}&sig=${randomSeed}`;
     }
 
-    // Generate random seed for variety - different image each time
-    // This ensures that even for the same team, the background changes
-    const randomSeed = Math.floor(Math.random() * 10000);
+    // Deterministic seed per team for caching
+    const randomSeed = seedFromName(normalizedName);
 
     // Build Unsplash Source URL with parameters
     // - Size: 1600x900 for HD quality
     // - Random seed: ensures different image each time
     // Keywords: city-specific (e.g., "paris,eiffel,tower" for PSG)
-    const unsplashUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(keywords)}&sig=${randomSeed}`;
+    // Smaller image for performance (still looks great as background)
+    const query = hinted ? `${hinted},${keywords}` : keywords;
+    const unsplashUrl = `https://source.unsplash.com/1200x675/?${encodeURIComponent(query)}&sig=${randomSeed}`;
 
     console.log(`🖼️ Dynamic background for ${teamName}: ${unsplashUrl}`);
 
@@ -787,6 +886,8 @@ function getTeamColors(teamName) {
         'aston villa': { primary: '#95BFE5', secondary: '#680A7F', glow: 'rgba(149, 191, 229, 0.6)' },
         'newcastle': { primary: '#000000', secondary: '#FFFFFF', glow: 'rgba(0, 0, 0, 0.6)' },
         'everton': { primary: '#003399', secondary: '#FFFFFF', glow: 'rgba(0, 51, 153, 0.6)' },
+        'fulham': { primary: '#FFFFFF', secondary: '#000000', glow: 'rgba(255, 255, 255, 0.45)' },
+        'burnley': { primary: '#6C1D45', secondary: '#99D6EA', glow: 'rgba(108, 29, 69, 0.55)' },
         'west ham': { primary: '#7A263A', secondary: '#00A650', glow: 'rgba(122, 38, 58, 0.6)' },
         'brighton': { primary: '#0057B8', secondary: '#FFFFFF', glow: 'rgba(0, 87, 184, 0.6)' },
         'leicester': { primary: '#003090', secondary: '#FDBE00', glow: 'rgba(0, 48, 144, 0.6)' },
@@ -824,18 +925,48 @@ function getTeamColors(teamName) {
         // ==================== LIGUE 1 ====================
         'psg': { primary: '#004170', secondary: '#DA291C', glow: 'rgba(0, 65, 112, 0.6)' },
         'paris saint-germain': { primary: '#004170', secondary: '#DA291C', glow: 'rgba(0, 65, 112, 0.6)' },
+        'paris fc': { primary: '#1F4AA8', secondary: '#FFFFFF', glow: 'rgba(31, 74, 168, 0.55)' },
         'olympique marseille': { primary: '#0094DA', secondary: '#FFFFFF', glow: 'rgba(0, 148, 218, 0.6)' },
         'marseille': { primary: '#0094DA', secondary: '#FFFFFF', glow: 'rgba(0, 148, 218, 0.6)' },
+        'rc lens': { primary: '#C8102E', secondary: '#FDE100', glow: 'rgba(200, 16, 46, 0.55)' },
+        'lens': { primary: '#C8102E', secondary: '#FDE100', glow: 'rgba(200, 16, 46, 0.55)' },
         'olympique lyon': { primary: '#004170', secondary: '#0097D2', glow: 'rgba(0, 65, 112, 0.6)' },
         'lyon': { primary: '#004170', secondary: '#0097D2', glow: 'rgba(0, 65, 112, 0.6)' },
         'as monaco': { primary: '#E6173F', secondary: '#FFFFFF', glow: 'rgba(230, 23, 63, 0.6)' },
         'monaco': { primary: '#E6173F', secondary: '#FFFFFF', glow: 'rgba(230, 23, 63, 0.6)' },
+        'fc lorient': { primary: '#F58220', secondary: '#000000', glow: 'rgba(245, 130, 32, 0.55)' },
+        'lorient': { primary: '#F58220', secondary: '#000000', glow: 'rgba(245, 130, 32, 0.55)' },
         'lille': { primary: '#E30613', secondary: '#FFFFFF', glow: 'rgba(227, 6, 19, 0.6)' },
         'nice': { primary: '#000000', secondary: '#E30613', glow: 'rgba(0, 0, 0, 0.6)' },
         'rennes': { primary: '#E30613', secondary: '#000000', glow: 'rgba(227, 6, 19, 0.6)' }
     };
 
-    return teamColors[normalizedName] || { primary: '#667eea', secondary: '#764ba2', glow: 'rgba(102, 126, 234, 0.6)' };
+    const found = teamColors[normalizedName];
+    if (found) return found;
+
+    // Deterministic fallback so EVERY club gets unique colors (no more "todo igual")
+    const hash = (s) => {
+        let h = 0;
+        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        return h;
+    };
+    const h = hash(normalizedName);
+    const hue = h % 360;
+    const hue2 = (hue + 42 + (h % 28)) % 360;
+
+    const hslToHex = (H, S, L) => {
+        S /= 100; L /= 100;
+        const k = n => (n + H / 30) % 12;
+        const a = S * Math.min(L, 1 - L);
+        const f = n => L - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        const toHex = x => Math.round(255 * x).toString(16).padStart(2, '0');
+        return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+    };
+
+    const primary = hslToHex(hue, 78, 52);
+    const secondary = hslToHex(hue2, 74, 48);
+    // Leave glow undefined so UI can derive it from primary accent consistently
+    return { primary, secondary };
 }
 
 /**
@@ -888,8 +1019,22 @@ function getStatIcon(type) {
  * @param {string} league - The league name
  * @returns {string|null} - Logo path or null if not found
  */
+function normalizeForLogoKey(str) {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .trim()
+        // Remove diacritics (München -> Munchen, División -> Division)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        // Replace punctuation with spaces
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+}
+
 function getTeamLogoPath(teamName, league) {
-    const normalizedName = teamName.toLowerCase().trim();
+    const searchName = normalizeForLogoKey(teamName);
 
     // Mapping from database team names to actual SVG filenames
     const teamLogoMap = {
@@ -897,16 +1042,23 @@ function getTeamLogoPath(teamName, league) {
         'fc barcelona': 'Fútbol Club Barcelona.svg',
         'real madrid': 'Real madrid.svg',
         'atletico madrid': 'Club Atlético de Madrid.svg',
+        'atletico de madrid': 'Club Atlético de Madrid.svg',
+        // If CSV text is mojibake (e.g., Atl�tico) this normalization may yield "atl tico"
+        'atl tico de madrid': 'Club Atlético de Madrid.svg',
         'athletic club': 'Athletic Club(Bilbao).svg',
         'athletic bilbao': 'Athletic Club(Bilbao).svg',
         'real betis': 'Real Betis Balompié.svg',
         'real sociedad': 'Real Sociedad de Fútbol.svg',
         'real valladolid': 'Real Valladolid Club de Fútbol.svg',
+        'rc celta': 'Real Club Celta de Vigo.svg',
+        'celta': 'Real Club Celta de Vigo.svg',
         'celta vigo': 'Real Club Celta de Vigo.svg',
         'celta de vigo': 'Real Club Celta de Vigo.svg',
         'sevilla': 'Sevilla Fútbol Club.svg',
+        'sevilla fc': 'Sevilla Fútbol Club.svg',
         'valencia': 'Valencia.svg',
         'villarreal': 'Villareal.svg',
+        'villarreal cf': 'Villareal.svg',
         'getafe': 'Getafe.svg',
         'granada': 'Granada Club de Fútbol.svg',
         'levante': 'Levante.svg',
@@ -920,10 +1072,12 @@ function getTeamLogoPath(teamName, league) {
         // ==================== PREMIER LEAGUE ====================
         'manchester city': 'Manchester City F.C..svg',
         'manchester united': 'Manchester United F.C..svg',
+        'man utd': 'Manchester United F.C..svg',
         'liverpool': 'Liverpool F.C..svg',
         'arsenal': 'Arsenal F.C..svg',
         'chelsea': 'Chelsea F.C..svg',
         'tottenham': 'Tottenham Hotspur F.C..svg',
+        'spurs': 'Tottenham Hotspur F.C..svg',
         'aston villa': 'Aston Villa F.C..svg',
         'newcastle': 'Newcastle United F.C..svg',
         'everton': 'Everton F.C..svg',
@@ -956,6 +1110,7 @@ function getTeamLogoPath(teamName, league) {
         'hoffenheim': 'Turn-und Sportgemeinschaft 1899 Hoffenheim e.V..svg',
         'stuttgart': 'Verein für Bewegungsspiele Stuttgart 1893 e. V..svg',
         'borussia monchengladbach': 'Borussia Verein-für Leibesübungen Mönchengladbach.svg',
+        'm gladbach': 'Borussia Verein-für Leibesübungen Mönchengladbach.svg',
         'bayer 04': 'Bayer 04 Leverkusen Fußball GmbH.svg',
         'fc koln': 'Fußball-Club Köln 0107 e. V.(Colonia).svg',
         'mainz': '1. Fußball- und Sportverein Mainz 05 e.V..svg',
@@ -988,44 +1143,79 @@ function getTeamLogoPath(teamName, league) {
         'parma': 'Parma Calcio 1913 Club.svg',
         'crotone': 'F.C. Crotone.svg',
         'benevento': 'Benevento Calcio.svg',
+        // EA / generic naming in datasets (Serie A Enilive)
+        'milano fc': 'Associazione Calcio Milan.svg',
+        'lombardia fc': 'Football Club Internazionale Milano.svg',
+        'latium': 'Società Sportiva Lazio.svg',
+        'bergamo calcio': 'Atalanta Bergamasca Calcio.svg',
+        'as roma': 'Associazione Sportiva Roma.svg',
+        'ssc napoli': 'Società Sportiva Calcio Napoli.svg',
 
         // ==================== LIGUE 1 ====================
         'psg': 'Paris Saint-Germain Football Club.svg',
+        'paris sg': 'Paris Saint-Germain Football Club.svg',
         'paris saint-germain': 'Paris Saint-Germain Football Club.svg',
+        'paris saint germain': 'Paris Saint-Germain Football Club.svg',
         'olympique marseille': 'Olympique De Marseille.svg',
         'marseille': 'Olympique De Marseille.svg',
+        'om': 'Olympique De Marseille.svg',
         'olympique lyon': 'Olympique Lyonnais.svg',
         'lyon': 'Olympique Lyonnais.svg',
+        'ol': 'Olympique Lyonnais.svg',
         'as monaco': 'Association sportive de Monaco football club.svg',
         'monaco': 'Association sportive de Monaco football club.svg',
         'lille': 'LOSC Lille.svg',
         'nice': 'Olympique Gymnaste Club de Nice.svg',
         'rennes': 'Stade Rennais Football Club (SRFC).svg',
+        'stade rennais fc': 'Stade Rennais Football Club (SRFC).svg',
         'strasbourg': 'Racing Club de Strasbourg Alsace.svg',
         'lens': 'Racing Club de Lens.svg',
         'montpellier': 'Montpellier Hérault Sport Club.svg',
         'brest': 'Stade Brestois 29.svg',
+        'stade brestois 29': 'Stade Brestois 29.svg',
         'reims': 'Stade de Reims.svg',
         'nantes': 'Football Club de Nantes.svg',
         'bordeaux': 'Football Club des Girondins de Bordeaux.svg',
         'metz': 'Football Club de Metz.svg',
         'lorient': 'Football Club de Lorient.svg',
-        'dijon': 'Dijon Football Côte d\'Or.svg',
+        // NOTE: repo filename has hyphen in "Côte-d'Or"
+        'dijon': 'Dijon Football Côte-d\'Or.svg',
         'nimes': 'Nîmes Olympique.svg',
-        'angiers': 'Angers Sporting club De l\'Ouest.svg',
+        'angers': 'Angers Sporting club De l\'Ouest.svg',
+        // NOTE: Auxerre SVG is not present in this repo; keep unmapped to avoid broken logo paths.
         'saint-etienne': 'Association Sportive de Saint-Étienne Loire.svg'
     };
 
-    // Get the filename from the map
-    const logoFilename = teamLogoMap[normalizedName];
+    // Normalize all keys (so "paris saint-germain" and "paris saint germain" work)
+    // and allow matching against CSV official names (e.g., "FC Bayern München")
+    const normalizedMap = {};
+    for (const [k, v] of Object.entries(teamLogoMap)) {
+        normalizedMap[normalizeForLogoKey(k)] = v;
+    }
+
+    // 1) Direct match
+    let logoFilename = normalizedMap[searchName];
+
+    // 2) Fallback: match by whole words, preferring longer keys
+    if (!logoFilename) {
+        const keysDesc = Object.keys(normalizedMap).sort((a, b) => b.length - a.length);
+        const padded = ` ${searchName} `;
+        for (const k of keysDesc) {
+            if (k.length < 4) continue;
+            if (padded.includes(` ${k} `)) {
+                logoFilename = normalizedMap[k];
+                break;
+            }
+        }
+    }
 
     if (!logoFilename) {
-        console.log(`⚠️ No logo found for: ${normalizedName} (${league})`);
+        console.log(`⚠️ No logo found for: ${searchName} (${league})`);
         return null;
     }
 
     // Map league to folder path
-    // NOTE: Logos are in root folders, NOT in a "logos" folder
+    // NOTE: Logos are in root country folders (Espana/, United Kindom/, etc.)
     // NOTE: "United Kindom" is the actual folder name in the repo (typo preserved)
     let leagueFolder = '';
     if (league === 'La Liga') {
@@ -1044,17 +1234,26 @@ function getTeamLogoPath(teamName, league) {
         leagueFolder = `${league}`;
     }
 
-    // Encode the filename to handle spaces, accents, and special characters
-    // This ensures URLs work correctly in mobile browsers and Netlify
+    // Encode each path segment to handle spaces/accents/special characters
+    // (important for "Primera División de España" and similar)
+    const encodedFolder = leagueFolder.split('/').map(seg => encodeURIComponent(seg)).join('/');
     const encodedFilename = encodeURIComponent(logoFilename);
 
-    // Construct ABSOLUTE path from root (works on Netlify and all environments)
-    const logoPath = `/${leagueFolder}/${encodedFilename}`;
+    // CRITICAL FIX: Use relative path, NOT absolute path
+    // Absolute paths (/folder/) don't work in local file:// protocol
+    // Relative paths (folder/) work everywhere
+    const logoPath = `${encodedFolder}/${encodedFilename}`;
 
     console.log(`✅ Logo path for ${teamName} (${league}): ${logoPath}`);
     console.log(`📁 Original filename: ${logoFilename}`);
     console.log(`🔐 Encoded filename: ${encodedFilename}`);
     return logoPath;
+}
+
+// Only allow teams that have a LOCAL SVG logo in this repo (no placeholders).
+function teamHasLocalLogo(team) {
+    if (!team || !team.name || !team.league) return false;
+    return !!getTeamLogoPath(team.name, team.league);
 }
 
 // Generate initials for CSS fallback crest
@@ -1128,6 +1327,156 @@ function calculateStyleCompatibility(userStyle, teamStyle) {
     const compatibility = 100 - (totalDiff / maxPossibleDiff * 100);
 
     return Math.max(0, Math.min(100, compatibility));
+}
+
+// ============================================
+// ATTRIBUTE-BASED COMPATIBILITY (Fantasy 2026)
+// Uses: user attributes (PAC/SHO/PAS/DRI/DEF/PHY) + user playstyle sliders + team tactics + position
+// ============================================
+function calculateAttributeCompatibility(userAttrs, userStyle, team, userPosition, teamStats = null) {
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+    const safe = (n, fallback) => (Number.isFinite(n) ? n : fallback);
+
+    const u = {
+        pac: clamp(safe(userAttrs?.pac, 70), 50, 99),
+        sho: clamp(safe(userAttrs?.sho, 70), 50, 99),
+        pas: clamp(safe(userAttrs?.pas, 70), 50, 99),
+        dri: clamp(safe(userAttrs?.dri, 70), 50, 99),
+        def: clamp(safe(userAttrs?.def, 60), 50, 99),
+        phy: clamp(safe(userAttrs?.phy, 65), 50, 99)
+    };
+
+    const tactics = TEAM_TACTICS_DB[(team?.name || '').toLowerCase().trim()] || team?.style || {};
+    const wing = clamp(safe(tactics.wing_play, 50), 0, 100);
+    const pos = clamp(safe(tactics.possession, 50), 0, 100);
+    const counter = clamp(safe(tactics.counter_attack, 50), 0, 100);
+    const aerial = clamp(safe(tactics.aerial_balls, 50), 0, 100);
+    const press = clamp(safe(tactics.high_press, 50), 0, 100);
+
+    // Team "need targets" (50..99) derived from tactics
+    const t = {
+        pac: 50 + 0.35 * (wing - 50) + 0.45 * (counter - 50) + 0.18 * (press - 50),
+        sho: 50 + 0.15 * (wing - 50) + 0.45 * (counter - 50) + 0.35 * (aerial - 50),
+        pas: 50 + 0.60 * (pos - 50) + 0.25 * (wing - 50),
+        dri: 50 + 0.55 * (pos - 50) + 0.30 * (wing - 50),
+        def: 50 + 0.55 * (press - 50) + 0.10 * (pos - 50),
+        phy: 50 + 0.35 * (aerial - 50) + 0.25 * (press - 50) + 0.15 * (counter - 50)
+    };
+
+    // Position adjustments
+    const p = (userPosition || '').toUpperCase();
+    const add = (k, v) => { t[k] = safe(t[k], 50) + v; };
+
+    if (p === 'ST') { add('sho', 8); add('pac', 6); add('phy', 5); add('def', -10); add('pas', -4); }
+    else if (p === 'LW' || p === 'RW') { add('pac', 8); add('dri', 8); add('pas', 4); add('sho', 2); add('def', -8); }
+    else if (p === 'CAM') { add('pas', 10); add('dri', 8); add('sho', 4); add('def', -6); }
+    else if (p === 'CM') { add('pas', 8); add('def', 4); add('phy', 4); }
+    else if (p === 'CDM') { add('def', 12); add('phy', 8); add('pas', 4); add('dri', -4); add('sho', -6); }
+    else if (p === 'LB' || p === 'RB') { add('pac', 6); add('def', 10); add('phy', 5); add('pas', 3); add('sho', -6); }
+    else if (p === 'CB') { add('def', 16); add('phy', 12); add('pac', -6); add('dri', -8); add('pas', -2); add('sho', -10); }
+
+    // Clamp targets to EA-like range
+    Object.keys(t).forEach(k => { t[k] = clamp(t[k], 50, 99); });
+
+    // User playstyle weighting (what matters more for YOU)
+    const usWing = clamp(safe(userStyle?.wing_play, 50), 0, 100);
+    const usPos = clamp(safe(userStyle?.possession, 50), 0, 100);
+    const usCounter = clamp(safe(userStyle?.counter_attack, 50), 0, 100);
+    const usAerial = clamp(safe(userStyle?.aerial_balls, 50), 0, 100);
+    const usPress = clamp(safe(userStyle?.high_press, 50), 0, 100);
+
+    const w = {
+        pac: 1.0,
+        sho: 1.0,
+        pas: 1.0,
+        dri: 1.0,
+        def: 0.9,
+        phy: 0.95
+    };
+    // Style emphasis
+    w.pac += (usWing / 100) * 0.6 + (usCounter / 100) * 0.7 + (usPress / 100) * 0.25;
+    w.dri += (usWing / 100) * 0.7 + (usPos / 100) * 0.6;
+    w.pas += (usPos / 100) * 0.8 + (usWing / 100) * 0.4;
+    w.sho += (usCounter / 100) * 0.7 + (usAerial / 100) * 0.45;
+    w.phy += (usAerial / 100) * 0.8 + (usPress / 100) * 0.35;
+    w.def += (usPress / 100) * 0.9;
+
+    // Normalize weights
+    const sumW = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+    Object.keys(w).forEach(k => { w[k] = w[k] / sumW; });
+
+    // Non-linear similarity (gaussian) => more sensitive to small changes
+    // diff 0 => 1.0, diff 8 => ~0.61, diff 12 => ~0.32
+    const sigma = 8;
+    const gauss = (diff) => Math.exp(-((diff * diff) / (2 * sigma * sigma)));
+
+    const diffs = {};
+    let simToTactics = 0;
+    for (const k of Object.keys(u)) {
+        const diff = Math.abs(u[k] - t[k]);
+        diffs[k] = diff;
+        simToTactics += w[k] * gauss(diff);
+    }
+    simToTactics = clamp(simToTactics, 0, 1);
+
+    // Team profile bonus: reward if you bring a meaningful edge vs squad averages
+    // (helps differentiate clubs within the same league).
+    const ts = teamStats || calculateTeamAverageStats(team?.squad_gaps || []);
+    const teamAvg = {
+        pac: clamp(safe(ts?.pac, 70), 50, 99),
+        sho: clamp(safe(ts?.sho, 70), 50, 99),
+        pas: clamp(safe(ts?.pas, 70), 50, 99),
+        dri: clamp(safe(ts?.dri, 70), 50, 99),
+        def: clamp(safe(ts?.def, 70), 50, 99),
+        phy: clamp(safe(ts?.phy, 70), 50, 99)
+    };
+
+    // Advantage score: only count positive deltas, scaled
+    const advantage = {};
+    let advScore = 0;
+    for (const k of Object.keys(u)) {
+        const delta = clamp(u[k] - teamAvg[k], -49, 49);
+        advantage[k] = delta;
+        const posDelta = Math.max(0, delta);
+        // 0..15 points meaningful edge
+        advScore += w[k] * clamp((posDelta / 15) * 1.0, 0, 1);
+    }
+    advScore = clamp(advScore, 0, 1);
+
+    // Critical stat floor: if you're far below what the system needs, penalize
+    const criticalByPos = {
+        ST: ['sho', 'pac', 'phy'],
+        LW: ['pac', 'dri', 'pas'],
+        RW: ['pac', 'dri', 'pas'],
+        CAM: ['pas', 'dri', 'sho'],
+        CM: ['pas', 'phy', 'def'],
+        CDM: ['def', 'phy', 'pas'],
+        LB: ['def', 'pac', 'phy'],
+        RB: ['def', 'pac', 'phy'],
+        CB: ['def', 'phy', 'pac']
+    };
+    const crit = criticalByPos[p] || ['pac', 'pas', 'phy'];
+    let critPenalty = 0;
+    for (const k of crit) {
+        const short = (t[k] - u[k]); // positive if below target
+        if (short > 10) critPenalty += 0.06;
+        else if (short > 6) critPenalty += 0.03;
+    }
+    critPenalty = clamp(critPenalty, 0, 0.18);
+
+    // Final fit: tactics similarity + advantage, minus critical penalty
+    const fit = clamp(((simToTactics * 0.72) + (advScore * 0.28) - critPenalty) * 100, 0, 100);
+
+    // Explanation: top 2 mismatches (largest diff to target)
+    const worst = Object.entries(diffs).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k.toUpperCase());
+
+    return {
+        fit,
+        target: t,
+        weights: w,
+        worst,
+        teamAvg
+    };
 }
 
 // Find best position for player in a team
@@ -1356,13 +1705,17 @@ function filterTeamsByPlayerTier(playerRating, teams, gameMode) {
     if (gameModeType === 'star') {
         // SUPER ÉLITE (88+): Prioritize REAL elite teams
         if (playerRating >= SUPER_ELITE_PLAYER_RATING) {
-            const superEliteTeams = teams.filter(t =>
-                ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
-            );
+            const superEliteTeams = teams.filter(t => {
+                const teamKey = ` ${normalizeForLogoKey(t.name)} `;
+                return ELITE_TEAMS.some(eliteKey => teamKey.includes(` ${eliteKey} `));
+            });
 
             const otherEliteTeams = teams.filter(t =>
                 t.overall_level >= ELITE_TEAM_MIN_RATING &&
-                !ELITE_TEAMS.some(eliteName => t.name.includes(eliteName))
+                (() => {
+                    const teamKey = ` ${normalizeForLogoKey(t.name)} `;
+                    return !ELITE_TEAMS.some(eliteKey => teamKey.includes(` ${eliteKey} `));
+                })()
             );
 
             const allOtherTeams = teams.filter(t =>
@@ -1563,12 +1916,13 @@ async function analyzeResults() {
         return;
     }
 
+    // Reduce noisy logs for performance
     console.log(`✅ Database loaded: ${fc26Database.teams.length} teams available`);
 
     const playerRating = parseInt(document.getElementById('playerRating').value) || 80;
     const playerAge = answers.age || 21;
 
-    console.log(`👤 Player: Rating=${playerRating}, Age=${playerAge}, Position=${answers.position}, Formation=${answers.formation}, GameMode=${answers.game_mode}`);
+    console.log(`👤 Player: Rating=${playerRating}, Age=${playerAge}, League=${answers.league?.[0] || ''}, Mode=${answers.game_mode}`);
 
     const userStyle = {
         possession: answers.possession,
@@ -1578,35 +1932,89 @@ async function analyzeResults() {
         aerial_balls: answers.aerial_balls,
         high_press: answers.high_press
     };
+    const userAttrs = answers.attributes || { pac: 75, sho: 70, pas: 68, dri: 72, def: 60, phy: 65 };
 
-    // Filter teams by selected leagues
+    // Selección ÚNICA de liga (100% enfocado)
     let selectedLeagues = answers.league;
     if (selectedLeagues.length === 0) {
         selectedLeagues = ['la_liga', 'premier_league', 'bundesliga', 'serie_a', 'ligue_1'];
     }
+    const selectedLeagueId = selectedLeagues[0];
 
-    console.log(`🏆 Selected Leagues: ${selectedLeagues.join(', ')}`);
+    console.log(`🏆 Selected League: ${selectedLeagueId}`);
 
-    // Filter teams by player tier AND game mode
+    // Liga + SOLO equipos con logo SVG local (sin placeholders) => no mezcla de ligas
+    const leagueTeamsAll = fc26Database.teams
+        .filter(team => getLeagueId(team.league) === selectedLeagueId);
+    const leagueTeamsWithLogos = leagueTeamsAll.filter(teamHasLocalLogo);
+
+    console.log(`🏟️ Teams in selected league: ${leagueTeamsAll.length}`);
+    console.log(`🖼️ Teams with LOCAL SVG logos in selected league: ${leagueTeamsWithLogos.length}`);
+
+    if (leagueTeamsWithLogos.length === 0) {
+        alert('No se encontraron equipos con logo local (SVG) en la liga seleccionada. Revisa el mapeo de nombres o los logos en el repo.');
+        hideAllScreens();
+        document.getElementById('welcomeScreen').classList.add('active');
+        return;
+    }
+
     const gameMode = answers.game_mode || 'star';
-    let teamsByTier = filterTeamsByPlayerTier(playerRating, fc26Database.teams, gameMode);
 
-    console.log(`🔍 Teams after tier filter: ${teamsByTier.length}`);
+    // ============================================
+    // PRESTIGIO / MERCADO REAL (Rating-to-Tier)
+    // ============================================
+    const teamPool = (() => {
+        // RTG / Promesa: tabla baja + edad + minutos
+        if (gameMode === 'rtg') {
+            const sortedLowToHigh = [...leagueTeamsWithLogos].sort((a, b) => (a.overall_level || 0) - (b.overall_level || 0));
+            const age = playerAge;
+            const ovrCap = age <= 21 ? 76 : 78;
+            const lowPool = sortedLowToHigh.filter(t => (t.overall_level || 0) <= ovrCap);
+            // Si hay pocos, usa toda la liga (pero siempre logos locales)
+            return (lowPool.length >= 6 ? lowPool : sortedLowToHigh).slice(0, 14);
+        }
 
-    // CRITICAL: Ensure we ALWAYS have at least 3 teams to analyze
-    // If not enough teams in selected leagues, expand to all major leagues
-    let teamAnalysis = teamsByTier
-        .filter(team => {
-            const teamLeagueId = getLeagueId(team.league);
-            return selectedLeagues.includes(teamLeagueId);
-        })
+        // Elite (88+): SOLO Top4 de la liga elegida
+        if (playerRating >= 88) {
+            const top4 = leagueTeamsWithLogos.filter(t => isTop4Team(t, selectedLeagueId));
+            if (top4.length >= 3) return top4;
+            // Backup dentro de la misma liga: top OVR (no mezcla)
+            return [...leagueTeamsWithLogos].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0)).slice(0, 6);
+        }
+
+        // Estrella (81-85): Europa League / reconstrucción
+        if (playerRating >= 81 && playerRating <= 85) {
+            const candidates = leagueTeamsWithLogos
+                .filter(t => !isTop4Team(t, selectedLeagueId))
+                .filter(t => {
+                    const ovr = t.overall_level || 0;
+                    // Europa/rebuild band
+                    return (ovr >= 78 && ovr <= 84) || (ovr >= 75 && ovr <= 77);
+                });
+            return [...candidates].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0)).slice(0, 14);
+        }
+
+        // 86-87: top + europa (pero sin bloquear)
+        if (playerRating >= 86) {
+            const candidates = leagueTeamsWithLogos.filter(t => (t.overall_level || 0) >= 78);
+            return [...candidates].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0)).slice(0, 14);
+        }
+
+        // Default: pool amplio
+        return [...leagueTeamsWithLogos].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0)).slice(0, 14);
+    })();
+
+    console.log(`🔍 Team pool after prestige filter: ${teamPool.length}`);
+
+    // Analyze directly (pool already league-scoped + prestige-filtered)
+    let teamAnalysis = teamPool
         .map(team => {
             // Get user's selected formation
             const userFormationId = answers.formation || '4_3_3';
 
             const styleMatch = calculateStyleCompatibility(userStyle, team.style);
             const formationMatch = calculateFormationCompatibility(userFormationId, team);
-            const tacticalMatch = calculateTacticalCompatibility(team); // NEW: Uses TEAM_TACTICS_DB
+            const tacticalMatch = calculateTacticalCompatibility(team); // Uses TEAM_TACTICS_DB
 
             // Analyze real competition using CSV data
             const userPosition = answers.position || findBestPosition(playerRating, team.squad_gaps).position;
@@ -1628,27 +2036,69 @@ async function analyzeResults() {
             };
             const generationalBonus = calculateGenerationalBonus(bestPosition, playerRating, playerAge);
 
-            const difficultyPenalty = tooDifficult ? -25 : 0;
+            // ============================
+            // SCORING (Robusto y más "inteligente")
+            // ============================
+            const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+            const safe = (n, fallback = 50) => (Number.isFinite(n) ? n : fallback);
 
-            let startingBonus;
-            if (tooDifficult) {
-                startingBonus = 5;
-            } else if (wouldStart) {
-                startingBonus = 35;
-            } else if (competition.ratingDiff >= -2) {
-                startingBonus = 20;
-            } else {
-                startingBonus = 10;
+            const s = clamp(safe(styleMatch, 50), 0, 100);
+            const f = clamp(safe(formationMatch, 50), 0, 100);
+            const t = clamp(safe(tacticalMatch, 50), 0, 100);
+
+            // Attribute fit (0-100): your PAC/SHO/PAS/DRI/DEF/PHY vs what this team/role demands
+            const ts = calculateTeamAverageStats(team.squad_gaps);
+            const attr = calculateAttributeCompatibility(userAttrs, userStyle, team, userPosition, ts);
+            const a = clamp(safe(attr.fit, 50), 0, 100);
+
+            // Extra precision: formation bonus (clubs where your shape matches actually matters)
+            const formationBonus = f >= 90 ? 6 : f >= 75 ? 3 : 0;
+
+            // Sobrepoblación (competencia elite en tu posición)
+            const currentStars = ensureCurrentStars(team);
+            const starInPos = currentStars[userPosition];
+            const hasEliteCompetition = !!(starInPos && (starInPos.rating || 0) > playerRating);
+
+            // Core compatibility (0-100): only tactical/style/formation fit
+            // Heavier attribute weight => small attribute changes will reorder more often (requested)
+            let compatibilityCore = clamp((s * 0.20) + (f * 0.15) + (t * 0.30) + (a * 0.35) + formationBonus, 0, 100);
+
+            // Penalización -20% si tu posición ya está cubierta por alguien mejor
+            if (hasEliteCompetition) {
+                compatibilityCore = clamp(compatibilityCore * 0.80, 0, 100);
             }
 
-            // Calculate final score with ALL factors including REAL tactical data
-            const finalScore = (styleMatch * 0.20) + (formationMatch * 0.15) + (tacticalMatch * 0.25) + startingBonus + (growthPotential * 0.15) + (generationalBonus * 0.10) + (difficultyPenalty * 0.25);
+            // Opportunity (0-100): minutes + growth + narrative bonuses
+            const startScore = tooDifficult ? 20 : wouldStart ? 92 : (competition.ratingDiff >= -2 ? 70 : 52);
+            const growthScore = clamp((safe(growthPotential, 5) / 15) * 100, 0, 100);
+            const legacyScore = clamp((safe(generationalBonus, 0) / 25) * 100, 0, 100);
+            const difficultyScore = tooDifficult ? 0 : 100;
+            const opportunityScore = clamp((startScore * 0.55) + (growthScore * 0.25) + (legacyScore * 0.10) + (difficultyScore * 0.10), 0, 100);
+
+            // Final score used for ranking: mostly compatibility, some opportunity
+            const finalScore = clamp((compatibilityCore * 0.70) + (opportunityScore * 0.30), 0, 100);
+
+            // Rol de mercado en el equipo (Estrella / Titular / Rotación / Juvenil)
+            let role = 'Rotación';
+            if (hasEliteCompetition) role = 'Rotación';
+            else if (wouldStart && playerRating >= (team.overall_level || 0) + 2) role = 'Estrella';
+            else if (wouldStart) role = 'Titular';
+            else if ((playerAge || 21) <= 21) role = 'Juvenil';
+            else role = 'Rotación';
 
             return {
                 team: team,
                 styleMatch: styleMatch,
                 tacticalMatch: tacticalMatch, // NEW: Real tactical compatibility using TEAM_TACTICS_DB
                 formationMatch: formationMatch,
+                compatibilityPercent: compatibilityCore,
+                attributeFit: a,
+                attributeWorst: attr.worst,
+                opportunityScore: opportunityScore,
+                hasEliteCompetition: hasEliteCompetition,
+                role: role,
+                marketValue: estimateMarketValueRange(playerRating, playerAge, team, role),
+                venueMeta: getFallbackVenueMeta(team),
                 bestPosition: {
                     position: userPosition,
                     currentPlayer: competition.competitor.player,
@@ -1667,166 +2117,25 @@ async function analyzeResults() {
         })
         .sort((a, b) => b.finalScore - a.finalScore);
 
-    // EXPANSION LOGIC: If we have less than 3 teams, expand to other leagues
+    // IRON RULE: NO EXPANSION - STRICT LEAGUE FILTER
+    // User's league selection is sacred. Only show teams from selected leagues.
+    // If less than 3 teams found, show what we have (1 or 2 teams) rather than violating user preference.
+    console.log(`✅ STRICT LEAGUE FILTER: Only teams from selected leagues (${selectedLeagues.join(', ')})`);
+    console.log(`📊 Final team count: ${teamAnalysis.length} (user's selected leagues only)`);
+
+    // IMPORTANT: Do NOT expand to other leagues even if < 3 teams
+    // User's choice is more important than having exactly 3 results
+
+    // IRON RULE: NO EXPANSION - STRICT LEAGUE FILTER ENFORCED
+    // User's league selection is SACRED. Only show teams from selected leagues.
+    // If less than 3 teams found, show 1 or 2 teams rather than expanding to other leagues.
     if (teamAnalysis.length < 3) {
-        console.log(`⚠️ Only ${teamAnalysis.length} teams found. Expanding to all major leagues...`);
-
-        const allLeagues = ['la_liga', 'premier_league', 'bundesliga', 'serie_a', 'ligue_1'];
-        const additionalLeagues = allLeagues.filter(league => !selectedLeagues.includes(league));
-
-        console.log(`🌍 Expanding to: ${additionalLeagues.join(', ')}`);
-
-        // Analyze teams from additional leagues
-        const additionalTeams = teamsByTier
-            .filter(team => {
-                const teamLeagueId = getLeagueId(team.league);
-                return additionalLeagues.includes(teamLeagueId);
-            })
-            .map(team => {
-                const userFormationId = answers.formation || '4_3_3';
-                const styleMatch = calculateStyleCompatibility(userStyle, team.style);
-                const formationMatch = calculateFormationCompatibility(userFormationId, team);
-                const tacticalMatch = calculateTacticalCompatibility(team);
-                const userPosition = answers.position || findBestPosition(playerRating, team.squad_gaps).position;
-                const competition = analyzeRealCompetition(playerRating, userPosition, team);
-                const wouldStart = competition.wouldStart;
-                const tooDifficult = competition.ratingDiff < -7;
-                const growthPotential = calculateGrowthPotential(playerRating, team.overall_level, wouldStart);
-                const bestPosition = {
-                    currentAge: competition.competitor.age,
-                    is_young: answers.age < 23,
-                    is_star: competition.competitor.is_star
-                };
-                const generationalBonus = calculateGenerationalBonus(bestPosition, playerRating, playerAge);
-                const difficultyPenalty = tooDifficult ? -25 : 0;
-
-                let startingBonus;
-                if (tooDifficult) {
-                    startingBonus = 5;
-                } else if (wouldStart) {
-                    startingBonus = 35;
-                } else if (competition.ratingDiff >= -2) {
-                    startingBonus = 20;
-                } else {
-                    startingBonus = 10;
-                }
-
-                const finalScore = (styleMatch * 0.20) + (formationMatch * 0.15) + (tacticalMatch * 0.25) + startingBonus + (growthPotential * 0.15) + (generationalBonus * 0.10) + (difficultyPenalty * 0.25);
-
-                return {
-                    team: team,
-                    styleMatch: styleMatch,
-                    tacticalMatch: tacticalMatch,
-                    formationMatch: formationMatch,
-                    bestPosition: {
-                        position: userPosition,
-                        currentPlayer: competition.competitor.player,
-                        currentRating: competition.competitor.rating,
-                        currentAge: competition.competitor.age,
-                        is_star: competition.competitor.is_star
-                    },
-                    competition: competition,
-                    wouldStart: wouldStart,
-                    ratingDiff: competition.ratingDiff,
-                    growthPotential: growthPotential,
-                    generationalBonus: generationalBonus,
-                    tooDifficult: tooDifficult,
-                    finalScore: Math.max(0, finalScore)
-                };
-            })
-            .sort((a, b) => b.finalScore - a.finalScore);
-
-        // Merge results
-        teamAnalysis = [...teamAnalysis, ...additionalTeams]
-            .sort((a, b) => b.finalScore - a.finalScore);
-
-        console.log(`✅ After expansion: ${teamAnalysis.length} teams available`);
-    }
-
-    console.log(`📊 Team Analysis Complete: ${teamAnalysis.length} teams analyzed`);
-
-    // CRITICAL FIX: Only expand if we TRULY have less than 3 teams
-    // Do NOT expand if user has enough teams in their selected league
-    if (teamAnalysis.length < 3) {
-        console.log(`⚠️ Only ${teamAnalysis.length} teams found in selected leagues.`);
-        console.log(`⚠️ This should NOT happen - expanding to other leagues as fallback...`);
-
-        const allLeagues = ['la_liga', 'premier_league', 'bundesliga', 'serie_a', 'ligue_1'];
-        const additionalLeagues = allLeagues.filter(league => !selectedLeagues.includes(league));
-
-        console.log(`🌍 Expanding to: ${additionalLeagues.join(', ')}`);
-
-        // Analyze teams from additional leagues
-        const additionalTeams = teamsByTier
-            .filter(team => {
-                const teamLeagueId = getLeagueId(team.league);
-                return additionalLeagues.includes(teamLeagueId);
-            })
-            .map(team => {
-                const userFormationId = answers.formation || '4_3_3';
-                const styleMatch = calculateStyleCompatibility(userStyle, team.style);
-                const formationMatch = calculateFormationCompatibility(userFormationId, team);
-                const tacticalMatch = calculateTacticalCompatibility(team);
-                const userPosition = answers.position || findBestPosition(playerRating, team.squad_gaps).position;
-                const competition = analyzeRealCompetition(playerRating, userPosition, team);
-                const wouldStart = competition.wouldStart;
-                const tooDifficult = competition.ratingDiff < -7;
-                const growthPotential = calculateGrowthPotential(playerRating, team.overall_level, wouldStart);
-                const bestPosition = {
-                    currentAge: competition.competitor.age,
-                    is_young: answers.age < 23,
-                    is_star: competition.competitor.is_star
-                };
-                const generationalBonus = calculateGenerationalBonus(bestPosition, playerRating, playerAge);
-                const difficultyPenalty = tooDifficult ? -25 : 0;
-
-                let startingBonus;
-                if (tooDifficult) {
-                    startingBonus = 5;
-                } else if (wouldStart) {
-                    startingBonus = 35;
-                } else if (competition.ratingDiff >= -2) {
-                    startingBonus = 20;
-                } else {
-                    startingBonus = 10;
-                }
-
-                const finalScore = (styleMatch * 0.20) + (formationMatch * 0.15) + (tacticalMatch * 0.25) + startingBonus + (growthPotential * 0.15) + (generationalBonus * 0.10) + (difficultyPenalty * 0.25);
-
-                return {
-                    team: team,
-                    styleMatch: styleMatch,
-                    tacticalMatch: tacticalMatch,
-                    formationMatch: formationMatch,
-                    bestPosition: {
-                        position: userPosition,
-                        currentPlayer: competition.competitor.player,
-                        currentRating: competition.competitor.rating,
-                        currentAge: competition.competitor.age,
-                        is_star: competition.competitor.is_star
-                    },
-                    competition: competition,
-                    wouldStart: wouldStart,
-                    ratingDiff: competition.ratingDiff,
-                    growthPotential: growthPotential,
-                    generationalBonus: generationalBonus,
-                    tooDifficult: tooDifficult,
-                    finalScore: Math.max(0, finalScore)
-                };
-            })
-            .sort((a, b) => b.finalScore - a.finalScore);
-
-        // Merge results
-        teamAnalysis = [...teamAnalysis, ...additionalTeams]
-            .sort((a, b) => b.finalScore - a.finalScore);
-
-        console.log(`✅ After expansion: ${teamAnalysis.length} teams available`);
+        console.warn(`⚠️ Only ${teamAnalysis.length} teams found in selected leagues: ${selectedLeagues.join(', ')}`);
+        console.warn(`⚠️ IRON RULE: Showing ${teamAnalysis.length} team(s) instead of violating user's league preference`);
     } else {
-        console.log(`✅ Has ${teamAnalysis.length} teams from selected leagues - NO EXPANSION NEEDED`);
+        console.log(`✅ STRICT FILTER: ${teamAnalysis.length} teams from user's selected leagues ONLY`);
         console.log(`✅ Selected leagues: ${selectedLeagues.join(', ')}`);
     }
-
-    console.log(`📊 Final team count: ${teamAnalysis.length}`);
 
     // CRITICAL: ALWAYS show top 3 results, NO MATTER THE SCORE
     // This ensures users always get recommendations
@@ -1846,6 +2155,8 @@ async function analyzeResults() {
 // ============================================
 
 function getLeagueId(leagueName) {
+    const name = (leagueName || '').toString().trim();
+
     const leagueMap = {
         'La Liga': 'la_liga',
         'Premier League': 'premier_league',
@@ -1853,7 +2164,49 @@ function getLeagueId(leagueName) {
         'Serie A': 'serie_a',
         'Ligue 1': 'ligue_1'
     };
-    return leagueMap[leagueName] || '';
+
+    // Exact match first
+    let result = leagueMap[name];
+
+    // Robust fallback for variants (CSV datasets change labels over time)
+    if (!result) {
+        const n = name.toLowerCase();
+        if (n.includes('laliga') || n.includes('la liga')) result = 'la_liga';
+        else if (n.includes('premier')) result = 'premier_league';
+        else if (n.includes('bundesliga')) result = 'bundesliga';
+        else if (n.includes('serie a') || n === 'seriea') result = 'serie_a';
+        else if (n.includes('ligue 1') || n.includes('ligue1')) result = 'ligue_1';
+        else result = '';
+    }
+
+    console.log(`🏆 getLeagueId: "${name}" -> "${result}"`);
+    return result;
+}
+
+function getFallbackVenueMeta(team) {
+    const leagueId = getLeagueId(team?.league);
+    const defaults = {
+        la_liga: { country: 'España', avgTemp: '20°C promedio' },
+        premier_league: { country: 'Inglaterra', avgTemp: '12°C promedio' },
+        bundesliga: { country: 'Alemania', avgTemp: '11°C promedio' },
+        serie_a: { country: 'Italia', avgTemp: '17°C promedio' },
+        ligue_1: { country: 'Francia', avgTemp: '15°C promedio' }
+    };
+    const d = defaults[leagueId] || { country: '', avgTemp: '' };
+
+    // Prefer venues.json attached data (local, complete for 96 clubs)
+    const attached = team?.venue || null;
+
+    const key = (team?.name || '').toLowerCase().trim();
+    const fromDb = STADIUM_ATMOSPHERE[key];
+
+    return {
+        city: attached?.city || fromDb?.city || d.country || '',
+        weather: fromDb?.weather || d.avgTemp || '',
+        stadium: attached?.stadium || fromDb?.stadium || '',
+        lat: attached?.lat ?? null,
+        lon: attached?.lon ?? null
+    };
 }
 
 function showEpicLoadingScreen() {

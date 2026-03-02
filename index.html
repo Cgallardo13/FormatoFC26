@@ -35,17 +35,58 @@
             <!-- Welcome Screen -->
             <div id="welcomeScreen" class="screen active">
                 <div class="welcome-content">
-                    <h2>¡Bienvenido!</h2>
-                    <p>Responde unas preguntas sobre tu estilo de juego y te diremos cuál es el mejor equipo para tu jugador en FC26.</p>
+                    <div class="welcome-hero">
+                        <div class="welcome-left">
+                            <h2>¡Bienvenido!</h2>
+                            <p>Responde unas preguntas sobre tu estilo de juego y te diremos cuál es el mejor equipo para tu jugador en FC26.</p>
 
-                    <div class="input-group">
-                        <label for="playerRating">🎯 Media de tu jugador</label>
-                        <input type="number" id="playerRating" min="50" max="99" value="80" placeholder="80">
+                            <div class="welcome-stats">
+                                <div class="stat-chip">
+                                    <div class="stat-number">18K+</div>
+                                    <div class="stat-label">jugadores</div>
+                                </div>
+                                <div class="stat-chip">
+                                    <div class="stat-number">5</div>
+                                    <div class="stat-label">ligas top</div>
+                                </div>
+                                <div class="stat-chip">
+                                    <div class="stat-number">100%</div>
+                                    <div class="stat-label">local</div>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="playerRating">🎯 Media de tu jugador</label>
+                                <input type="number" id="playerRating" min="50" max="99" value="80" placeholder="80">
+                            </div>
+
+                            <button class="btn btn-primary" onclick="startInterview(event)">
+                                Comenzar Análisis
+                            </button>
+
+                            <div class="welcome-footnote">
+                                Sin APIs, sin cuentas, sin instalar nada. Solo juega.
+                            </div>
+                        </div>
+
+                        <aside class="welcome-right">
+                            <div class="welcome-panel">
+                                <div class="panel-title">Cómo funciona</div>
+                                <ul class="panel-steps">
+                                    <li><span class="step-icon">🏆</span><span>Elige tu liga</span></li>
+                                    <li><span class="step-icon">🎮</span><span>Define tu objetivo (RTG o Estrella)</span></li>
+                                    <li><span class="step-icon">🎯</span><span>Ajusta tu estilo y atributos</span></li>
+                                    <li><span class="step-icon">🧠</span><span>Te damos el Top 3 con análisis real</span></li>
+                                </ul>
+                                <div class="panel-divider"></div>
+                                <div class="panel-badges">
+                                    <span class="badge-pill">⚡ Compatible con móvil</span>
+                                    <span class="badge-pill">🧾 CSV real</span>
+                                    <span class="badge-pill">🛡️ Sin tracker</span>
+                                </div>
+                            </div>
+                        </aside>
                     </div>
-
-                    <button class="btn btn-primary" onclick="startInterview(event)">
-                        Comenzar Análisis
-                    </button>
                 </div>
             </div>
 
