@@ -1230,7 +1230,9 @@ function calculateAttributeCompatibility(userAttrs, userStyle, team, userPositio
         phy: clamp(safe(userAttrs?.phy, 65), 50, 99)
     };
 
-    const tactics = TEAM_TACTICS_DB[(team?.name || '').toLowerCase().trim()] || team?.style || {};
+    const tactics = (typeof getTeamTactics === 'function')
+        ? getTeamTactics(team)
+        : (TEAM_TACTICS_DB[(team?.name || '').toLowerCase().trim()] || team?.style || {});
     const wing = clamp(safe(tactics.wing_play, 50), 0, 100);
     const pos = clamp(safe(tactics.possession, 50), 0, 100);
     const counter = clamp(safe(tactics.counter_attack, 50), 0, 100);
@@ -1884,8 +1886,23 @@ async function analyzeResults() {
             return [...candidates].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0)).slice(0, 14);
         }
 
-        // Default: pool amplio
-        return [...leagueTeamsWithLogos].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0)).slice(0, 14);
+        // Default: pool amplio PERO realista (no siempre los top OVR).
+        // Para medias ~70-80, enfoca equipos de nivel similar (mercado real) para que el Top 3 sea sensible a inputs.
+        const sorted = [...leagueTeamsWithLogos].sort((a, b) => (b.overall_level || 0) - (a.overall_level || 0));
+        const bandHi = playerRating + 6;
+        const bandLo = playerRating - 8;
+        const inBand = sorted.filter(t => {
+            const ovr = t.overall_level || 0;
+            return ovr >= bandLo && ovr <= bandHi;
+        });
+        if (inBand.length >= 8) return inBand.slice(0, 14);
+
+        // If band too small, widen gradually but keep variety
+        const wide = sorted.filter(t => {
+            const ovr = t.overall_level || 0;
+            return ovr >= (playerRating - 12) && ovr <= (playerRating + 10);
+        });
+        return (wide.length >= 8 ? wide : sorted).slice(0, 14);
     })();
 
     window.FC26?.dbg?.(`🔍 Team pool after prestige filter: ${teamPool.length}`);
@@ -1896,7 +1913,10 @@ async function analyzeResults() {
             // Get user's selected formation
             const userFormationId = answers.formation || '4_3_3';
 
-            const styleMatch = calculateStyleCompatibility(userStyle, team.style);
+            const styleMatch = calculateStyleCompatibility(
+                userStyle,
+                (typeof getTeamTactics === 'function') ? getTeamTactics(team) : team.style
+            );
             const formationMatch = calculateFormationCompatibility(userFormationId, team);
             const tacticalMatch = calculateTacticalCompatibility(team); // Uses TEAM_TACTICS_DB
 
@@ -1946,6 +1966,11 @@ async function analyzeResults() {
             // Core compatibility (0-100): only tactical/style/formation fit
             // Heavier attribute weight => small attribute changes will reorder more often (requested)
             let compatibilityCore = clamp((s * 0.20) + (f * 0.15) + (t * 0.30) + (a * 0.35) + formationBonus, 0, 100);
+
+            // If the club level is way above you, lower fit slightly (prevents "always Bayern" for 75-82 OVR players)
+            if (tooDifficult) {
+                compatibilityCore = clamp(compatibilityCore * 0.86, 0, 100);
+            }
 
             // Penalización -20% si tu posición ya está cubierta por alguien mejor
             if (hasEliteCompetition) {
@@ -2031,7 +2056,9 @@ async function analyzeResults() {
     // CRITICAL: ALWAYS show up to 3 results, NO MATTER THE SCORE
     // BUT: diversify when scores are close so small attribute changes can change the Top 3.
     function teamSignature(team) {
-        const tactics = TEAM_TACTICS_DB[(team?.name || '').toLowerCase().trim()] || team?.style || {};
+        const tactics = (typeof getTeamTactics === 'function')
+            ? getTeamTactics(team)
+            : (TEAM_TACTICS_DB[(team?.name || '').toLowerCase().trim()] || team?.style || {});
         const v = [
             (tactics.wing_play ?? 50),
             (tactics.possession ?? 50),
@@ -2343,7 +2370,8 @@ function generateScoutVerdict(result) {
     verdict += `🎯 AJUSTE TACTICO:\n`;
     if (tacticalMatch >= 85) {
         verdict += `   ✅ EXCELENTE - Tu estilo natural encaja a la perfeccion con el sistema de ${team.name}.\n`;
-        verdict += `   Los ${TEAM_TACTICS_DB[team.name.toLowerCase()]?.possession || 50}% de posesion y el estilo ${manager?.style || 'del equipo'} son ideales para tu perfil.\n\n`;
+        const tt = (typeof getTeamTactics === 'function') ? getTeamTactics(team) : TEAM_TACTICS_DB[team.name.toLowerCase()];
+        verdict += `   Los ${tt?.possession || 50}% de posesion y el estilo ${manager?.style || 'del equipo'} son ideales para tu perfil.\n\n`;
     } else if (tacticalMatch >= 70) {
         verdict += `   ⭐ MUY BUENO - Tu estilo se alinea bien con la filosofia de ${manager?.name || 'el DT'}.\n`;
         verdict += `   El ${manager?.style || 'sistema del equipo'} requiere jugadores como tu - buena proyeccion.\n\n`;

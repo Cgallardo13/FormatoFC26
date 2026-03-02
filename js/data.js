@@ -1451,6 +1451,94 @@ const TEAM_TACTICS_DB = {
 };
 
 // ============================================
+// TEAM TACTICS ACCESSOR (covers name mismatches + fallback profiles)
+// ============================================
+function _normalizeTeamKey(str) {
+    return (str || '')
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+function _clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+function _avgFromSquad(squad) {
+    const gaps = Array.isArray(squad) ? squad : [];
+    if (!gaps.length) return { pac: 70, sho: 70, pas: 70, dri: 70, def: 70, phy: 70, ovr: 75 };
+    let pac = 0, sho = 0, pas = 0, dri = 0, def = 0, phy = 0, ovr = 0, c = 0;
+    for (const p of gaps) {
+        if (!p) continue;
+        pac += Number(p.pac ?? p.PAC ?? p.rating ?? 70) || 70;
+        sho += Number(p.sho ?? p.SHO ?? p.rating ?? 70) || 70;
+        pas += Number(p.pas ?? p.PAS ?? p.rating ?? 70) || 70;
+        dri += Number(p.dri ?? p.DRI ?? p.rating ?? 70) || 70;
+        def += Number(p.def ?? p.DEF ?? p.rating ?? 70) || 70;
+        phy += Number(p.phy ?? p.PHY ?? p.rating ?? 70) || 70;
+        ovr += Number(p.rating ?? 75) || 75;
+        c++;
+    }
+    return {
+        pac: pac / c, sho: sho / c, pas: pas / c, dri: dri / c, def: def / c, phy: phy / c, ovr: ovr / c
+    };
+}
+
+function deriveTeamTacticsFromSquad(team) {
+    // Derive a stable, differentiated profile (0..100) from squad averages.
+    const avg = _avgFromSquad(team?.squad_gaps);
+    const pac = _clamp(avg.pac, 50, 95);
+    const sho = _clamp(avg.sho, 50, 95);
+    const pas = _clamp(avg.pas, 50, 95);
+    const dri = _clamp(avg.dri, 50, 95);
+    const def = _clamp(avg.def, 45, 95);
+    const phy = _clamp(avg.phy, 45, 95);
+
+    const wing_play = _clamp(35 + (pac - 50) * 1.1 + (dri - 50) * 0.7, 35, 92);
+    const possession = _clamp(32 + (pas - 50) * 1.2 + (dri - 50) * 0.6, 30, 90);
+    const counter_attack = _clamp(34 + (pac - 50) * 1.1 + (sho - 50) * 0.8, 30, 92);
+    const aerial_balls = _clamp(34 + (phy - 50) * 1.0 + (sho - 50) * 0.55, 30, 90);
+    const high_press = _clamp(32 + (def - 50) * 1.05 + (phy - 50) * 0.55, 28, 92);
+    const through_balls = _clamp(32 + (pas - 50) * 1.0 + (pac - 50) * 0.55, 30, 92);
+
+    return {
+        wing_play,
+        possession,
+        counter_attack,
+        aerial_balls,
+        high_press,
+        through_balls
+    };
+}
+
+// Global accessor used by logic/analyzer/poster-cards
+function getTeamTactics(teamOrName) {
+    const name = typeof teamOrName === 'string' ? teamOrName : (teamOrName?.name || '');
+    const raw = (name || '').toString().toLowerCase().trim();
+    if (TEAM_TACTICS_DB[raw]) return TEAM_TACTICS_DB[raw];
+
+    const norm = _normalizeTeamKey(name);
+    // Best substring match against known keys (handles "FC Bayern München", long legal names, etc.)
+    let bestKey = null;
+    let bestLen = 0;
+    for (const k of Object.keys(TEAM_TACTICS_DB)) {
+        const kn = _normalizeTeamKey(k);
+        if (!kn) continue;
+        if (kn === norm) return TEAM_TACTICS_DB[k];
+        if (norm.includes(kn) && kn.length > bestLen) {
+            bestKey = k;
+            bestLen = kn.length;
+        }
+    }
+    if (bestKey) return TEAM_TACTICS_DB[bestKey];
+
+    // Fall back to a derived profile so EVERY team has differentiated tactics
+    if (typeof teamOrName === 'object' && teamOrName?.style) return teamOrName.style;
+    return deriveTeamTacticsFromSquad(typeof teamOrName === 'object' ? teamOrName : null);
+}
+
+// ============================================
 // TEAM LOGO SYSTEM - CSS Only (No external images)
 // ============================================
 

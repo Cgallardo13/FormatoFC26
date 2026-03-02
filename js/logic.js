@@ -228,7 +228,7 @@ function calculateFormationCompatibility(userFormation, team) {
             console.log(`🧱 ${team.name} has fortress defense: +25 points`);
         } else if (squadStructure.strongDefenders >= 3) {
             compatibilityScore += 15;
-            console.log(`🧱 ${team.name} has good defense: +15 points`);
+            window.FC26?.dbg?.(`🧱 ${team.name} has good defense: +15 points`);
         }
     }
 
@@ -236,17 +236,17 @@ function calculateFormationCompatibility(userFormation, team) {
     if (userFormationNormal === '4-4-2' || userFormationNormal === '4-4-1-1') {
         if (squadStructure.strongWingers >= 2) {
             compatibilityScore += 20;
-            console.log(`🏃 ${team.name} has explosive wingers: +20 points`);
+            window.FC26?.dbg?.(`🏃 ${team.name} has explosive wingers: +20 points`);
         } else if (squadStructure.wingers >= 2) {
             compatibilityScore += 10;
-            console.log(`⚠️ ${team.name} has wingers: +10 points`);
+            window.FC26?.dbg?.(`⚠️ ${team.name} has wingers: +10 points`);
         }
     }
 
     // Cap score at 100
     const finalScore = Math.min(100, Math.max(0, compatibilityScore));
 
-    console.log(`📈 Final formation compatibility for ${team.name}: ${finalScore.toFixed(0)}/100`);
+    window.FC26?.dbg?.(`📈 Final formation compatibility for ${team.name}: ${finalScore.toFixed(0)}/100`);
     return finalScore;
 }
 
@@ -256,10 +256,10 @@ function calculateFormationCompatibility(userFormation, team) {
  */
 function calculateTacticalCompatibility(team) {
     const teamName = team.name.toLowerCase().trim();
-    const teamTactics = TEAM_TACTICS_DB[teamName];
+    const teamTactics = (typeof getTeamTactics === 'function') ? getTeamTactics(team) : TEAM_TACTICS_DB[teamName];
 
     if (!teamTactics) {
-        console.log(`⚠️ No tactics data for ${team.name}`);
+        window.FC26?.dbg?.(`⚠️ No tactics data for ${team.name}`);
         return 50; // Neutral score if no data
     }
 
@@ -290,15 +290,15 @@ function calculateTacticalCompatibility(team) {
         totalScore += similarityScore;
         maxScore += 100;
 
-        console.log(`  ${metric}: User=${userValue}, Team=${teamValue}, Match=${similarityScore.toFixed(0)}/100`);
+        window.FC26?.dbg?.(`  ${metric}: User=${userValue}, Team=${teamValue}, Match=${similarityScore.toFixed(0)}/100`);
     });
 
     // Calculate final percentage
     const compatibilityScore = (totalScore / maxScore) * 100;
 
-    console.log(`🎯 Tactical compatibility for ${team.name}: ${compatibilityScore.toFixed(1)}/100`);
-    console.log(`   Team stats: P${teamTactics.possession}% | CA:${teamTactics.counter_attack} | Wings:${teamTactics.wing_play}`);
-    console.log(`   Team scored ${teamTactics.goals_scored} goals this season`);
+    window.FC26?.dbg?.(`🎯 Tactical compatibility for ${team.name}: ${compatibilityScore.toFixed(1)}/100`);
+    window.FC26?.dbg?.(`   Team stats: P${teamTactics.possession}% | CA:${teamTactics.counter_attack} | Wings:${teamTactics.wing_play}`);
+    window.FC26?.dbg?.(`   Team scored ${teamTactics.goals_scored} goals this season`);
 
     return compatibilityScore;
 }

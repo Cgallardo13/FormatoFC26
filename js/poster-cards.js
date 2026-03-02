@@ -278,7 +278,9 @@ function createPosterCard(result, playerRating, medal, index) {
         high_press: answers.high_press || 50
     };
 
-    const teamTactics = TEAM_TACTICS_DB[team.name.toLowerCase().trim()] || team.style;
+    const teamTactics = (typeof getTeamTactics === 'function')
+        ? getTeamTactics(team)
+        : (TEAM_TACTICS_DB[team.name.toLowerCase().trim()] || team.style);
     const teamTacticalStats = {
         wing_play: teamTactics.wing_play || 50,
         possession: teamTactics.possession || 50,
